@@ -1,5 +1,6 @@
 const fs = require("fs");
-const src = fs.readFileSync("index.html", "utf8").match(/<script>\n([\s\S]*)<\/script>/)[1];
+const src = fs.readFileSync("index.html", "utf8")
+  .match(/<script>\n("use strict";[\s\S]*)<\/script>/)[1];
 
 const stubDoc = {
   getElementById: () => null,

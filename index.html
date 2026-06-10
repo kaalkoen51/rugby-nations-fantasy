@@ -3,8 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WC Fantasy Draft</title>
+<title>WC26 Fantasy</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  // World Cup 26 host-nation palette: Canada red, gold, Mexico green, USA blue.
+  tailwind.config = { theme: { extend: { colors: {
+    wcred: { DEFAULT: "#C8102E", hov: "#E22945" },
+    wcgold: "#FFC72C",
+    wcgreen: "#00A859",
+    wcblue: "#1A7DC4",
+    wcnavy: "#070B24",
+  } } } };
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   .pos-GK  { background:#7c3aed33; color:#c4b5fd; }
@@ -14,11 +24,12 @@
   .pos-TEAM{ background:#eab30833; color:#fde047; }
 </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen">
+<body class="bg-wcnavy text-slate-100 min-h-screen">
 
 <header class="sticky top-0 z-20 bg-slate-900/95 backdrop-blur border-b border-slate-800">
+  <div class="h-1" style="background:linear-gradient(90deg,#C8102E 0%,#FFC72C 33%,#00A859 66%,#1A7DC4 100%)"></div>
   <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-    <h1 class="font-bold text-lg">⚽ WC Fantasy <span class="text-emerald-400">Draft</span></h1>
+    <h1 class="font-bold text-lg">⚽ WC<span class="text-wcgold">26</span> Fantasy</h1>
     <div class="flex items-center gap-2 text-xs text-slate-400">
       <span id="hdr-league" class="truncate max-w-[10rem]"></span>
       <span id="conn-dot" title="realtime connection" class="w-2 h-2 rounded-full bg-slate-600"></span>
@@ -35,22 +46,22 @@
       <b>anon</b> key (Project Settings → API). Stored only in this browser.</p>
     <input id="cfg-url" placeholder="https://xxxx.supabase.co" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2">
     <input id="cfg-key" placeholder="anon key" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2">
-    <button id="cfg-save" class="w-full bg-emerald-600 hover:bg-emerald-500 rounded-lg py-2 font-semibold">Save & continue</button>
+    <button id="cfg-save" class="w-full bg-wcred hover:bg-wcred-hov rounded-lg py-2 font-semibold">Save & continue</button>
   </section>
 
   <!-- Home -->
   <section data-view="home" class="hidden space-y-4">
-    <div id="home-resume" class="hidden rounded-xl border border-emerald-700 bg-emerald-950/40 p-4">
+    <div id="home-resume" class="hidden rounded-xl border border-wcgold/60 bg-wcred/10 p-4">
       <div class="text-sm text-slate-300 mb-2">You have a league on this device:</div>
       <div class="flex items-center justify-between gap-2">
         <span id="home-resume-name" class="font-semibold"></span>
         <div class="flex gap-2">
-          <button id="home-resume-go" class="bg-emerald-600 hover:bg-emerald-500 rounded-lg px-4 py-1.5 text-sm font-semibold">Resume</button>
+          <button id="home-resume-go" class="bg-wcred hover:bg-wcred-hov rounded-lg px-4 py-1.5 text-sm font-semibold">Resume</button>
           <button id="home-resume-leave" class="text-xs text-slate-400 underline">forget</button>
         </div>
       </div>
     </div>
-    <button id="home-create" class="w-full bg-emerald-600 hover:bg-emerald-500 rounded-xl py-4 font-semibold text-lg">Create a league</button>
+    <button id="home-create" class="w-full bg-wcred hover:bg-wcred-hov rounded-xl py-4 font-semibold text-lg">Create a league</button>
     <button id="home-join" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl py-4 font-semibold text-lg">Join with invite code</button>
     <button id="home-reconfig" class="w-full text-xs text-slate-500 underline pt-2">change Supabase connection</button>
   </section>
@@ -64,7 +75,7 @@
       <input id="create-num" type="number" min="2" max="10" value="8" class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100"></label>
     <label class="block text-sm text-slate-400">Seconds per pick
       <input id="create-dur" type="number" min="15" max="300" value="60" class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100"></label>
-    <button id="create-go" class="w-full bg-emerald-600 hover:bg-emerald-500 rounded-lg py-2.5 font-semibold">Create league</button>
+    <button id="create-go" class="w-full bg-wcred hover:bg-wcred-hov rounded-lg py-2.5 font-semibold">Create league</button>
     <div id="create-result" class="hidden rounded-xl border border-amber-600 bg-amber-950/30 p-4 space-y-2 text-sm">
       <p>League created! <b>Save these somewhere safe:</b></p>
       <p>Invite code (share with managers): <code id="create-code" class="text-amber-300 text-lg font-bold"></code>
@@ -72,7 +83,7 @@
       <p>Admin token (stats entry, keep private): <code id="create-admin" class="text-amber-300 break-all"></code>
         <button class="copy-btn text-xs underline text-slate-400" data-copy="create-admin">copy</button></p>
       <p class="text-slate-400">You're the admin. Join as a manager below to also draft a team.</p>
-      <button id="create-tolobby" class="w-full bg-emerald-600 hover:bg-emerald-500 rounded-lg py-2 font-semibold">Go to lobby</button>
+      <button id="create-tolobby" class="w-full bg-wcred hover:bg-wcred-hov rounded-lg py-2 font-semibold">Go to lobby</button>
     </div>
     <button class="back-btn w-full text-xs text-slate-500 underline">back</button>
   </section>
@@ -91,7 +102,7 @@
       <div id="join-new-wrap">
         <label class="block text-sm text-slate-400">Your manager name
           <input id="join-name" placeholder="Koen" class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100"></label>
-        <button id="join-go" class="mt-3 w-full bg-emerald-600 hover:bg-emerald-500 rounded-lg py-2.5 font-semibold">Join as new manager</button>
+        <button id="join-go" class="mt-3 w-full bg-wcred hover:bg-wcred-hov rounded-lg py-2.5 font-semibold">Join as new manager</button>
       </div>
       <div id="join-reclaim-wrap" class="hidden">
         <div class="text-sm text-slate-400 mb-2">Or continue as an existing manager (e.g. switched phones):</div>
@@ -123,13 +134,13 @@
       </div>
       <ul id="lobby-managers" class="space-y-1.5 text-sm"></ul>
     </div>
-    <div id="lobby-join" class="hidden rounded-xl border border-emerald-700 bg-emerald-950/30 p-4 space-y-2">
+    <div id="lobby-join" class="hidden rounded-xl border border-wcgold/60 bg-wcred/10 p-4 space-y-2">
       <div class="text-sm">You're watching as a spectator — join as a manager to draft a team:</div>
       <input id="lobby-join-name" placeholder="Your manager name" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2">
-      <button id="lobby-join-go" class="w-full bg-emerald-600 hover:bg-emerald-500 rounded-lg py-2 font-semibold">Join</button>
+      <button id="lobby-join-go" class="w-full bg-wcred hover:bg-wcred-hov rounded-lg py-2 font-semibold">Join</button>
     </div>
     <div id="lobby-admin" class="hidden space-y-2">
-      <button id="lobby-start" class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 rounded-xl py-3 font-semibold">Start draft</button>
+      <button id="lobby-start" class="w-full bg-wcred hover:bg-wcred-hov disabled:bg-slate-800 disabled:text-slate-500 rounded-xl py-3 font-semibold">Start draft</button>
       <p class="text-xs text-slate-500 text-center">Random draft order is assigned when the draft starts. Snake order, 14 rounds.</p>
     </div>
     <p id="lobby-wait" class="text-center text-sm text-slate-400">Waiting for the admin to start the draft…</p>
@@ -148,11 +159,11 @@
           <div id="draft-onclock" class="text-lg font-bold truncate"></div>
           <div id="draft-slotline" class="text-sm text-slate-300"></div>
         </div>
-        <div id="draft-clock" class="text-4xl font-mono font-bold text-emerald-400 shrink-0">--</div>
+        <div id="draft-clock" class="text-4xl font-mono font-bold text-wcgold shrink-0">--</div>
       </div>
       <div id="draft-order" class="mt-3 flex gap-1.5 overflow-x-auto pb-1 text-xs"></div>
     </div>
-    <div id="draft-mybanner" class="hidden rounded-xl border border-emerald-500 bg-emerald-950/50 p-3 text-center font-semibold"></div>
+    <div id="draft-mybanner" class="hidden rounded-xl border border-wcgold bg-wcred/15 p-3 text-center font-semibold"></div>
     <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-3">
       <div class="flex gap-2">
         <input id="pool-search" placeholder="Search player…" class="flex-1 min-w-0 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
@@ -194,7 +205,7 @@
       <h2 class="text-xl font-semibold">Admin access</h2>
       <p class="text-sm text-slate-400">Paste the admin token you got when the league was created.</p>
       <input id="admin-token-input" placeholder="admin token" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2">
-      <button id="admin-unlock" class="w-full bg-emerald-600 hover:bg-emerald-500 rounded-lg py-2 font-semibold">Unlock</button>
+      <button id="admin-unlock" class="w-full bg-wcred hover:bg-wcred-hov rounded-lg py-2 font-semibold">Unlock</button>
     </div>
     <div id="admin-panel" class="hidden space-y-4">
       <h2 class="text-xl font-semibold">Manual stats entry</h2>
@@ -217,7 +228,7 @@
           <input id="adm-drafted" type="checkbox" checked> drafted players only</label>
         <input id="adm-psearch" placeholder="Search player…" class="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
         <div id="adm-presults" class="space-y-1 text-sm"></div>
-        <div id="adm-selplayer" class="text-sm font-semibold text-emerald-300"></div>
+        <div id="adm-selplayer" class="text-sm font-semibold text-wcgold"></div>
       </div>
       <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-3">
         <h3 class="font-semibold text-sm">Stats</h3>
@@ -235,7 +246,7 @@
           <label class="flex items-center gap-1.5"><input id="adm-cs" type="checkbox"> clean sheet (≥60min)</label>
           <label class="flex items-center gap-1.5"><input id="adm-motm" type="checkbox"> MOTM</label>
         </div>
-        <button id="adm-save" class="w-full bg-emerald-600 hover:bg-emerald-500 rounded-lg py-2 font-semibold">Save stats row</button>
+        <button id="adm-save" class="w-full bg-wcred hover:bg-wcred-hov rounded-lg py-2 font-semibold">Save stats row</button>
       </div>
       <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
         <h3 class="font-semibold text-sm mb-2">Existing rows</h3>
@@ -248,7 +259,7 @@
           round starts.</p>
         <div class="flex items-center justify-between gap-3">
           <span id="adm-trading-status" class="text-sm font-semibold"></span>
-          <button id="adm-trading-toggle" class="rounded-lg px-4 py-2 text-sm font-semibold bg-emerald-600 hover:bg-emerald-500"></button>
+          <button id="adm-trading-toggle" class="rounded-lg px-4 py-2 text-sm font-semibold bg-wcred hover:bg-wcred-hov"></button>
         </div>
       </div>
       <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-2">
@@ -274,7 +285,7 @@
     <div class="flex items-center gap-2 mt-3">
       <span id="lineup-count" class="flex-1 text-xs text-slate-400"></span>
       <button id="lineup-cancel" class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm font-semibold">Cancel</button>
-      <button id="lineup-save" class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 rounded-lg px-4 py-2 text-sm font-semibold">Save</button>
+      <button id="lineup-save" class="bg-wcred hover:bg-wcred-hov disabled:bg-slate-800 disabled:text-slate-500 rounded-lg px-4 py-2 text-sm font-semibold">Save</button>
     </div>
   </div>
 </div>
@@ -431,7 +442,7 @@ function subscribeRealtime() {
     .on("postgres_changes", { event: "*", schema: "public", table: "trade_items" }, scheduleRefetch)
     .subscribe((status) => {
       $("conn-dot").className = "w-2 h-2 rounded-full " +
-        (status === "SUBSCRIBED" ? "bg-emerald-400" : "bg-amber-400");
+        (status === "SUBSCRIBED" ? "bg-wcgreen" : "bg-amber-400");
     });
 }
 
@@ -543,7 +554,7 @@ async function findLeague() {
   list.innerHTML = "";
   for (const m of S.joinManagers) {
     const b = document.createElement("button");
-    b.className = "w-full text-left rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 hover:border-emerald-500";
+    b.className = "w-full text-left rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 hover:border-wcgold";
     b.textContent = m.name;
     b.onclick = () => claimManager(m);
     list.appendChild(b);
@@ -591,7 +602,7 @@ function renderLobby() {
   const me = myManager();
   $("lobby-managers").innerHTML = S.managers.map((m) =>
     `<li class="rounded-lg bg-slate-800/60 px-3 py-2">${esc(m.name)}` +
-    (m.id === me?.id ? ' <span class="text-emerald-400 text-xs">(you)</span>' : "") +
+    (m.id === me?.id ? ' <span class="text-wcgold text-xs">(you)</span>' : "") +
     "</li>").join("") || '<li class="text-slate-500">No one yet…</li>';
   const admin = isAdmin();
   $("lobby-admin").classList.toggle("hidden", !admin);
@@ -735,7 +746,7 @@ function tickTimer() {
   const shown = Math.max(0, remain);
   clock.textContent = Math.floor(shown / 60) + ":" + String(shown % 60).padStart(2, "0");
   clock.classList.toggle("text-red-400", remain <= 10);
-  clock.classList.toggle("text-emerald-400", remain > 10);
+  clock.classList.toggle("text-wcgold", remain > 10);
   if (remain > 0 || autoPickedFor === L.current_pick) return;
   const info = pickInfo(L.current_pick);
   const mine = info.manager.id === myManager()?.id;
@@ -754,7 +765,7 @@ function renderPool() {
   const chips = ["ALL", ...GROUPS];
   $("pool-chips").innerHTML = chips.map((c) =>
     `<button data-chip="${c}" class="rounded-full px-3 py-1 border ${
-      S.poolFilter === c ? "border-emerald-500 text-emerald-300" : "border-slate-700 text-slate-400"
+      S.poolFilter === c ? "border-wcgold text-wcgold" : "border-slate-700 text-slate-400"
     }">${c}${c !== "ALL" && myTurn ? ` (${quotaLeft(onClockPicks, c)})` : ""}</button>`).join("");
   $("pool-chips").querySelectorAll("[data-chip]").forEach((b) =>
     b.onclick = () => { S.poolFilter = b.dataset.chip; renderPool(); });
@@ -784,7 +795,7 @@ function renderPool() {
       <div class="flex items-center gap-2 shrink-0">
         <span class="text-xs font-mono text-slate-400">${entryPoints(e.player_id, e.position, e.team)} pts</span>
         <span class="pos-${e.position} rounded px-1.5 py-0.5 text-xs font-semibold">${e.position}</span>
-        ${canPick ? `<button data-pick="${esc(e.player_id)}" class="pick-btn bg-emerald-600 hover:bg-emerald-500 rounded-lg px-3 py-1.5 text-sm font-semibold">Pick</button>` : ""}
+        ${canPick ? `<button data-pick="${esc(e.player_id)}" class="pick-btn bg-wcred hover:bg-wcred-hov rounded-lg px-3 py-1.5 text-sm font-semibold">Pick</button>` : ""}
       </div>
     </li>`;
   }).join("") || '<li class="py-4 text-sm text-slate-500">No available players match.</li>';
@@ -816,15 +827,15 @@ function renderRosters(containerId) {
     <details data-mgr="${m.id}" class="rounded-xl border border-slate-700 bg-slate-900"
              ${open.has(m.id) || (!open.size && m.id === me?.id) ? "open" : ""}>
       <summary class="px-4 py-3 font-semibold cursor-pointer select-none">${esc(m.name)}${
-        m.id === me?.id ? ' <span class="text-emerald-400 text-xs">(you)</span>' : ""
+        m.id === me?.id ? ' <span class="text-wcgold text-xs">(you)</span>' : ""
       }${m.draft_position ? ` <span class="text-xs text-slate-500">· draft pos ${m.draft_position}</span>` : ""}</summary>
       ${containerId === "board-rosters" && m.id === me?.id
-        ? '<div class="px-4 pb-2"><button id="lineup-open" class="w-full bg-slate-800 border border-emerald-700 text-emerald-300 rounded-lg py-2 text-sm font-semibold">Pick my team (starters & subs)</button></div>'
+        ? '<div class="px-4 pb-2"><button id="lineup-open" class="w-full bg-slate-800 border border-wcgold/60 text-wcgold rounded-lg py-2 text-sm font-semibold">Pick my team (starters & subs)</button></div>'
         : ""}
       <div class="px-4 pb-3 grid grid-cols-2 gap-1.5 text-sm">
         ${(byMgr[m.id] || []).map((pk) => {
           const swap = canSwap && m.id === me?.id && pk.slot !== "TEAM"
-            ? `<button data-swap="${pk.id}" class="ml-auto shrink-0 text-[10px] underline text-emerald-400">swap</button>` : "";
+            ? `<button data-swap="${pk.id}" class="ml-auto shrink-0 text-[10px] underline text-wcgold">swap</button>` : "";
           return `<div class="rounded-lg bg-slate-800/60 px-2 py-1.5 flex items-center gap-1.5">
             <span class="text-[10px] w-14 shrink-0 text-slate-400">${pk.slot}</span>
             <span class="min-w-0 truncate">${esc(pk.player_name)}
@@ -854,7 +865,7 @@ function renderDraft() {
   $("draft-slotline").textContent = needsSummary(managerPicks(info.manager.id));
   $("draft-order").innerHTML = draftOrderManagers().map((m) =>
     `<span class="rounded-full px-2.5 py-1 whitespace-nowrap border ${
-      m.id === info.manager.id ? "border-emerald-500 text-emerald-300 bg-emerald-950/50"
+      m.id === info.manager.id ? "border-wcgold text-wcgold bg-wcred/15"
                                : "border-slate-700 text-slate-400"
     }">${esc(m.name)}</span>`).join("");
 
@@ -1040,11 +1051,11 @@ function renderHomeTab() {
         <div class="text-xl font-bold">${esc(me.name)}</div>
       </div>
       <div class="text-right">
-        <div class="text-2xl font-bold text-emerald-300">${myScore?.total ?? 0} pts</div>
+        <div class="text-2xl font-bold text-wcgold">${myScore?.total ?? 0} pts</div>
         <div class="text-xs text-slate-400">#${rank} of ${scores.length}</div>
       </div>
     </div>
-    <button id="home-lineup" class="w-full bg-slate-800 border border-emerald-700 text-emerald-300 rounded-xl py-2.5 text-sm font-semibold">Pick my team for the next games</button>
+    <button id="home-lineup" class="w-full bg-slate-800 border border-wcgold/60 text-wcgold rounded-xl py-2.5 text-sm font-semibold">Pick my team for the next games</button>
     <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-1">
       ${mine.map((pk) => `
         <div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-2">
@@ -1076,7 +1087,7 @@ function setBoardTab(tab) {
   document.querySelectorAll(".board-tab").forEach((b) => {
     const on = b.dataset.tab === tab;
     b.className = "board-tab flex-1 rounded-lg py-2 font-semibold " +
-      (on ? "bg-emerald-600" : "bg-slate-800 border border-slate-700");
+      (on ? "bg-wcred" : "bg-slate-800 border border-slate-700");
   });
 }
 
@@ -1093,8 +1104,8 @@ function renderBoard() {
       <summary class="px-4 py-3 cursor-pointer select-none flex items-center gap-3">
         <span class="text-slate-500 font-mono w-6">${i + 1}.</span>
         <span class="font-semibold flex-1 truncate">${esc(s.manager.name)}${
-          s.manager.id === me?.id ? ' <span class="text-emerald-400 text-xs">(you)</span>' : ""}</span>
-        <span class="font-bold text-emerald-300">${s.total} pts</span>
+          s.manager.id === me?.id ? ' <span class="text-wcgold text-xs">(you)</span>' : ""}</span>
+        <span class="font-bold text-wcgold">${s.total} pts</span>
       </summary>
       <div class="px-4 pb-3 space-y-1 text-sm">
         ${s.items.map(({ pick, pts, note }) => `
@@ -1102,7 +1113,7 @@ function renderBoard() {
             <span class="text-[10px] w-14 shrink-0 text-slate-400">${pick.slot}</span>
             <span class="truncate flex-1">${esc(pick.player_name)}</span>
             ${note ? `<span class="text-[10px] text-slate-500">${note}</span>` : ""}
-            <span class="font-mono ${pts > 0 ? "text-emerald-300" : "text-slate-500"} w-8 text-right">${pts}</span>
+            <span class="font-mono ${pts > 0 ? "text-wcgold" : "text-slate-500"} w-8 text-right">${pts}</span>
           </div>`).join("")}
       </div>
     </details>`).join("") || '<p class="text-sm text-slate-500">No managers.</p>';
@@ -1148,12 +1159,12 @@ function renderLineup() {
     lastPos = pk.position;
     const starter = S.lineupDraft.has(pk.id);
     return `${header}<button data-lineup="${pk.id}" class="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left border ${
-      starter ? "border-emerald-500 bg-emerald-950/40" : "border-slate-700 bg-slate-800/60"
+      starter ? "border-wcgold bg-wcred/10" : "border-slate-700 bg-slate-800/60"
     }">
       <span class="min-w-0 truncate text-sm">${esc(pk.player_name)}
         <span class="text-[10px] text-slate-500">${esc(pk.team)}</span></span>
       <span class="ml-auto shrink-0 text-[10px] font-mono text-slate-400">${playerPoints(pk.player_id, pk.position)}p</span>
-      <span class="shrink-0 text-xs font-semibold ${starter ? "text-emerald-300" : "text-slate-500"}">${starter ? "STARTER" : "sub"}</span>
+      <span class="shrink-0 text-xs font-semibold ${starter ? "text-wcgold" : "text-slate-500"}">${starter ? "STARTER" : "sub"}</span>
     </button>`;
   }).join("");
   $("lineup-list").querySelectorAll("[data-lineup]").forEach((b) => b.onclick = () => {
@@ -1228,7 +1239,7 @@ function renderSwapList() {
         <div class="text-xs text-slate-400">${esc(e.team)}</div>
       </div>
       <span class="shrink-0 text-xs font-mono text-slate-400">${entryPoints(e.player_id, e.position, e.team)} pts</span>
-      <button data-swapin="${esc(e.player_id)}" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 rounded-lg px-3 py-1.5 text-sm font-semibold">Swap in</button>
+      <button data-swapin="${esc(e.player_id)}" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-3 py-1.5 text-sm font-semibold">Swap in</button>
     </li>`).join("") || '<li class="py-4 text-sm text-slate-500">No free agents match.</li>';
   $("swap-list").querySelectorAll("[data-swapin]").forEach((b) => b.onclick = () => {
     const entry = pool.find((e) => e.player_id === b.dataset.swapin);
@@ -1300,7 +1311,7 @@ function builderHtml(me) {
           `<option value="${m.id}" ${b.target === m.id ? "selected" : ""}>${esc(m.name)}</option>`).join("")}
       </select></label>`;
   if (b.target === "FA") {
-    return `<div class="rounded-xl border border-emerald-600 bg-slate-900 p-4 space-y-3 mt-3">
+    return `<div class="rounded-xl border border-wcgold bg-slate-900 p-4 space-y-3 mt-3">
       <h3 class="font-semibold text-sm">Free agent swap</h3>
       ${targetSelect}
       <p class="text-xs text-slate-500">Swap any of your players for an unpicked player in the same
@@ -1311,13 +1322,13 @@ function builderHtml(me) {
           <span class="min-w-0 truncate">${esc(p.player_name)}
             <span class="text-[10px] text-slate-500">${esc(p.team)}</span></span>
           <span class="ml-auto shrink-0 text-[10px] font-mono text-slate-400">${entryPoints(p.player_id, p.position, p.team)}p</span>
-          <button data-faswap="${p.id}" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 rounded-lg px-3 py-1 text-xs font-semibold">Swap</button>
+          <button data-faswap="${p.id}" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-3 py-1 text-xs font-semibold">Swap</button>
         </div>`).join("")}
       </div>
       <button id="trade-discard" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-1.5 text-xs font-semibold">Close</button>
     </div>`;
   }
-  return `<div class="rounded-xl border border-emerald-600 bg-slate-900 p-4 space-y-3 mt-3">
+  return `<div class="rounded-xl border border-wcgold bg-slate-900 p-4 space-y-3 mt-3">
     <h3 class="font-semibold text-sm">${b.parent ? "Counter-offer" : "New trade proposal"}</h3>
     ${targetSelect}
     ${b.pairs.map((pair, i) => {
@@ -1340,14 +1351,14 @@ function builderHtml(me) {
     }).join("")}
     <div class="flex gap-2">
       <button id="trade-addpair" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg py-1.5 text-xs font-semibold">+ add pair</button>
-      <button id="trade-submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 rounded-lg py-1.5 text-xs font-semibold">Send</button>
+      <button id="trade-submit" class="flex-1 bg-wcred hover:bg-wcred-hov rounded-lg py-1.5 text-xs font-semibold">Send</button>
       <button id="trade-discard" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg py-1.5 text-xs font-semibold">Discard</button>
     </div>
   </div>`;
 }
 
 const TRADE_STATUS_STYLE = {
-  proposed: "text-amber-300", accepted: "text-emerald-400", rejected: "text-red-400",
+  proposed: "text-amber-300", accepted: "text-wcgold", rejected: "text-red-400",
   cancelled: "text-slate-500", countered: "text-sky-300",
 };
 
@@ -1363,7 +1374,7 @@ function tradeSectionHtml(title, list, incoming) {
       </div>`;
     }).join("");
     const actions = t.status !== "proposed" ? "" : incoming
-      ? `<button data-acc="${t.id}" class="bg-emerald-600 hover:bg-emerald-500 rounded-lg px-3 py-1.5 text-xs font-semibold">Accept</button>
+      ? `<button data-acc="${t.id}" class="bg-wcred hover:bg-wcred-hov rounded-lg px-3 py-1.5 text-xs font-semibold">Accept</button>
          <button data-rej="${t.id}" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold">Reject</button>
          <button data-cnt="${t.id}" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold">Counter</button>`
       : `<button data-can="${t.id}" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold">Cancel</button>`;
@@ -1391,10 +1402,10 @@ function renderTrades() {
     return;
   }
   const open = !!S.league.trading_open;
-  let html = `<div class="rounded-xl border ${open ? "border-emerald-700 bg-emerald-950/30" : "border-slate-700 bg-slate-900"} p-3 text-sm flex items-center justify-between gap-2">
+  let html = `<div class="rounded-xl border ${open ? "border-wcgold/60 bg-wcred/10" : "border-slate-700 bg-slate-900"} p-3 text-sm flex items-center justify-between gap-2">
     <span>${open ? "Trading window is <b>open</b>."
                  : "Trading is closed — you can still respond to pending proposals."}</span>
-    ${open && !S.builder ? '<button id="trade-new" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 rounded-lg px-3 py-1.5 font-semibold">New trade</button>' : ""}
+    ${open && !S.builder ? '<button id="trade-new" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-3 py-1.5 font-semibold">New trade</button>' : ""}
   </div>`;
   if (S.builder) html += builderHtml(me);
   html += tradeSectionHtml("Incoming", S.trades.filter((t) => t.target_manager_id === me.id), true);
@@ -1623,7 +1634,7 @@ function admRenderExisting() {
         return `<div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-1.5 mb-1">
           <span class="truncate flex-1">${esc(p?.name || r.player_id)}</span>
           <span class="text-xs text-slate-400">${bits.join(" ") || "0"}</span>
-          <button data-edit="${r.id}" class="text-xs underline text-emerald-400">edit</button>
+          <button data-edit="${r.id}" class="text-xs underline text-wcgold">edit</button>
           <button data-del="${r.id}" class="text-xs underline text-red-400">del</button>
         </div>`;
       }).join("")}
@@ -1677,7 +1688,7 @@ function renderAdmin() {
   const open = !!S.league.trading_open;
   $("adm-trading-status").textContent = open ? "Trading is OPEN" : "Trading is closed";
   $("adm-trading-status").className =
-    "text-sm font-semibold " + (open ? "text-emerald-400" : "text-slate-400");
+    "text-sm font-semibold " + (open ? "text-wcgold" : "text-slate-400");
   $("adm-trading-toggle").textContent = open ? "Close trading" : "Open trading";
   admRenderSelected();
   admRenderExisting();

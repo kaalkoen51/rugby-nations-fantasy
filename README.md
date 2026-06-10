@@ -14,6 +14,7 @@ match stats from API-Football every morning and scores everyone's players.
 | `daily_pull.py` | Daily stats pull → fantasy points → `match_stats` upsert |
 | `.github/workflows/daily-pull.yml` | Runs the pull daily at 06:00 SAST (04:00 UTC) |
 | `build_players.py` | Regenerates `players.json` if FIFA updates squads |
+| `build_fixtures.py` | Generates `fixtures.json` (next-fixture info on the Home tab) |
 | `test_logic.js` | Smoke tests for draft order + scoring (`node test_logic.js`) |
 
 Scoring rules live in one place each: `SCORING` in `daily_pull.py` (mirrored
@@ -113,8 +114,16 @@ working.
    leagues** → copy your league row's `id` uuid, then
    `gh secret set FANTASY_LEAGUE_ID`.
 4. Everyone joins with the invite code on their phones; when the lobby is
-   full, the admin hits **Start draft**. Random snake order, 14 rounds,
-   auto-pick if someone's timer runs out.
+   full, the admin hits **Start draft**. Random snake order, 14 rounds;
+   on your turn you draft **any position you still need** (quota:
+   2 GK, 4 DEF, 4 MID, 3 FWD, 1 TEAM), with team/position filters and
+   auto-pick if your timer runs out.
+5. After the draft (and before each round), set your lineup via
+   **Home → Pick my team**: starters are 1 GK, 3 DEF, 3 MID, 2 FWD;
+   the other four are subs. Lineups aren't fixed at the draft.
+6. For next-fixture info on the Home tab, run
+   `python build_fixtures.py` (needs `API_FOOTBALL_KEY` set) and commit
+   the generated `fixtures.json`. Optional but nice.
 
 **Do a test draft first:** create a throwaway league with 2 managers
 (you + a second browser tab in incognito), draft a few rounds, confirm
@@ -197,8 +206,9 @@ Both mechanisms need the trading window open (admin toggle) and respect
 position groups — a slot only trades within its position, subs included
 (GK/SUB_GK ⇄ GK players, etc.). TEAM picks are never tradable.
 
-- **Free-agent swap:** Rosters tab → "swap" on your own slot → pick any
-  unpicked player in that position. Instant, no approval.
+- **Free-agent swap:** Trades tab → trading partner "Free Agent Pool"
+  (or "swap" on your own roster card) → pick any unpicked player in that
+  position, filterable by team. Instant, no approval.
 - **Manager trades:** Trades tab → propose player-for-player pairs (multi-
   player trades supported) to another manager, who can accept (players
   swap immediately), reject, or counter. Counters chain, and pending
@@ -207,5 +217,6 @@ position groups — a slot only trades within its position, subs included
 
 ### Sanity tests
 
-`node test_logic.js` — 35 checks on the snake order, scoring parity with
-`daily_pull.py`, sub activation, stage bonuses, and trade validity.
+`node test_logic.js` — 43 checks on the snake order, position quotas,
+scoring parity with `daily_pull.py`, sub activation, stage bonuses, and
+trade validity.
