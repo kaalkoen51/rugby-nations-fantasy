@@ -132,6 +132,11 @@ In the app: **Admin** tab (leaderboard view) → unlock with the admin token.
   r16 → qf → sf → final → winner). This drives TEAM-pick stage bonuses on
   the leaderboard. The automation never touches this — it's always manual,
   after each knockout round.
+- **Trading window:** open/close trading from the same admin view. While
+  open, managers can swap free agents and propose trades to each other
+  (see Trading rules under Reference). Intended use: open it between
+  rounds once all teams have played, close it when the next round kicks
+  off.
 
 ### 7. Pre-kickoff checklist (tournament starts tomorrow, June 11)
 
@@ -186,7 +191,21 @@ Then commit and push the updated `players.json` so the hosted app picks
 it up. Player ids are `<fifa code>_<shirt number>` (e.g. `arg_10` =
 Messi); TEAM picks use `team:<Country>`.
 
+### Trading rules
+
+Both mechanisms need the trading window open (admin toggle) and respect
+position groups — a slot only trades within its position, subs included
+(GK/SUB_GK ⇄ GK players, etc.). TEAM picks are never tradable.
+
+- **Free-agent swap:** Rosters tab → "swap" on your own slot → pick any
+  unpicked player in that position. Instant, no approval.
+- **Manager trades:** Trades tab → propose player-for-player pairs (multi-
+  player trades supported) to another manager, who can accept (players
+  swap immediately), reject, or counter. Counters chain, and pending
+  proposals can still be answered after the window closes — only *new*
+  proposals require it open.
+
 ### Sanity tests
 
-`node test_logic.js` — 22 checks on the snake order, scoring parity with
-`daily_pull.py`, sub activation, and stage bonuses.
+`node test_logic.js` — 35 checks on the snake order, scoring parity with
+`daily_pull.py`, sub activation, stage bonuses, and trade validity.

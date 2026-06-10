@@ -9,10 +9,11 @@ const stubDoc = {
 };
 const api = new Function(
   "document", "localStorage", "window", "crypto", "navigator",
-  src + "\nreturn { S, SLOT_ORDER, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores };"
+  src + "\nreturn { S, SLOT_ORDER, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError };"
 )(stubDoc, { getItem: () => null, setItem: () => {}, removeItem: () => {} }, {}, {}, {});
 
-const { S, SLOT_ORDER, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores } = api;
+const { S, SLOT_ORDER, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores,
+        slotGroup, pairValid, tradeError } = api;
 let fails = 0;
 const check = (label, got, want) => {
   const ok = JSON.stringify(got) === JSON.stringify(want);
@@ -79,5 +80,36 @@ check("total includes stage bonus", sc2.total, 14 + 50);
 S.stages = [];
 const teamItem0 = computeScores()[0].items.find((i) => i.pick.slot === "TEAM");
 check("no stage row = group = 0", [teamItem0.pts, teamItem0.note], [0, "group"]);
+
+/* trading: slot position groups */
+check("SUB_GK and GK same group", slotGroup("SUB_GK"), slotGroup("GK"));
+check("SUB_FWD group is FWD", slotGroup("SUB_FWD"), "FWD");
+check("DEF and MID differ", slotGroup("DEF") === slotGroup("MID"), false);
+
+/* trading: pair validity */
+const pick = (id, slot) => ({ id, slot, player_name: id });
+check("GK ⇄ SUB_GK valid", pairValid(pick("a", "GK"), pick("b", "SUB_GK")), true);
+check("SUB_DEF ⇄ SUB_DEF valid", pairValid(pick("a", "SUB_DEF"), pick("b", "SUB_DEF")), true);
+check("DEF ⇄ MID invalid", pairValid(pick("a", "DEF"), pick("b", "MID")), false);
+check("TEAM never tradable", pairValid(pick("a", "TEAM"), pick("b", "TEAM")), false);
+
+/* trading: whole-trade validity */
+const P = (id, slot) => pick(id, slot);
+check("empty trade rejected", tradeError([]) !== null, true);
+check("valid single pair", tradeError([{ mine: P("a", "MID"), theirs: P("b", "SUB_MID") }]), null);
+check("valid multi pair", tradeError([
+  { mine: P("a", "GK"), theirs: P("b", "GK") },
+  { mine: P("c", "FWD"), theirs: P("d", "SUB_FWD") },
+]), null);
+check("mismatched pair rejected", tradeError([
+  { mine: P("a", "DEF"), theirs: P("b", "FWD") },
+]) !== null, true);
+check("incomplete pair rejected", tradeError([
+  { mine: P("a", "DEF"), theirs: null },
+]) !== null, true);
+check("same pick twice rejected", tradeError([
+  { mine: P("a", "DEF"), theirs: P("b", "DEF") },
+  { mine: P("a", "DEF"), theirs: P("c", "SUB_DEF") },
+]) !== null, true);
 
 process.exit(fails ? 1 : 0);
