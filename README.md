@@ -16,6 +16,13 @@ calculates fantasy points, and upserts them to a Supabase `match_stats` table.
   (casual friend-group app, not a public product).
 - `.github/workflows/daily-pull.yml` — the scheduled runner. Also supports
   manual runs via **Actions → Daily stats pull → Run workflow**.
+- `players.json` — the draft player pool: all 48 squads (26 players each,
+  1,248 total) from the official FIFA squad lists, as a flat array of
+  `{player_id, name, position, team, team_code}`. Ids are
+  `<lowercase FIFA code>_<shirt number>`, e.g. `arg_10` = Lionel Messi.
+- `build_players.py` — regenerates `players.json` from the FIFA squad
+  lists PDF (`pip install requests pypdf`, then `python build_players.py`).
+  Run it again if FIFA publishes a squad update.
 
 ### Scoring
 
