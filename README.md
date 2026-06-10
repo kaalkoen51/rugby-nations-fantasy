@@ -24,8 +24,9 @@ branch**), or locally `python -m http.server` and open
   the draft never stalls. Everyone sees picks live via Supabase Realtime.
 - **Roster:** 10 starters (incl. one national-team pick) + 4 subs. A sub's
   match only scores when a starter in that position had a match that day
-  and didn't play. TEAM picks don't score yet (stage bonuses are a future
-  enhancement).
+  and didn't play. TEAM picks earn cumulative stage bonuses as the country
+  progresses: R32 +5, R16 +10, QF +15, SF +20, Final +25, Winner +15
+  (a champion totals 90). The admin sets team stages in the admin view.
 - **Leaderboard:** live totals per manager using the same scoring as
   `daily_pull.py`, updating as `match_stats` rows land.
 - **Admin:** unlock with the admin token to manually enter or fix
@@ -69,6 +70,10 @@ scoring/sub-activation logic extracted from `index.html`.
 | Penalty missed | −2 |
 
 Players who didn't play score 0 and aren't written to the table.
+
+TEAM picks (national team slot) score separately via stage bonuses set by
+the admin in the app — see the draft app section above. They don't use
+`match_stats`.
 
 ## Setup
 

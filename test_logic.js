@@ -9,10 +9,10 @@ const stubDoc = {
 };
 const api = new Function(
   "document", "localStorage", "window", "crypto", "navigator",
-  src + "\nreturn { S, SLOT_ORDER, pickInfo, calcPlayerPoints, computeScores };"
+  src + "\nreturn { S, SLOT_ORDER, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores };"
 )(stubDoc, { getItem: () => null, setItem: () => {}, removeItem: () => {} }, {}, {}, {});
 
-const { S, SLOT_ORDER, pickInfo, calcPlayerPoints, computeScores } = api;
+const { S, SLOT_ORDER, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores } = api;
 let fails = 0;
 const check = (label, got, want) => {
   const ok = JSON.stringify(got) === JSON.stringify(want);
@@ -59,5 +59,25 @@ const startItem = sc.items.find((i) => !i.pick.is_sub);
 check("starter DEF cs pts", startItem.pts, 4);
 check("sub active only day 1 (goal 6 + cs 4)", [subItem.pts, subItem.note], [10, "active 1×"]);
 check("manager total", sc.total, 14);
+
+/* team stage bonuses */
+check("stage group = 0", calcTeamPoints("group"), 0);
+check("stage r32 = 5", calcTeamPoints("r32"), 5);
+check("stage qf = 5+10+15", calcTeamPoints("qf"), 30);
+check("stage final = 75", calcTeamPoints("final"), 75);
+check("stage winner = 90", calcTeamPoints("winner"), 90);
+check("unknown stage = 0", calcTeamPoints("nonsense"), 0);
+
+/* TEAM pick in leaderboard total */
+S.picks.push({ manager_id: "m1", player_id: "team:France", player_name: "France",
+  position: "TEAM", team: "France", slot: "TEAM", is_sub: false, pick_number: 10 });
+S.stages = [{ team: "France", stage: "sf" }];
+const sc2 = computeScores()[0];
+const teamItem = sc2.items.find((i) => i.pick.slot === "TEAM");
+check("TEAM pick sf = 50", [teamItem.pts, teamItem.note], [50, "sf"]);
+check("total includes stage bonus", sc2.total, 14 + 50);
+S.stages = [];
+const teamItem0 = computeScores()[0].items.find((i) => i.pick.slot === "TEAM");
+check("no stage row = group = 0", [teamItem0.pts, teamItem0.note], [0, "group"]);
 
 process.exit(fails ? 1 : 0);

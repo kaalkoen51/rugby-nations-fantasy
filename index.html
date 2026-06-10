@@ -172,7 +172,8 @@
     <div id="board-lb" class="space-y-2"></div>
     <div id="board-rosters" class="hidden space-y-2"></div>
     <p class="text-xs text-slate-500 text-center">Subs score only for matchdays where a starter in their
-      position had a match but didn't play. TEAM picks don't score (yet).</p>
+      position had a match but didn't play. TEAM picks earn cumulative stage bonuses
+      (R32 +5, R16 +10, QF +15, SF +20, Final +25, Winner +15).</p>
   </section>
 
   <!-- Admin stats entry -->
@@ -229,6 +230,14 @@
         <h3 class="font-semibold text-sm mb-2">Existing rows</h3>
         <div id="adm-existing" class="space-y-3 text-sm"></div>
       </div>
+      <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-2">
+        <h3 class="font-semibold text-sm">Team stages</h3>
+        <p class="text-xs text-slate-500">How far each national team has progressed. TEAM picks earn
+          cumulative bonuses (R32 +5, R16 +10, QF +15, SF +20, Final +25, Winner +15).
+          Changes save immediately.</p>
+        <input id="adm-tsearch" placeholder="Filter teams…" class="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
+        <div id="adm-stages" class="space-y-1 max-h-[40vh] overflow-y-auto"></div>
+      </div>
     </div>
   </section>
 
@@ -259,11 +268,15 @@ const SCORING = {
   penalty_missed: -2,
 };
 
+// TEAM pick stage bonuses, awarded once per stage reached (cumulative).
+const STAGE_ORDER = ["group", "r32", "r16", "qf", "sf", "final", "winner"];
+const STAGE_BONUS = { r32: 5, r16: 10, qf: 15, sf: 20, final: 25, winner: 15 };
+
 /* ---------- state & tiny helpers ---------- */
 
 const S = {
   sb: null, players: [], teams: [],
-  league: null, managers: [], picks: [], stats: [],
+  league: null, managers: [], picks: [], stats: [], stages: [],
   channel: null,
 };
 
@@ -325,19 +338,21 @@ async function loadPlayers() {
 async function refetchAll() {
   const id = getSession()?.leagueId;
   if (!id) return;
-  const [l, m, p, st] = await Promise.all([
+  const [l, m, p, st, tg] = await Promise.all([
     S.sb.from("leagues").select("*").eq("id", id).maybeSingle(),
     S.sb.from("managers").select("*").eq("league_id", id).order("created_at"),
     S.sb.from("picks").select("*").eq("league_id", id).order("pick_number"),
     S.sb.from("match_stats").select("*").eq("league_id", id),
+    S.sb.from("team_stages").select("*").eq("league_id", id),
   ]);
-  const err = l.error || m.error || p.error || st.error;
+  const err = l.error || m.error || p.error || st.error || tg.error;
   if (err) { toast("Load failed: " + err.message); return; }
   if (!l.data) { toast("League not found."); setSession(null); showView("home"); return; }
   S.league = l.data;
   S.managers = m.data;
   S.picks = p.data;
   S.stats = st.data;
+  S.stages = tg.data;
   route();
 }
 
@@ -352,6 +367,7 @@ function subscribeRealtime() {
     .on("postgres_changes", { event: "*", schema: "public", table: "managers",    filter: "league_id=eq." + id }, scheduleRefetch)
     .on("postgres_changes", { event: "*", schema: "public", table: "picks",       filter: "league_id=eq." + id }, scheduleRefetch)
     .on("postgres_changes", { event: "*", schema: "public", table: "match_stats", filter: "league_id=eq." + id }, scheduleRefetch)
+    .on("postgres_changes", { event: "*", schema: "public", table: "team_stages", filter: "league_id=eq." + id }, scheduleRefetch)
     .subscribe((status) => {
       $("conn-dot").className = "w-2 h-2 rounded-full " +
         (status === "SUBSCRIBED" ? "bg-emerald-400" : "bg-amber-400");
@@ -743,6 +759,15 @@ function calcPlayerPoints(r, pos) {
   return p;
 }
 
+// Cumulative stage bonus: every stage reached up to and including the
+// current one pays out once (group = 0; a champion totals 90).
+function calcTeamPoints(stage) {
+  const idx = STAGE_ORDER.indexOf(stage);
+  let pts = 0;
+  for (let i = 1; i <= idx; i++) pts += STAGE_BONUS[STAGE_ORDER[i]];
+  return pts;
+}
+
 const labelDate = (l) => (String(l || "").match(/\((\d{4}-\d{2}-\d{2})\)/) || [])[1] || null;
 const labelTeams = (l) => {
   const m = String(l || "").match(/^(.+) vs (.+) \(/);
@@ -773,7 +798,9 @@ function computeScores() {
     const items = mPicks.map((pk) => {
       let pts = 0, note = "";
       if (pk.slot === "TEAM") {
-        note = "no scoring yet";
+        const stage = S.stages.find((s) => s.team === pk.team)?.stage || "group";
+        pts = calcTeamPoints(stage);
+        note = stage;
       } else if (!pk.is_sub) {
         pts = (statsByPlayer[pk.player_id] || [])
           .reduce((s, r) => s + calcPlayerPoints(r, pk.position), 0);
@@ -831,7 +858,7 @@ function renderBoard() {
             <span class="text-[10px] w-14 shrink-0 text-slate-400">${pick.slot}</span>
             <span class="truncate flex-1">${esc(pick.player_name)}</span>
             ${note ? `<span class="text-[10px] text-slate-500">${note}</span>` : ""}
-            <span class="font-mono ${pts > 0 ? "text-emerald-300" : "text-slate-500"} w-8 text-right">${pick.slot === "TEAM" ? "—" : pts}</span>
+            <span class="font-mono ${pts > 0 ? "text-emerald-300" : "text-slate-500"} w-8 text-right">${pts}</span>
           </div>`).join("")}
       </div>
     </details>`).join("") || '<p class="text-sm text-slate-500">No managers.</p>';
@@ -971,6 +998,34 @@ function admRenderExisting() {
     b.onclick = () => admDelete(S.stats.find((r) => r.id === b.dataset.del)));
 }
 
+function admRenderStages() {
+  const q = $("adm-tsearch").value.trim().toLowerCase();
+  const cur = Object.fromEntries(S.stages.map((s) => [s.team, s.stage]));
+  const teams = S.teams.filter((t) => !q || t.toLowerCase().includes(q));
+  $("adm-stages").innerHTML = teams.map((t) => {
+    const stage = cur[t] || "group";
+    return `<div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-1.5 text-sm">
+      <span class="truncate flex-1">${esc(t)}</span>
+      <span class="text-xs text-slate-500 font-mono">+${calcTeamPoints(stage)}</span>
+      <select data-team="${esc(t)}" class="stage-sel rounded bg-slate-900 border border-slate-700 px-1.5 py-1 text-xs">
+        ${STAGE_ORDER.map((s) =>
+          `<option value="${s}" ${stage === s ? "selected" : ""}>${s}</option>`).join("")}
+      </select>
+    </div>`;
+  }).join("");
+  $("adm-stages").querySelectorAll(".stage-sel").forEach((sel) =>
+    sel.onchange = () => setTeamStage(sel.dataset.team, sel.value)
+      .catch((e) => toast(e.message)));
+}
+
+async function setTeamStage(team, stage) {
+  const { error } = await S.sb.from("team_stages")
+    .upsert({ league_id: S.league.id, team, stage }, { onConflict: "league_id,team" });
+  if (error) return toast("Save failed: " + error.message);
+  toast(`${team} → ${stage} (+${calcTeamPoints(stage)} pts)`);
+  scheduleRefetch();
+}
+
 function renderAdmin() {
   const ok = isAdmin();
   $("admin-gate").classList.toggle("hidden", ok);
@@ -985,6 +1040,7 @@ function renderAdmin() {
   $("adm-label-preview").textContent = admLabel();
   admRenderSelected();
   admRenderExisting();
+  admRenderStages();
 }
 
 /* ---------- home & init ---------- */
@@ -1033,6 +1089,7 @@ function wire() {
   };
   $("adm-psearch").oninput = admRenderPlayerSearch;
   $("adm-drafted").onchange = admRenderPlayerSearch;
+  $("adm-tsearch").oninput = admRenderStages;
   ["adm-home", "adm-away", "adm-date", "adm-label"].forEach((id) =>
     $(id).onchange = () => $("adm-label-preview").textContent = admLabel());
   $("adm-save").onclick = () => admSave().catch((e) => toast(e.message));

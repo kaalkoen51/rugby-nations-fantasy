@@ -76,6 +76,11 @@ create unique index if not exists picks_league_pick_number_key
 create unique index if not exists picks_league_player_key
     on picks (league_id, player_id);
 
+-- One stage row per team per league, so the app can upsert. stage holds
+-- one of: group, r32, r16, qf, sf, final, winner.
+create unique index if not exists team_stages_league_team_key
+    on team_stages (league_id, team);
+
 -- Realtime: stream changes to connected clients.
 alter publication supabase_realtime add table leagues;
 alter publication supabase_realtime add table managers;
