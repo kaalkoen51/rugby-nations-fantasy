@@ -123,6 +123,11 @@
       </div>
       <ul id="lobby-managers" class="space-y-1.5 text-sm"></ul>
     </div>
+    <div id="lobby-join" class="hidden rounded-xl border border-emerald-700 bg-emerald-950/30 p-4 space-y-2">
+      <div class="text-sm">You're watching as a spectator — join as a manager to draft a team:</div>
+      <input id="lobby-join-name" placeholder="Your manager name" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2">
+      <button id="lobby-join-go" class="w-full bg-emerald-600 hover:bg-emerald-500 rounded-lg py-2 font-semibold">Join</button>
+    </div>
     <div id="lobby-admin" class="hidden space-y-2">
       <button id="lobby-start" class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 rounded-xl py-3 font-semibold">Start draft</button>
       <p class="text-xs text-slate-500 text-center">Random draft order is assigned when the draft starts. Snake order, 14 rounds.</p>
@@ -157,14 +162,74 @@
     <button id="draft-force" class="hidden w-full bg-amber-700 hover:bg-amber-600 rounded-lg py-2 text-sm font-semibold">Admin: force auto-pick now</button>
   </section>
 
-  <!-- Leaderboard / rosters (part 3) -->
+  <!-- Leaderboard / rosters -->
   <section data-view="board" class="hidden space-y-4">
-    <p class="text-center text-sm text-slate-400 py-10">Leaderboard coming in part 3.</p>
+    <div class="flex gap-2 text-sm">
+      <button id="tab-lb" class="board-tab flex-1 rounded-lg py-2 font-semibold" data-tab="lb">Leaderboard</button>
+      <button id="tab-rosters" class="board-tab flex-1 rounded-lg py-2 font-semibold" data-tab="rosters">Rosters</button>
+      <button id="tab-admin" class="flex-1 rounded-lg py-2 font-semibold bg-slate-800 border border-slate-700">Admin</button>
+    </div>
+    <div id="board-lb" class="space-y-2"></div>
+    <div id="board-rosters" class="hidden space-y-2"></div>
+    <p class="text-xs text-slate-500 text-center">Subs score only for matchdays where a starter in their
+      position had a match but didn't play. TEAM picks don't score (yet).</p>
   </section>
 
-  <!-- Admin stats entry (part 3) -->
+  <!-- Admin stats entry -->
   <section data-view="admin" class="hidden space-y-4">
-    <p class="text-center text-sm text-slate-400 py-10">Admin view coming in part 3.</p>
+    <button id="admin-back" class="text-xs text-slate-400 underline">← back</button>
+    <div id="admin-gate" class="space-y-3">
+      <h2 class="text-xl font-semibold">Admin access</h2>
+      <p class="text-sm text-slate-400">Paste the admin token you got when the league was created.</p>
+      <input id="admin-token-input" placeholder="admin token" class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2">
+      <button id="admin-unlock" class="w-full bg-emerald-600 hover:bg-emerald-500 rounded-lg py-2 font-semibold">Unlock</button>
+    </div>
+    <div id="admin-panel" class="hidden space-y-4">
+      <h2 class="text-xl font-semibold">Manual stats entry</h2>
+      <p class="text-xs text-slate-500">Fallback alongside the automated daily pull. Rows upsert on
+        (player, match), so re-saving edits in place. Use the same match label format as the
+        automation: <code>Home vs Away (YYYY-MM-DD)</code>.</p>
+      <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-3">
+        <h3 class="font-semibold text-sm">Match</h3>
+        <div class="grid grid-cols-2 gap-2">
+          <select id="adm-home" class="rounded-lg bg-slate-800 border border-slate-700 px-2 py-2 text-sm"></select>
+          <select id="adm-away" class="rounded-lg bg-slate-800 border border-slate-700 px-2 py-2 text-sm"></select>
+        </div>
+        <input id="adm-date" type="date" class="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
+        <input id="adm-label" placeholder="custom match label (optional, overrides above)" class="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
+        <div class="text-xs text-slate-500">Label: <code id="adm-label-preview"></code></div>
+      </div>
+      <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-3">
+        <h3 class="font-semibold text-sm">Player</h3>
+        <label class="flex items-center gap-2 text-xs text-slate-400">
+          <input id="adm-drafted" type="checkbox" checked> drafted players only</label>
+        <input id="adm-psearch" placeholder="Search player…" class="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
+        <div id="adm-presults" class="space-y-1 text-sm"></div>
+        <div id="adm-selplayer" class="text-sm font-semibold text-emerald-300"></div>
+      </div>
+      <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-3">
+        <h3 class="font-semibold text-sm">Stats</h3>
+        <div class="grid grid-cols-3 gap-2 text-sm">
+          <label class="text-xs text-slate-400">Goals<input id="adm-goals" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Assists<input id="adm-assists" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Saves (GK)<input id="adm-saves" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Yellows<input id="adm-yc" type="number" value="0" min="0" max="2" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Reds<input id="adm-rc" type="number" value="0" min="0" max="1" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Pens saved<input id="adm-ps" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Pens missed<input id="adm-pm" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+        </div>
+        <div class="flex flex-wrap gap-4 text-sm">
+          <label class="flex items-center gap-1.5"><input id="adm-appeared" type="checkbox" checked> appeared</label>
+          <label class="flex items-center gap-1.5"><input id="adm-cs" type="checkbox"> clean sheet (≥60min)</label>
+          <label class="flex items-center gap-1.5"><input id="adm-motm" type="checkbox"> MOTM</label>
+        </div>
+        <button id="adm-save" class="w-full bg-emerald-600 hover:bg-emerald-500 rounded-lg py-2 font-semibold">Save stats row</button>
+      </div>
+      <div class="rounded-xl border border-slate-700 bg-slate-900 p-4">
+        <h3 class="font-semibold text-sm mb-2">Existing rows</h3>
+        <div id="adm-existing" class="space-y-3 text-sm"></div>
+      </div>
+    </div>
   </section>
 
 </main>
@@ -250,6 +315,7 @@ async function loadPlayers() {
     const resp = await fetch("players.json");
     S.players = await resp.json();
     S.teams = [...new Set(S.players.map((p) => p.team))].sort();
+    S.playerById = Object.fromEntries(S.players.map((p) => [p.player_id, p]));
   } catch (e) {
     toast("Could not load players.json — serve this file over HTTP (e.g. GitHub Pages or `python -m http.server`).");
     throw e;
@@ -308,6 +374,9 @@ const totalPicks = () => SLOT_ORDER.length * (S.league?.num_managers || 0);
 function route() {
   if (!S.league) { showView("home"); return; }
   $("hdr-league").textContent = S.league.name;
+  // Keep the admin on their screen across realtime refreshes.
+  const cur = document.querySelector("[data-view]:not(.hidden)")?.dataset.view;
+  if (cur === "admin") { renderAdmin(); return; }
   if (!S.league.current_pick) {
     renderLobby();
     showView("lobby");
@@ -426,6 +495,21 @@ function renderLobby() {
   $("lobby-start").disabled = !ready;
   $("lobby-start").textContent = ready
     ? "Start draft" : `Start draft (waiting for ${L.num_managers - S.managers.length} more)`;
+  $("lobby-join").classList.toggle("hidden",
+    !!me || S.managers.length >= L.num_managers);
+}
+
+async function joinFromLobby() {
+  const name = $("lobby-join-name").value.trim();
+  if (!name) return toast("Enter a name.");
+  if (S.managers.some((m) => m.name.toLowerCase() === name.toLowerCase()))
+    return toast("That name is taken.");
+  const { data, error } = await S.sb.from("managers")
+    .insert({ league_id: S.league.id, name, join_token: crypto.randomUUID() })
+    .select().single();
+  if (error) return toast(error.message);
+  setSession({ ...getSession(), managerId: data.id });
+  scheduleRefetch();
 }
 
 async function startDraft() {
@@ -584,8 +668,11 @@ function renderRosters(containerId) {
   const open = new Set([...document.querySelectorAll(`#${containerId} details[open]`)]
     .map((d) => d.dataset.mgr));
   const me = myManager();
+  // Slot names repeat (3x DEF etc.), so index by pick order: a manager's
+  // i-th pick is their round-(i+1) pick, which is always SLOT_ORDER[i].
   const byMgr = {};
-  for (const pk of S.picks) (byMgr[pk.manager_id] ||= {})[pk.slot] = pk;
+  for (const pk of S.picks) (byMgr[pk.manager_id] ||= []).push(pk);
+  for (const k in byMgr) byMgr[k].sort((a, b) => a.pick_number - b.pick_number);
   $(containerId).innerHTML = draftOrderManagers().map((m) => `
     <details data-mgr="${m.id}" class="rounded-xl border border-slate-700 bg-slate-900"
              ${open.has(m.id) || (!open.size && m.id === me?.id) ? "open" : ""}>
@@ -593,8 +680,8 @@ function renderRosters(containerId) {
         m.id === me?.id ? ' <span class="text-emerald-400 text-xs">(you)</span>' : ""
       }${m.draft_position ? ` <span class="text-xs text-slate-500">· draft pos ${m.draft_position}</span>` : ""}</summary>
       <div class="px-4 pb-3 grid grid-cols-2 gap-1.5 text-sm">
-        ${SLOT_ORDER.map((slot) => {
-          const pk = byMgr[m.id]?.[slot];
+        ${SLOT_ORDER.map((slot, i) => {
+          const pk = (byMgr[m.id] || [])[i];
           return `<div class="rounded-lg bg-slate-800/60 px-2 py-1.5 flex items-center gap-1.5">
             <span class="text-[10px] w-14 shrink-0 text-slate-400">${slot}</span>
             <span class="truncate ${pk ? "" : "text-slate-600"}">${pk ? esc(pk.player_name) : "—"}</span>
@@ -637,9 +724,268 @@ function renderDraft() {
   $("draft-force").classList.toggle("hidden", !isAdmin() || myTurn);
 }
 
-/* ---------- scoring & leaderboard (part 3) ---------- */
+/* ---------- scoring & leaderboard ---------- */
 
-function renderBoard() {}
+// Mirrors calculate_points() in daily_pull.py. clean_sheet as stored
+// already encodes the ">=60 min and conceded 0" rule.
+function calcPlayerPoints(r, pos) {
+  if (!r.appeared) return 0;
+  let p = 0;
+  p += (r.goals || 0) * SCORING.goal[pos];
+  p += (r.assists || 0) * SCORING.assist;
+  if (r.clean_sheet) p += SCORING.clean_sheet[pos];
+  p += (r.yellow_cards || 0) * SCORING.yellow_card;
+  p += (r.red_cards || 0) * SCORING.red_card;
+  if (pos === "GK") p += Math.floor((r.saves || 0) / 2) * SCORING.save_per_2;
+  if (r.motm) p += SCORING.motm;
+  p += (r.penalty_saved || 0) * SCORING.penalty_saved;
+  p += (r.penalty_missed || 0) * SCORING.penalty_missed;
+  return p;
+}
+
+const labelDate = (l) => (String(l || "").match(/\((\d{4}-\d{2}-\d{2})\)/) || [])[1] || null;
+const labelTeams = (l) => {
+  const m = String(l || "").match(/^(.+) vs (.+) \(/);
+  return m ? [m[1], m[2]] : [];
+};
+
+// Sub activation: a sub's match (by date) counts only if a starter in the
+// same position had a match that day (their team appears in a match_label)
+// and has no appeared=true row for it. Starter and sub play for different
+// countries, so "same matchday" is the comparable unit, not the same match.
+function computeScores() {
+  const statsByPlayer = {};
+  const playedByDate = {};
+  for (const r of S.stats) {
+    (statsByPlayer[r.player_id] ||= []).push(r);
+    const d = labelDate(r.match_label);
+    if (d) for (const t of labelTeams(r.match_label)) (playedByDate[d] ||= new Set()).add(t);
+  }
+  const appearedDates = (pid) => new Set(
+    (statsByPlayer[pid] || []).filter((r) => r.appeared)
+      .map((r) => labelDate(r.match_label)).filter(Boolean));
+
+  return S.managers.map((m) => {
+    const mPicks = S.picks.filter((p) => p.manager_id === m.id)
+      .sort((a, b) => a.pick_number - b.pick_number);
+    const starters = mPicks.filter((p) => !p.is_sub && p.slot !== "TEAM");
+    let total = 0;
+    const items = mPicks.map((pk) => {
+      let pts = 0, note = "";
+      if (pk.slot === "TEAM") {
+        note = "no scoring yet";
+      } else if (!pk.is_sub) {
+        pts = (statsByPlayer[pk.player_id] || [])
+          .reduce((s, r) => s + calcPlayerPoints(r, pk.position), 0);
+      } else {
+        const mates = starters.filter((st) => st.position === pk.position);
+        let activated = 0;
+        for (const r of statsByPlayer[pk.player_id] || []) {
+          if (!r.appeared) continue;
+          const d = labelDate(r.match_label);
+          if (!d) continue;
+          if (mates.some((st) => playedByDate[d]?.has(st.team)
+                                 && !appearedDates(st.player_id).has(d))) {
+            pts += calcPlayerPoints(r, pk.position);
+            activated++;
+          }
+        }
+        note = activated ? `active ${activated}×` : "bench";
+      }
+      total += pts;
+      return { pick: pk, pts, note };
+    });
+    return { manager: m, total, items };
+  });
+}
+
+function setBoardTab(tab) {
+  S.boardTab = tab;
+  $("board-lb").classList.toggle("hidden", tab !== "lb");
+  $("board-rosters").classList.toggle("hidden", tab !== "rosters");
+  document.querySelectorAll(".board-tab").forEach((b) => {
+    const on = b.dataset.tab === tab;
+    b.className = "board-tab flex-1 rounded-lg py-2 font-semibold " +
+      (on ? "bg-emerald-600" : "bg-slate-800 border border-slate-700");
+  });
+}
+
+function renderBoard() {
+  setBoardTab(S.boardTab || "lb");
+  const open = new Set([...document.querySelectorAll("#board-lb details[open]")]
+    .map((d) => d.dataset.mgr));
+  const me = myManager();
+  const scores = computeScores().sort((a, b) => b.total - a.total);
+  $("board-lb").innerHTML = scores.map((s, i) => `
+    <details data-mgr="${s.manager.id}" class="rounded-xl border border-slate-700 bg-slate-900"
+             ${open.has(s.manager.id) ? "open" : ""}>
+      <summary class="px-4 py-3 cursor-pointer select-none flex items-center gap-3">
+        <span class="text-slate-500 font-mono w-6">${i + 1}.</span>
+        <span class="font-semibold flex-1 truncate">${esc(s.manager.name)}${
+          s.manager.id === me?.id ? ' <span class="text-emerald-400 text-xs">(you)</span>' : ""}</span>
+        <span class="font-bold text-emerald-300">${s.total} pts</span>
+      </summary>
+      <div class="px-4 pb-3 space-y-1 text-sm">
+        ${s.items.map(({ pick, pts, note }) => `
+          <div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-1.5">
+            <span class="text-[10px] w-14 shrink-0 text-slate-400">${pick.slot}</span>
+            <span class="truncate flex-1">${esc(pick.player_name)}</span>
+            ${note ? `<span class="text-[10px] text-slate-500">${note}</span>` : ""}
+            <span class="font-mono ${pts > 0 ? "text-emerald-300" : "text-slate-500"} w-8 text-right">${pick.slot === "TEAM" ? "—" : pts}</span>
+          </div>`).join("")}
+      </div>
+    </details>`).join("") || '<p class="text-sm text-slate-500">No managers.</p>';
+  renderRosters("board-rosters");
+}
+
+/* ---------- admin stats entry ---------- */
+
+function admLabel() {
+  const custom = $("adm-label").value.trim();
+  if (custom) return custom;
+  const home = $("adm-home").value, away = $("adm-away").value, date = $("adm-date").value;
+  return home && away && date ? `${home} vs ${away} (${date})` : "";
+}
+
+function draftedIds() {
+  return new Set(S.picks.filter((p) => !p.player_id.startsWith("team:"))
+    .map((p) => p.player_id));
+}
+
+function admRenderPlayerSearch() {
+  const q = $("adm-psearch").value.trim().toLowerCase();
+  const box = $("adm-presults");
+  if (q.length < 2) { box.innerHTML = ""; return; }
+  let pool = S.players;
+  if ($("adm-drafted").checked) {
+    const ids = draftedIds();
+    pool = pool.filter((p) => ids.has(p.player_id));
+  }
+  const hits = pool.filter((p) => p.name.toLowerCase().includes(q)
+    || p.team.toLowerCase().includes(q)).slice(0, 10);
+  box.innerHTML = hits.map((p) =>
+    `<button data-pid="${esc(p.player_id)}" class="w-full text-left rounded-lg bg-slate-800 px-3 py-1.5 hover:bg-slate-700">
+      ${esc(p.name)} <span class="text-xs text-slate-400">· ${esc(p.team)} · ${p.position}</span></button>`).join("");
+  box.querySelectorAll("[data-pid]").forEach((b) => b.onclick = () => {
+    S.admPlayer = S.players.find((p) => p.player_id === b.dataset.pid);
+    box.innerHTML = "";
+    $("adm-psearch").value = "";
+    admRenderSelected();
+  });
+}
+
+function admRenderSelected() {
+  $("adm-selplayer").textContent = S.admPlayer
+    ? `Selected: ${S.admPlayer.name} (${S.admPlayer.position}, ${S.admPlayer.team})`
+    : "No player selected.";
+}
+
+async function admSave() {
+  const label = admLabel();
+  if (!S.admPlayer) return toast("Select a player first.");
+  if (!label) return toast("Set the match (teams + date) or a custom label.");
+  const num = (id) => Math.max(0, parseInt($(id).value, 10) || 0);
+  const row = {
+    league_id: S.league.id,
+    player_id: S.admPlayer.player_id,
+    match_label: label,
+    appeared: $("adm-appeared").checked,
+    goals: num("adm-goals"), assists: num("adm-assists"),
+    clean_sheet: $("adm-cs").checked,
+    yellow_cards: num("adm-yc"), red_cards: num("adm-rc"),
+    saves: num("adm-saves"), motm: $("adm-motm").checked,
+    penalty_saved: num("adm-ps"), penalty_missed: num("adm-pm"),
+  };
+  const { error } = await S.sb.from("match_stats")
+    .upsert(row, { onConflict: "league_id,player_id,match_label" });
+  if (error) return toast("Save failed: " + error.message);
+  toast(`Saved: ${S.admPlayer.name} — ${label}`);
+  S.admPlayer = null;
+  admRenderSelected();
+  ["adm-goals","adm-assists","adm-saves","adm-yc","adm-rc","adm-ps","adm-pm"]
+    .forEach((id) => $(id).value = 0);
+  $("adm-cs").checked = false; $("adm-motm").checked = false; $("adm-appeared").checked = true;
+  scheduleRefetch();
+}
+
+function admLoadRow(r) {
+  const m = String(r.match_label).match(/^(.+) vs (.+) \((\d{4}-\d{2}-\d{2})\)$/);
+  if (m) {
+    $("adm-home").value = m[1]; $("adm-away").value = m[2]; $("adm-date").value = m[3];
+    $("adm-label").value = "";
+  } else {
+    $("adm-label").value = r.match_label;
+  }
+  S.admPlayer = S.playerById[r.player_id]
+    || { player_id: r.player_id, name: r.player_id, position: "?", team: "?" };
+  admRenderSelected();
+  $("adm-goals").value = r.goals; $("adm-assists").value = r.assists;
+  $("adm-saves").value = r.saves; $("adm-yc").value = r.yellow_cards;
+  $("adm-rc").value = r.red_cards; $("adm-ps").value = r.penalty_saved;
+  $("adm-pm").value = r.penalty_missed;
+  $("adm-cs").checked = r.clean_sheet; $("adm-motm").checked = r.motm;
+  $("adm-appeared").checked = r.appeared;
+  $("adm-label-preview").textContent = admLabel();
+  window.scrollTo(0, 0);
+}
+
+async function admDelete(r) {
+  if (!confirm(`Delete stats for ${S.playerById[r.player_id]?.name || r.player_id} — ${r.match_label}?`)) return;
+  const { error } = await S.sb.from("match_stats").delete().eq("id", r.id);
+  if (error) return toast(error.message);
+  scheduleRefetch();
+}
+
+function admRenderExisting() {
+  const groups = {};
+  for (const r of S.stats) (groups[r.match_label] ||= []).push(r);
+  const labels = Object.keys(groups).sort((a, b) =>
+    String(labelDate(b)).localeCompare(String(labelDate(a))) || a.localeCompare(b));
+  $("adm-existing").innerHTML = labels.map((label) => `
+    <div>
+      <div class="text-xs text-slate-400 mb-1">${esc(label)}</div>
+      ${groups[label].map((r) => {
+        const p = S.playerById[r.player_id];
+        const bits = [];
+        if (!r.appeared) bits.push("DNP");
+        if (r.goals) bits.push(r.goals + "g");
+        if (r.assists) bits.push(r.assists + "a");
+        if (r.clean_sheet) bits.push("CS");
+        if (r.saves) bits.push(r.saves + "sv");
+        if (r.yellow_cards) bits.push(r.yellow_cards + "Y");
+        if (r.red_cards) bits.push("R");
+        if (r.motm) bits.push("MOTM");
+        if (r.penalty_saved) bits.push(r.penalty_saved + "PS");
+        if (r.penalty_missed) bits.push(r.penalty_missed + "PM");
+        return `<div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-1.5 mb-1">
+          <span class="truncate flex-1">${esc(p?.name || r.player_id)}</span>
+          <span class="text-xs text-slate-400">${bits.join(" ") || "0"}</span>
+          <button data-edit="${r.id}" class="text-xs underline text-emerald-400">edit</button>
+          <button data-del="${r.id}" class="text-xs underline text-red-400">del</button>
+        </div>`;
+      }).join("")}
+    </div>`).join("") || '<p class="text-slate-500">No stats rows yet.</p>';
+  $("adm-existing").querySelectorAll("[data-edit]").forEach((b) =>
+    b.onclick = () => admLoadRow(S.stats.find((r) => r.id === b.dataset.edit)));
+  $("adm-existing").querySelectorAll("[data-del]").forEach((b) =>
+    b.onclick = () => admDelete(S.stats.find((r) => r.id === b.dataset.del)));
+}
+
+function renderAdmin() {
+  const ok = isAdmin();
+  $("admin-gate").classList.toggle("hidden", ok);
+  $("admin-panel").classList.toggle("hidden", !ok);
+  if (!ok) return;
+  if (!$("adm-home").options.length) {
+    const opts = (sel) => $(sel).innerHTML =
+      S.teams.map((t) => `<option>${esc(t)}</option>`).join("");
+    opts("adm-home"); opts("adm-away");
+    $("adm-date").value = new Date().toISOString().slice(0, 10);
+  }
+  $("adm-label-preview").textContent = admLabel();
+  admRenderSelected();
+  admRenderExisting();
+}
 
 /* ---------- home & init ---------- */
 
@@ -668,11 +1014,28 @@ function wire() {
   $("join-find").onclick = () => findLeague().catch((e) => toast(e.message));
   $("join-go").onclick = () => joinLeague().catch((e) => toast(e.message));
   $("lobby-start").onclick = () => startDraft().catch((e) => toast(e.message));
+  $("lobby-join-go").onclick = () => joinFromLobby().catch((e) => toast(e.message));
   $("pool-search").oninput = (e) => { S.poolSearch = e.target.value; renderPool(); };
   $("draft-force").onclick = () => {
     if (confirm("Force a random auto-pick for the manager on the clock?"))
       autoPick(pickInfo(S.league.current_pick)).catch((e) => toast(e.message));
   };
+  document.querySelectorAll(".board-tab").forEach((b) =>
+    b.onclick = () => { setBoardTab(b.dataset.tab); renderBoard(); });
+  $("tab-admin").onclick = () => { renderAdmin(); showView("admin"); };
+  // Leave the admin view first, then let route() pick the phase view.
+  $("admin-back").onclick = () => { showView("board"); route(); };
+  $("admin-unlock").onclick = () => {
+    const tok = $("admin-token-input").value.trim();
+    if (!tok || tok !== S.league?.admin_token) return toast("Wrong token.");
+    setSession({ ...getSession(), adminToken: tok });
+    renderAdmin();
+  };
+  $("adm-psearch").oninput = admRenderPlayerSearch;
+  $("adm-drafted").onchange = admRenderPlayerSearch;
+  ["adm-home", "adm-away", "adm-date", "adm-label"].forEach((id) =>
+    $(id).onchange = () => $("adm-label-preview").textContent = admLabel());
+  $("adm-save").onclick = () => admSave().catch((e) => toast(e.message));
   document.querySelectorAll(".back-btn").forEach((b) => b.onclick = () => showView("home"));
   document.querySelectorAll(".copy-btn").forEach((b) => b.onclick = () => {
     navigator.clipboard.writeText($(b.dataset.copy).textContent).then(() => toast("Copied"));

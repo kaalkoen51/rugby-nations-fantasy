@@ -1,11 +1,41 @@
-# WC Fantasy — daily stats pull
+# WC Fantasy
 
-Automation for a World Cup fantasy football league among friends. A GitHub
-Actions workflow runs once a day at **06:00 SAST** (04:00 UTC), pulls
+A World Cup 2026 fantasy football league for a friend group: a live snake
+draft app (`index.html`) plus daily stats automation. A GitHub Actions
+workflow runs once a day at **06:00 SAST** (04:00 UTC), pulls
 completed-match player statistics from [API-Football](https://www.api-football.com/),
 calculates fantasy points, and upserts them to a Supabase `match_stats` table.
 
-## How it works
+## The draft app (`index.html`)
+
+Single-file app (Supabase JS + Tailwind via CDN). Serve it over HTTP next to
+`players.json` — GitHub Pages works (**Settings → Pages → deploy from
+branch**), or locally `python -m http.server` and open
+`http://localhost:8000`.
+
+- **First open:** paste your Supabase project URL and **anon** key (stored in
+  the browser, asked once per device).
+- **Lobby:** create a league (you get an invite code for managers and a
+  private admin token), friends join with the code, admin starts the draft
+  when everyone's in.
+- **Live snake draft:** random order, 14 rounds, fixed slot sequence
+  (GK, 3×DEF, 3×MID, 2×FWD, TEAM, then SUB_GK/DEF/MID/FWD). A countdown
+  runs per pick; if it expires, a random eligible player is auto-picked so
+  the draft never stalls. Everyone sees picks live via Supabase Realtime.
+- **Roster:** 10 starters (incl. one national-team pick) + 4 subs. A sub's
+  match only scores when a starter in that position had a match that day
+  and didn't play. TEAM picks don't score yet (stage bonuses are a future
+  enhancement).
+- **Leaderboard:** live totals per manager using the same scoring as
+  `daily_pull.py`, updating as `match_stats` rows land.
+- **Admin:** unlock with the admin token to manually enter or fix
+  `match_stats` rows (fallback alongside the automation). Use match labels
+  in the automation's format: `Home vs Away (YYYY-MM-DD)`.
+
+`test_logic.js` (`node test_logic.js`) smoke-tests the snake order and
+scoring/sub-activation logic extracted from `index.html`.
+
+## How the automation works
 
 - `daily_pull.py` — fetches yesterday's completed fixtures (status FT/AET/PEN)
   for the configured league, flattens per-player stats, scores them, and
