@@ -57,6 +57,7 @@ create table if not exists team_stages (
 -- picks.player_id for the TEAM slot uses the convention "team:<TeamName>",
 -- e.g. "team:Argentina"; regular slots use players.json ids like "arg_10".
 alter table leagues add column if not exists invite_code text;
+alter table leagues add column if not exists trading_open boolean not null default false;
 alter table leagues add column if not exists admin_token text;
 alter table leagues add column if not exists num_managers int default 8;
 alter table leagues add column if not exists pick_duration_seconds int default 60;
