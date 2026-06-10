@@ -277,7 +277,10 @@
 <div id="swap-sheet" class="hidden fixed inset-0 z-40 bg-black/60">
   <div class="absolute bottom-0 inset-x-0 max-h-[75vh] bg-slate-900 border-t border-slate-700 rounded-t-2xl p-4 flex flex-col">
     <div id="swap-title" class="font-semibold mb-2"></div>
-    <input id="swap-search" placeholder="Search free agents…" class="rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm mb-2">
+    <div class="flex gap-2 mb-2">
+      <input id="swap-search" placeholder="Search free agents…" class="flex-1 min-w-0 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
+      <select id="swap-team" class="w-32 shrink-0 rounded-lg bg-slate-800 border border-slate-700 px-2 py-2 text-sm"></select>
+    </div>
     <ul id="swap-list" class="overflow-y-auto divide-y divide-slate-800 flex-1 min-h-0"></ul>
     <button id="swap-close" class="mt-3 w-full bg-slate-800 border border-slate-700 rounded-lg py-2 text-sm font-semibold">Cancel</button>
   </div>
@@ -1067,6 +1070,11 @@ function openSwap(pick) {
   $("swap-title").textContent =
     `Swap out ${pick.player_name} (${pick.slot}) — pick a free-agent ${slotGroup(pick.slot)}:`;
   $("swap-search").value = "";
+  if (!$("swap-team").options.length) {
+    $("swap-team").innerHTML = '<option value="">All teams</option>' +
+      S.teams.map((t) => `<option>${esc(t)}</option>`).join("");
+  }
+  $("swap-team").value = "";
   renderSwapList();
   $("swap-sheet").classList.remove("hidden");
 }
@@ -1080,6 +1088,8 @@ function renderSwapList() {
   const pick = S.swapPick;
   if (!pick) return;
   let pool = availableForGroup(slotGroup(pick.slot));
+  const teamF = $("swap-team").value;
+  if (teamF) pool = pool.filter((e) => e.team === teamF);
   const q = $("swap-search").value.trim().toLowerCase();
   if (q) pool = pool.filter((e) =>
     e.name.toLowerCase().includes(q) || e.team.toLowerCase().includes(q));
@@ -1155,14 +1165,34 @@ function builderHtml(me) {
   const targetPicks = S.picks.filter((p) => p.manager_id === b.target && p.slot !== "TEAM");
   const optLabel = (p) =>
     `${p.slot} · ${p.player_name} (${p.team}, ${entryPoints(p.player_id, p.position, p.team)} pts)`;
-  return `<div class="rounded-xl border border-emerald-600 bg-slate-900 p-4 space-y-3 mt-3">
-    <h3 class="font-semibold text-sm">${b.parent ? "Counter-offer" : "New trade proposal"}</h3>
-    <label class="block text-xs text-slate-400">Trade with
+  const targetSelect = `<label class="block text-xs text-slate-400">Trade with
       <select id="trade-target" class="mt-1 w-full rounded-lg bg-slate-800 border border-slate-700 px-2 py-2 text-sm" ${b.parent ? "disabled" : ""}>
-        <option value="">— choose manager —</option>
+        <option value="">— choose trading partner —</option>
+        <option value="FA" ${b.target === "FA" ? "selected" : ""}>Free Agent Pool (instant swaps)</option>
         ${others.map((m) =>
           `<option value="${m.id}" ${b.target === m.id ? "selected" : ""}>${esc(m.name)}</option>`).join("")}
-      </select></label>
+      </select></label>`;
+  if (b.target === "FA") {
+    return `<div class="rounded-xl border border-emerald-600 bg-slate-900 p-4 space-y-3 mt-3">
+      <h3 class="font-semibold text-sm">Free agent swap</h3>
+      ${targetSelect}
+      <p class="text-xs text-slate-500">Swap any of your players for an unpicked player in the same
+        position. No approval needed — it happens immediately.</p>
+      <div class="space-y-1">
+        ${myPicks.map((p) => `<div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-1.5 text-sm">
+          <span class="text-[10px] w-14 shrink-0 text-slate-400">${p.slot}</span>
+          <span class="min-w-0 truncate">${esc(p.player_name)}
+            <span class="text-[10px] text-slate-500">${esc(p.team)}</span></span>
+          <span class="ml-auto shrink-0 text-[10px] font-mono text-slate-400">${entryPoints(p.player_id, p.position, p.team)}p</span>
+          <button data-faswap="${p.id}" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 rounded-lg px-3 py-1 text-xs font-semibold">Swap</button>
+        </div>`).join("")}
+      </div>
+      <button id="trade-discard" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-1.5 text-xs font-semibold">Close</button>
+    </div>`;
+  }
+  return `<div class="rounded-xl border border-emerald-600 bg-slate-900 p-4 space-y-3 mt-3">
+    <h3 class="font-semibold text-sm">${b.parent ? "Counter-offer" : "New trade proposal"}</h3>
+    ${targetSelect}
     ${b.pairs.map((pair, i) => {
       const mp = pickById(pair.mine);
       const theirOpts = targetPicks.filter((p) => !mp || slotGroup(p.slot) === slotGroup(mp.slot));
@@ -1257,6 +1287,8 @@ function wireTrades(me) {
     S.builder.pairs = [{ mine: "", theirs: "" }];
     renderTrades();
   };
+  box.querySelectorAll("[data-faswap]").forEach((b) => b.onclick = () =>
+    openSwap(S.picks.find((pk) => pk.id === b.dataset.faswap)));
   box.querySelectorAll("[data-mine]").forEach((sel) => sel.onchange = () => {
     const pair = S.builder.pairs[+sel.dataset.mine];
     pair.mine = sel.value;
@@ -1295,6 +1327,7 @@ function wireTrades(me) {
 async function submitTrade(me) {
   const b = S.builder;
   if (!b.target) return toast("Choose a manager to trade with.");
+  if (b.target === "FA") return; // FA swaps execute per-player, no proposal
   // New proposals need the window open; counters are responses and are
   // allowed even after it closes (so negotiations don't get stuck).
   if (!S.league.trading_open && !b.parent) return toast("Trading window is closed.");
