@@ -258,6 +258,21 @@
 
 </main>
 
+<!-- Lineup picker bottom sheet -->
+<div id="lineup-sheet" class="hidden fixed inset-0 z-40 bg-black/60">
+  <div class="absolute bottom-0 inset-x-0 max-h-[85vh] bg-slate-900 border-t border-slate-700 rounded-t-2xl p-4 flex flex-col">
+    <div class="font-semibold">Pick your team for the next games</div>
+    <p class="text-xs text-slate-500 mt-0.5 mb-2">Starters: 1 GK, 3 DEF, 3 MID, 2 FWD. The other four
+      are subs — a sub only scores on days their starter doesn't play.</p>
+    <div id="lineup-list" class="overflow-y-auto flex-1 min-h-0 space-y-1"></div>
+    <div class="flex items-center gap-2 mt-3">
+      <span id="lineup-count" class="flex-1 text-xs text-slate-400"></span>
+      <button id="lineup-cancel" class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm font-semibold">Cancel</button>
+      <button id="lineup-save" class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 rounded-lg px-4 py-2 text-sm font-semibold">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Free-agent swap bottom sheet -->
 <div id="swap-sheet" class="hidden fixed inset-0 z-40 bg-black/60">
   <div class="absolute bottom-0 inset-x-0 max-h-[75vh] bg-slate-900 border-t border-slate-700 rounded-t-2xl p-4 flex flex-col">
@@ -386,6 +401,7 @@ async function refetchAll() {
   S.stats = st.data;
   S.stages = tg.data;
   S.trades = tr.data;
+  ptsCache = null;
   route();
 }
 
@@ -728,6 +744,7 @@ function renderPool() {
         <div class="text-xs text-slate-400">${esc(e.team)}</div>
       </div>
       <div class="flex items-center gap-2 shrink-0">
+        <span class="text-xs font-mono text-slate-400">${entryPoints(e.player_id, e.position, e.team)} pts</span>
         <span class="pos-${e.position} rounded px-1.5 py-0.5 text-xs font-semibold">${e.position}</span>
         ${canPick ? `<button data-pick="${esc(e.player_id)}" class="pick-btn bg-emerald-600 hover:bg-emerald-500 rounded-lg px-3 py-1.5 text-sm font-semibold">Pick</button>` : ""}
       </div>
@@ -763,6 +780,9 @@ function renderRosters(containerId) {
       <summary class="px-4 py-3 font-semibold cursor-pointer select-none">${esc(m.name)}${
         m.id === me?.id ? ' <span class="text-emerald-400 text-xs">(you)</span>' : ""
       }${m.draft_position ? ` <span class="text-xs text-slate-500">· draft pos ${m.draft_position}</span>` : ""}</summary>
+      ${containerId === "board-rosters" && m.id === me?.id
+        ? '<div class="px-4 pb-2"><button id="lineup-open" class="w-full bg-slate-800 border border-emerald-700 text-emerald-300 rounded-lg py-2 text-sm font-semibold">Pick my team (starters & subs)</button></div>'
+        : ""}
       <div class="px-4 pb-3 grid grid-cols-2 gap-1.5 text-sm">
         ${(byMgr[m.id] || []).map((pk) => {
           const swap = canSwap && m.id === me?.id && pk.slot !== "TEAM"
@@ -770,13 +790,16 @@ function renderRosters(containerId) {
           return `<div class="rounded-lg bg-slate-800/60 px-2 py-1.5 flex items-center gap-1.5">
             <span class="text-[10px] w-14 shrink-0 text-slate-400">${pk.slot}</span>
             <span class="min-w-0 truncate">${esc(pk.player_name)}
-              <span class="text-[10px] text-slate-500">${esc(pk.team)}</span></span>${swap}
+              <span class="text-[10px] text-slate-500">${esc(pk.team)}</span></span>
+            <span class="ml-auto shrink-0 text-[10px] font-mono text-slate-400">${entryPoints(pk.player_id, pk.position, pk.team)}p</span>${swap}
           </div>`;
         }).join("") || '<div class="text-slate-600 text-xs col-span-2">No picks yet.</div>'}
       </div>
     </details>`).join("");
   $(containerId).querySelectorAll("[data-swap]").forEach((b) => b.onclick = () =>
     openSwap(S.picks.find((pk) => pk.id === b.dataset.swap)));
+  const lineupBtn = $(containerId).querySelector("#lineup-open");
+  if (lineupBtn) lineupBtn.onclick = openLineup;
 }
 
 function renderDraft() {
@@ -838,6 +861,24 @@ function calcTeamPoints(stage) {
   let pts = 0;
   for (let i = 1; i <= idx; i++) pts += STAGE_BONUS[STAGE_ORDER[i]];
   return pts;
+}
+
+// Raw tournament-to-date points for one player (every appearance counts;
+// the leaderboard's sub-activation rules are separate).
+let ptsCache = null;
+function playerPoints(playerId, position) {
+  if (!ptsCache) {
+    ptsCache = {};
+    for (const r of S.stats) (ptsCache[r.player_id] ||= []).push(r);
+  }
+  return (ptsCache[playerId] || []).reduce((s, r) => s + calcPlayerPoints(r, position), 0);
+}
+
+const stageOf = (team) => S.stages.find((s) => s.team === team)?.stage || "group";
+
+// Points badge for any pool entry or pick: TEAM entries show stage bonuses.
+function entryPoints(playerId, position, team) {
+  return position === "TEAM" ? calcTeamPoints(stageOf(team)) : playerPoints(playerId, position);
 }
 
 const labelDate = (l) => (String(l || "").match(/\((\d{4}-\d{2}-\d{2})\)/) || [])[1] || null;
@@ -939,6 +980,80 @@ function renderBoard() {
   renderTrades();
 }
 
+/* ---------- lineup picker ---------- */
+
+function openLineup() {
+  const me = myManager();
+  if (!me) return;
+  // Draft of the new lineup: set of pick ids that will be starters.
+  S.lineupDraft = new Set(managerPicks(me.id)
+    .filter((pk) => !pk.is_sub && pk.slot !== "TEAM").map((pk) => pk.id));
+  renderLineup();
+  $("lineup-sheet").classList.remove("hidden");
+}
+
+function lineupCounts() {
+  const me = myManager();
+  const counts = { GK: 0, DEF: 0, MID: 0, FWD: 0 };
+  for (const pk of managerPicks(me.id)) {
+    if (S.lineupDraft.has(pk.id)) counts[pk.position]++;
+  }
+  return counts;
+}
+
+function lineupValid(counts) {
+  return ["GK", "DEF", "MID", "FWD"].every((g) => counts[g] === STARTER_QUOTA[g]);
+}
+
+function renderLineup() {
+  const me = myManager();
+  const mine = managerPicks(me.id).filter((pk) => pk.slot !== "TEAM");
+  const order = { GK: 0, DEF: 1, MID: 2, FWD: 3 };
+  mine.sort((a, b) => order[a.position] - order[b.position] || a.pick_number - b.pick_number);
+  let lastPos = "";
+  $("lineup-list").innerHTML = mine.map((pk) => {
+    const header = pk.position !== lastPos
+      ? `<div class="text-[10px] text-slate-500 mt-2 first:mt-0">${pk.position} — pick ${STARTER_QUOTA[pk.position]} starter${STARTER_QUOTA[pk.position] > 1 ? "s" : ""}</div>`
+      : "";
+    lastPos = pk.position;
+    const starter = S.lineupDraft.has(pk.id);
+    return `${header}<button data-lineup="${pk.id}" class="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left border ${
+      starter ? "border-emerald-500 bg-emerald-950/40" : "border-slate-700 bg-slate-800/60"
+    }">
+      <span class="min-w-0 truncate text-sm">${esc(pk.player_name)}
+        <span class="text-[10px] text-slate-500">${esc(pk.team)}</span></span>
+      <span class="ml-auto shrink-0 text-[10px] font-mono text-slate-400">${playerPoints(pk.player_id, pk.position)}p</span>
+      <span class="shrink-0 text-xs font-semibold ${starter ? "text-emerald-300" : "text-slate-500"}">${starter ? "STARTER" : "sub"}</span>
+    </button>`;
+  }).join("");
+  $("lineup-list").querySelectorAll("[data-lineup]").forEach((b) => b.onclick = () => {
+    const id = b.dataset.lineup;
+    if (S.lineupDraft.has(id)) S.lineupDraft.delete(id);
+    else S.lineupDraft.add(id);
+    renderLineup();
+  });
+  const counts = lineupCounts();
+  $("lineup-count").textContent =
+    `Starters: ${counts.GK}/1 GK · ${counts.DEF}/3 DEF · ${counts.MID}/3 MID · ${counts.FWD}/2 FWD`;
+  $("lineup-save").disabled = !lineupValid(counts);
+}
+
+async function saveLineup() {
+  const me = myManager();
+  if (!lineupValid(lineupCounts())) return;
+  const changes = managerPicks(me.id).filter((pk) => pk.slot !== "TEAM").map((pk) => {
+    const isSub = !S.lineupDraft.has(pk.id);
+    return { pk, isSub, slot: isSub ? "SUB_" + pk.position : pk.position };
+  }).filter(({ pk, isSub }) => pk.is_sub !== isSub);
+  const results = await Promise.all(changes.map(({ pk, isSub, slot }) =>
+    S.sb.from("picks").update({ is_sub: isSub, slot }).eq("id", pk.id)));
+  const err = results.find((r) => r.error)?.error;
+  if (err) return toast("Save failed: " + err.message);
+  toast(changes.length ? "Lineup saved." : "Lineup unchanged.");
+  $("lineup-sheet").classList.add("hidden");
+  scheduleRefetch();
+}
+
 /* ---------- trading: free-agent swap ---------- */
 
 // Position group of a slot: GK/SUB_GK -> GK, etc. TEAM stays its own group
@@ -975,6 +1090,7 @@ function renderSwapList() {
         <div class="truncate font-medium">${esc(e.name)}</div>
         <div class="text-xs text-slate-400">${esc(e.team)}</div>
       </div>
+      <span class="shrink-0 text-xs font-mono text-slate-400">${entryPoints(e.player_id, e.position, e.team)} pts</span>
       <button data-swapin="${esc(e.player_id)}" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 rounded-lg px-3 py-1.5 text-sm font-semibold">Swap in</button>
     </li>`).join("") || '<li class="py-4 text-sm text-slate-500">No free agents match.</li>';
   $("swap-list").querySelectorAll("[data-swapin]").forEach((b) => b.onclick = () => {
@@ -1037,7 +1153,8 @@ function builderHtml(me) {
   const others = S.managers.filter((m) => m.id !== me.id);
   const myPicks = S.picks.filter((p) => p.manager_id === me.id && p.slot !== "TEAM");
   const targetPicks = S.picks.filter((p) => p.manager_id === b.target && p.slot !== "TEAM");
-  const optLabel = (p) => `${p.slot} · ${p.player_name}`;
+  const optLabel = (p) =>
+    `${p.slot} · ${p.player_name} (${p.team}, ${entryPoints(p.player_id, p.position, p.team)} pts)`;
   return `<div class="rounded-xl border border-emerald-600 bg-slate-900 p-4 space-y-3 mt-3">
     <h3 class="font-semibold text-sm">${b.parent ? "Counter-offer" : "New trade proposal"}</h3>
     <label class="block text-xs text-slate-400">Trade with
@@ -1467,6 +1584,8 @@ function wire() {
   $("adm-trading-toggle").onclick = () => toggleTrading().catch((e) => toast(e.message));
   $("swap-close").onclick = closeSwap;
   $("swap-search").oninput = renderSwapList;
+  $("lineup-cancel").onclick = () => $("lineup-sheet").classList.add("hidden");
+  $("lineup-save").onclick = () => saveLineup().catch((e) => toast(e.message));
   ["adm-home", "adm-away", "adm-date", "adm-label"].forEach((id) =>
     $(id).onchange = () => $("adm-label-preview").textContent = admLabel());
   $("adm-save").onclick = () => admSave().catch((e) => toast(e.message));
