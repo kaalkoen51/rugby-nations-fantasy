@@ -118,6 +118,7 @@ class TestExtractPlayerRows(unittest.TestCase):
                             "rating": "7.0",
                         },
                         "goals": {}, "cards": {}, "penalty": {},
+                        "tackles": {"total": 3, "blocks": 1, "interceptions": 2},
                     }
                 ],
             }
@@ -150,6 +151,9 @@ class TestExtractPlayerRows(unittest.TestCase):
 
         self.assertIsNone(by_api["999"]["player_id"])
         self.assertEqual(by_api["999"]["match_note"], "no name match")
+
+        # tackles + blocks + interceptions roll up into defensive_actions
+        self.assertEqual(by_api["154"]["defensive_actions"], 6)
 
         self.assertEqual(
             by_api["154"]["match_label"],

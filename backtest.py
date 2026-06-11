@@ -117,9 +117,9 @@ def main() -> None:
         rows.extend(fixture_rows)
 
     for r in rows:
-        r["base"] = calculate_points(r)
+        r["total"] = calculate_points(r)  # includes the defensive-actions rule
         r["dc"] = (r["defensive_actions"] // 2) if r["position"] != "GK" else 0
-        r["total"] = r["base"] + r["dc"]
+        r["base"] = r["total"] - r["dc"]
 
     print(f"{len(rows)} appearances\n")
     print(f"{'Pos':<5}{'apps':>6}{'avg base':>10}{'avg DC':>8}"
@@ -129,8 +129,8 @@ def main() -> None:
         by_pos[r["position"]].append(r)
     for pos in ("GK", "DEF", "MID", "FWD"):
         rs = by_pos[pos]
-        n = len(rs)
-        print(f"{pos:<5}{n:>6}"
+        n = len(rs) or 1
+        print(f"{pos:<5}{len(rs):>6}"
               f"{sum(r['base'] for r in rs) / n:>10.2f}"
               f"{sum(r['dc'] for r in rs) / n:>8.2f}"
               f"{sum(r['total'] for r in rs) / n:>11.2f}"

@@ -49,12 +49,17 @@ SCORING = {
     "yellow_card": -1,
     "red_card": -3,
     "save_per_2": 1,
+    # defensive actions = tackles + blocks + interceptions; GK excluded
+    # (they have the saves rule). +1 per 2 actions = 0.5/action, kept integer.
+    "def_action_per_2": 1,
     "motm": 3,
     "penalty_saved": 5,
     "penalty_missed": -2,
 }
 
+# fixtures/players reports single letters; other endpoints use full words.
 POSITION_MAP = {
+    "G": "GK", "D": "DEF", "M": "MID", "F": "FWD",
     "Goalkeeper": "GK",
     "Defender": "DEF",
     "Midfielder": "MID",
@@ -276,6 +281,7 @@ def extract_player_rows(fixture: dict, teams_data: list, matcher: PlayerMatcher)
             stat_goals = stats.get("goals", {}) or {}
             cards = stats.get("cards", {}) or {}
             penalty = stats.get("penalty", {}) or {}
+            tackles = stats.get("tackles", {}) or {}
 
             minutes = to_int(games.get("minutes"))
             position = POSITION_MAP.get(games.get("position"), "MID")
@@ -306,6 +312,11 @@ def extract_player_rows(fixture: dict, teams_data: list, matcher: PlayerMatcher)
                     "red_cards": to_int(cards.get("red")),
                     "penalty_saved": to_int(penalty.get("saved")),
                     "penalty_missed": to_int(penalty.get("missed")),
+                    "defensive_actions": (
+                        to_int(tackles.get("total"))
+                        + to_int(tackles.get("blocks"))
+                        + to_int(tackles.get("interceptions"))
+                    ),
                     "motm": False,  # assigned per fixture below
                 }
             )
@@ -338,6 +349,8 @@ def calculate_points(row: dict) -> int:
     points += row["red_cards"] * SCORING["red_card"]
     if pos == "GK":
         points += (row["saves"] // 2) * SCORING["save_per_2"]
+    else:
+        points += (row.get("defensive_actions", 0) // 2) * SCORING["def_action_per_2"]
     if row["motm"]:
         points += SCORING["motm"]
     points += row["penalty_saved"] * SCORING["penalty_saved"]
@@ -364,6 +377,7 @@ def upsert_match_stats(rows: list, league_id: str) -> None:
             "motm": row["motm"],
             "penalty_saved": row["penalty_saved"],
             "penalty_missed": row["penalty_missed"],
+            "defensive_actions": row["defensive_actions"],
         }
         for row in rows
     ]

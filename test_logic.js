@@ -52,10 +52,13 @@ check("MID quota untouched", quotaLeft(roster, "MID"), 4);
 /* scoring */
 const row = (o) => ({ appeared: true, goals: 0, assists: 0, clean_sheet: false,
   yellow_cards: 0, red_cards: 0, saves: 0, motm: false, penalty_saved: 0,
-  penalty_missed: 0, ...o });
+  penalty_missed: 0, defensive_actions: 0, ...o });
 check("GK: cs + 5 saves + pen save", calcPlayerPoints(row({ clean_sheet: true, saves: 5, penalty_saved: 1 }), "GK"), 6 + 2 + 5);
 check("FWD: 2 goals + motm + yellow", calcPlayerPoints(row({ goals: 2, motm: true, yellow_cards: 1 }), "FWD"), 8 + 3 - 1);
 check("DNP scores 0", calcPlayerPoints(row({ appeared: false, goals: 3 }), "MID"), 0);
+check("DEF: cs + 5 def actions", calcPlayerPoints(row({ clean_sheet: true, defensive_actions: 5 }), "DEF"), 4 + 2);
+check("GK def actions don't score", calcPlayerPoints(row({ defensive_actions: 8 }), "GK"), 0);
+check("rows without def actions still score", calcPlayerPoints({ ...row({ goals: 1 }), defensive_actions: undefined }, "MID"), 5);
 
 /* sub activation */
 S.managers = [{ id: "m1", name: "M1", draft_position: 1 }];

@@ -208,6 +208,19 @@
       <button id="admin-unlock" class="w-full bg-wcred hover:bg-wcred-hov rounded-lg py-2 font-semibold">Unlock</button>
     </div>
     <div id="admin-panel" class="hidden space-y-4">
+      <div class="rounded-xl border border-wcgold/60 bg-slate-900 p-4 space-y-3">
+        <h3 class="font-semibold text-sm">Pull stats now</h3>
+        <p class="text-xs text-slate-500">Fetches completed matches for the chosen date straight
+          from API-Football and writes everyone's stats — same as the 06:00 automated pull, on
+          demand. Your API key is stored only on this device. In-progress games are skipped;
+          re-pull after the final whistle.</p>
+        <input id="adm-api-key" placeholder="API-Football key" class="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
+        <div class="flex gap-2">
+          <input id="adm-pull-date" type="date" class="flex-1 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
+          <button id="adm-pull-now" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-4 py-2 text-sm font-semibold">Pull stats now</button>
+        </div>
+        <pre id="adm-pull-log" class="text-xs text-slate-400 whitespace-pre-wrap"></pre>
+      </div>
       <h2 class="text-xl font-semibold">Manual stats entry</h2>
       <p class="text-xs text-slate-500">Fallback alongside the automated daily pull. Rows upsert on
         (player, match), so re-saving edits in place. Use the same match label format as the
@@ -240,6 +253,7 @@
           <label class="text-xs text-slate-400">Reds<input id="adm-rc" type="number" value="0" min="0" max="1" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Pens saved<input id="adm-ps" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Pens missed<input id="adm-pm" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Def. actions<input id="adm-da" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
         </div>
         <div class="flex flex-wrap gap-4 text-sm">
           <label class="flex items-center gap-1.5"><input id="adm-appeared" type="checkbox" checked> appeared</label>
@@ -331,6 +345,9 @@ const SCORING = {
   yellow_card: -1,
   red_card:    -3,
   save_per_2:  1,
+  // defensive actions = tackles + blocks + interceptions; GK excluded
+  // (they have the saves rule). +1 per 2 = 0.5/action, kept integer.
+  def_action_per_2: 1,
   motm:        3,
   penalty_saved:  5,
   penalty_missed: -2,
@@ -925,6 +942,7 @@ function calcPlayerPoints(r, pos) {
   p += (r.yellow_cards || 0) * SCORING.yellow_card;
   p += (r.red_cards || 0) * SCORING.red_card;
   if (pos === "GK") p += Math.floor((r.saves || 0) / 2) * SCORING.save_per_2;
+  else p += Math.floor((r.defensive_actions || 0) / 2) * SCORING.def_action_per_2;
   if (r.motm) p += SCORING.motm;
   p += (r.penalty_saved || 0) * SCORING.penalty_saved;
   p += (r.penalty_missed || 0) * SCORING.penalty_missed;
@@ -1062,6 +1080,8 @@ function scoringHtml() {
     ["Yellow card", SCORING.yellow_card],
     ["Red card", SCORING.red_card],
     ["Saves (GK)", `+${SCORING.save_per_2} per 2 saves`],
+    ["Defensive actions — tackles, blocks, interceptions (not GK)",
+      `+${SCORING.def_action_per_2} per 2 actions`],
     ["Man of the match", `+${SCORING.motm}`],
     ["Penalty saved", `+${SCORING.penalty_saved}`],
     ["Penalty missed", SCORING.penalty_missed],
@@ -1703,6 +1723,7 @@ async function admSave() {
     yellow_cards: num("adm-yc"), red_cards: num("adm-rc"),
     saves: num("adm-saves"), motm: $("adm-motm").checked,
     penalty_saved: num("adm-ps"), penalty_missed: num("adm-pm"),
+    defensive_actions: num("adm-da"),
   };
   const { error } = await S.sb.from("match_stats")
     .upsert(row, { onConflict: "league_id,player_id,match_label" });
@@ -1710,7 +1731,7 @@ async function admSave() {
   toast(`Saved: ${S.admPlayer.name} — ${label}`);
   S.admPlayer = null;
   admRenderSelected();
-  ["adm-goals","adm-assists","adm-saves","adm-yc","adm-rc","adm-ps","adm-pm"]
+  ["adm-goals","adm-assists","adm-saves","adm-yc","adm-rc","adm-ps","adm-pm","adm-da"]
     .forEach((id) => $(id).value = 0);
   $("adm-cs").checked = false; $("adm-motm").checked = false; $("adm-appeared").checked = true;
   scheduleRefetch();
@@ -1731,6 +1752,7 @@ function admLoadRow(r) {
   $("adm-saves").value = r.saves; $("adm-yc").value = r.yellow_cards;
   $("adm-rc").value = r.red_cards; $("adm-ps").value = r.penalty_saved;
   $("adm-pm").value = r.penalty_missed;
+  $("adm-da").value = r.defensive_actions || 0;
   $("adm-cs").checked = r.clean_sheet; $("adm-motm").checked = r.motm;
   $("adm-appeared").checked = r.appeared;
   $("adm-label-preview").textContent = admLabel();
@@ -1762,6 +1784,7 @@ function admRenderExisting() {
         if (r.saves) bits.push(r.saves + "sv");
         if (r.yellow_cards) bits.push(r.yellow_cards + "Y");
         if (r.red_cards) bits.push("R");
+        if (r.defensive_actions) bits.push(r.defensive_actions + "da");
         if (r.motm) bits.push("MOTM");
         if (r.penalty_saved) bits.push(r.penalty_saved + "PS");
         if (r.penalty_missed) bits.push(r.penalty_missed + "PM");
@@ -1807,6 +1830,116 @@ async function setTeamStage(team, stage) {
   scheduleRefetch();
 }
 
+/* ---------- admin: on-demand stats pull (mirrors daily_pull.py) ---------- */
+
+const foldName = (s) => String(s || "").normalize("NFKD")
+  .replace(/[̀-ͯ]/g, "").toLowerCase()
+  .replace(/[^a-z0-9]+/g, " ").trim();
+
+async function apiFootball(key, path, params) {
+  const url = new URL("https://v3.football.api-sports.io/" + path);
+  for (const k in params) url.searchParams.set(k, params[k]);
+  const resp = await fetch(url, { headers: { "x-apisports-key": key } });
+  const data = await resp.json();
+  const errs = data.errors && Object.values(data.errors);
+  if (errs && errs.length) throw new Error(errs.join("; "));
+  return data.response || [];
+}
+
+// API player -> players.json id. The FIFA id is <team code>_<shirt number>,
+// so team + shirt is authoritative; name matching is the fallback.
+function mapApiPlayer(team, shirt, apiName) {
+  const roster = S.players.filter((p) => p.team === team);
+  if (!roster.length) return null;
+  if (shirt) {
+    const pid = roster[0].team_code.toLowerCase() + "_" + shirt;
+    if (S.playerById[pid]) return pid;
+  }
+  const target = foldName(apiName);
+  let hits = roster.filter((p) => foldName(p.name) === target);
+  if (hits.length !== 1) {
+    const sur = target.split(" ").pop();
+    hits = roster.filter((p) => foldName(p.name).split(" ").pop() === sur);
+  }
+  return hits.length === 1 ? hits[0].player_id : null;
+}
+
+async function pullStatsNow() {
+  const key = $("adm-api-key").value.trim();
+  const date = $("adm-pull-date").value;
+  const log = (t) => $("adm-pull-log").textContent = t;
+  if (!key) return toast("Enter your API-Football key first.");
+  if (!date) return toast("Pick a date.");
+  localStorage.setItem("wcf_apikey", key);
+  const btn = $("adm-pull-now");
+  btn.disabled = true;
+  try {
+    log("Fetching fixtures for " + date + "…");
+    const fixtures = (await apiFootball(key, "fixtures",
+      { date, league: 1, season: 2026 }))
+      .filter((f) => ["FT", "AET", "PEN"].includes(f.fixture.status.short));
+    if (!fixtures.length) {
+      log("No completed fixtures on " + date + " yet — in-progress games are excluded.");
+      return;
+    }
+    const skipped = [];
+    let total = 0;
+    for (const f of fixtures) {
+      const home = TEAM_NAME_FIX[f.teams.home.name] || f.teams.home.name;
+      const away = TEAM_NAME_FIX[f.teams.away.name] || f.teams.away.name;
+      const label = `${home} vs ${away} (${f.fixture.date.slice(0, 10)})`;
+      log(`Pulling ${label}…`);
+      const conceded = { [f.teams.home.id]: f.goals.away || 0,
+                         [f.teams.away.id]: f.goals.home || 0 };
+      const rows = [];
+      let best = null;
+      for (const tb of await apiFootball(key, "fixtures/players",
+                                         { fixture: f.fixture.id })) {
+        const team = TEAM_NAME_FIX[tb.team.name] || tb.team.name;
+        for (const e of tb.players) {
+          const st = (e.statistics || [])[0] || {};
+          const games = st.games || {};
+          const minutes = +games.minutes || 0;
+          if (!minutes) continue;
+          const pid = mapApiPlayer(team, +games.number || 0, e.player.name);
+          if (!pid) { skipped.push(`${e.player.name} (${team})`); continue; }
+          const g = st.goals || {}, cards = st.cards || {},
+                pen = st.penalty || {}, tk = st.tackles || {};
+          const row = {
+            league_id: S.league.id, player_id: pid, match_label: label,
+            appeared: true,
+            goals: +g.total || 0, assists: +g.assists || 0,
+            clean_sheet: minutes >= 60 && !(conceded[tb.team.id] || 0),
+            yellow_cards: +cards.yellow || 0, red_cards: +cards.red || 0,
+            saves: +g.saves || 0, motm: false,
+            penalty_saved: +pen.saved || 0, penalty_missed: +pen.missed || 0,
+            defensive_actions: (+tk.total || 0) + (+tk.blocks || 0)
+                               + (+tk.interceptions || 0),
+          };
+          const rating = parseFloat(games.rating);
+          if (!isNaN(rating) && (!best || rating > best.rating))
+            best = { row, rating };
+          rows.push(row);
+        }
+      }
+      if (best && best.rating >= 7.5) best.row.motm = true; // MOTM heuristic
+      const { error } = await S.sb.from("match_stats")
+        .upsert(rows, { onConflict: "league_id,player_id,match_label" });
+      if (error) throw new Error(error.message);
+      total += rows.length;
+    }
+    log(`Done — ${total} player rows from ${fixtures.length} match(es).`
+      + (skipped.length
+        ? `\nCould not map (enter manually): ${[...new Set(skipped)].join(", ")}`
+        : ""));
+    scheduleRefetch();
+  } catch (e) {
+    log("Pull failed: " + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 function renderAdmin() {
   const ok = isAdmin();
   $("admin-gate").classList.toggle("hidden", ok);
@@ -1819,6 +1952,10 @@ function renderAdmin() {
     $("adm-date").value = new Date().toISOString().slice(0, 10);
   }
   $("adm-label-preview").textContent = admLabel();
+  if (!$("adm-api-key").value)
+    $("adm-api-key").value = localStorage.getItem("wcf_apikey") || "";
+  if (!$("adm-pull-date").value)
+    $("adm-pull-date").value = new Date().toISOString().slice(0, 10);
   const open = !!S.league.trading_open;
   $("adm-trading-status").textContent = open ? "Trading is OPEN" : "Trading is closed";
   $("adm-trading-status").className =
@@ -1889,6 +2026,7 @@ function wire() {
   $("adm-drafted").onchange = admRenderPlayerSearch;
   $("adm-tsearch").oninput = admRenderStages;
   $("adm-trading-toggle").onclick = () => toggleTrading().catch((e) => toast(e.message));
+  $("adm-pull-now").onclick = () => pullStatsNow().catch((e) => toast(e.message));
   $("adm-snapshot").onclick = () => {
     if (confirm("Snapshot every manager's current lineup as the locked state from today?"))
       snapshotRosters().then(() => { toast("Lineups locked."); scheduleRefetch(); })

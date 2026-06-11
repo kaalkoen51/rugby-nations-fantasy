@@ -64,6 +64,10 @@ alter table leagues add column if not exists pick_duration_seconds int default 6
 alter table leagues add column if not exists current_pick int default 0;
 alter table leagues add column if not exists pick_started_at timestamptz;
 
+-- Defensive contributions: tackles + blocks + interceptions per match,
+-- scored as +1 per 2 actions (GK excluded). Additive; older rows stay 0.
+alter table match_stats add column if not exists defensive_actions int default 0;
+
 alter table managers add column if not exists join_token text;
 alter table managers add column if not exists draft_position int;
 
