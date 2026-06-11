@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 .env
 SquadLists.pdf
+.api_cache/
