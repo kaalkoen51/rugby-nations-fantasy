@@ -4,6 +4,14 @@
 Fetches completed-match player statistics from API-Football, calculates
 fantasy points, and upserts them to the Supabase `match_stats` table.
 
+Upserted rows use the FIFA squad-list player ids from players.json
+("arg_10" = <team code>_<shirt number>) — the ids the app keys all rosters
+and scoring by — not API-Football's numeric ids. Each API player is mapped
+by team + name (exact, then surname, then fuzzy), with the shirt number as
+a tie-breaker / fallback when the API provides one. Players that cannot be
+mapped are skipped and listed in the output so the admin can enter them
+manually; use --dry-run to verify the mapping without writing.
+
 Usage:
     python daily_pull.py                       # yesterday's World Cup fixtures
     python daily_pull.py --date 2026-06-15     # a specific date
@@ -23,13 +31,16 @@ import argparse
 import json
 import os
 import sys
+import unicodedata
 from datetime import datetime, timedelta, timezone
+from difflib import SequenceMatcher
 from pathlib import Path
 
 import requests
 
 API_BASE = "https://v3.football.api-sports.io"
 MOCK_DIR = Path(__file__).parent / "mock_data"
+PLAYERS_JSON = Path(__file__).parent / "players.json"
 
 SCORING = {
     "goal": {"GK": 8, "DEF": 6, "MID": 5, "FWD": 4},
@@ -66,6 +77,100 @@ TEAM_NAME_FIX = {
 
 def fix_team_name(name: str) -> str:
     return TEAM_NAME_FIX.get(name, name)
+
+
+FUZZY_MIN_RATIO = 0.75
+
+
+def normalize_name(s: str) -> str:
+    """Lowercase, strip accents and punctuation: "N'Golo Kanté" -> "n golo kante"."""
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    s = "".join(c if c.isalnum() else " " for c in s.lower())
+    return " ".join(s.split())
+
+
+def surname_key(name: str) -> str:
+    tokens = normalize_name(name).split()
+    return tokens[-1] if tokens else ""
+
+
+class PlayerMatcher:
+    """Maps API-Football players to FIFA squad-list entries from players.json.
+
+    FIFA ids are <team code>_<shirt number> ("arg_10"), so the shirt number
+    can be recovered from the id itself. API names are often abbreviated
+    ("S. McTominay" for "Scott McTominay"), hence the surname/fuzzy tiers.
+    """
+
+    def __init__(self, players: list):
+        self.by_team = {}
+        self.by_number = {}
+        self.by_surname = {}
+        for p in players:
+            team = normalize_name(p["team"])
+            self.by_team.setdefault(team, []).append(p)
+            self.by_surname.setdefault((team, surname_key(p["name"])), []).append(p)
+            shirt = p["player_id"].rsplit("_", 1)[-1]
+            if shirt.isdigit():
+                self.by_number[(team, int(shirt))] = p
+
+    def match(self, api_name: str, api_team: str, shirt_number=None):
+        """Return (players.json entry, how) on success, (None, reason) otherwise."""
+        team = normalize_name(fix_team_name(api_team))
+        roster = self.by_team.get(team)
+        if not roster:
+            return None, f"team {api_team!r} not in players.json"
+
+        target = normalize_name(api_name)
+        candidates = [p for p in roster if normalize_name(p["name"]) == target]
+        how = "exact name"
+        if not candidates:
+            candidates = self.by_surname.get((team, surname_key(api_name)), [])
+            how = "surname"
+        if not candidates:
+            scored = [
+                (SequenceMatcher(None, target, normalize_name(p["name"])).ratio(), p)
+                for p in roster
+            ]
+            best = max(ratio for ratio, _ in scored)
+            if best >= FUZZY_MIN_RATIO:
+                candidates = [p for ratio, p in scored if ratio == best]
+                how = f"fuzzy name ({best:.2f})"
+
+        if len(candidates) > 1 and shirt_number is not None:
+            by_number = self.by_number.get((team, shirt_number))
+            if by_number in candidates:
+                return by_number, f"{how} + shirt number"
+        if len(candidates) > 1 and target:
+            # "E. Martinez" -> the initial picks Emiliano over Lautaro
+            first = target.split()[0]
+            narrowed = [
+                p
+                for p in candidates
+                if normalize_name(p["name"]).split()[0].startswith(first)
+            ]
+            if len(narrowed) == 1:
+                candidates = narrowed
+                how += " + first initial"
+        if len(candidates) == 1:
+            return candidates[0], how
+        if len(candidates) > 1:
+            names = ", ".join(p["name"] for p in candidates)
+            return None, f"ambiguous {how} match: {names}"
+
+        if shirt_number is not None:
+            by_number = self.by_number.get((team, shirt_number))
+            if by_number:
+                return by_number, "shirt number only"
+        return None, "no name match"
+
+
+def load_players() -> list:
+    if not PLAYERS_JSON.exists():
+        sys.exit(f"Error: {PLAYERS_JSON} not found (needed to map player ids).")
+    return json.loads(PLAYERS_JSON.read_text(encoding="utf-8"))
+
 
 COMPLETED_STATUSES = {"FT", "AET", "PEN"}
 
@@ -139,8 +244,13 @@ def to_float(value):
         return None
 
 
-def extract_player_rows(fixture: dict, teams_data: list) -> list:
-    """Flatten API-Football fixture-player stats into per-player dicts."""
+def extract_player_rows(fixture: dict, teams_data: list, matcher: PlayerMatcher) -> list:
+    """Flatten API-Football fixture-player stats into per-player dicts.
+
+    `player_id` is the FIFA squad-list id from players.json (the id the app
+    scores by), or None when the player could not be mapped — those rows
+    must not be upserted.
+    """
     home = fixture["teams"]["home"]
     away = fixture["teams"]["away"]
     goals = fixture.get("goals", {})
@@ -157,6 +267,7 @@ def extract_player_rows(fixture: dict, teams_data: list) -> list:
     rows = []
     for team_block in teams_data:
         team_id = team_block.get("team", {}).get("id")
+        team_name = team_block.get("team", {}).get("name", "")
         for entry in team_block.get("players", []):
             player = entry.get("player", {})
             stats_list = entry.get("statistics", [])
@@ -170,11 +281,20 @@ def extract_player_rows(fixture: dict, teams_data: list) -> list:
             position = POSITION_MAP.get(games.get("position"), "MID")
             team_conceded = conceded_by_team.get(team_id, 0)
 
+            api_name = player.get("name", "Unknown")
+            shirt = to_int(games.get("number")) or None
+            matched, match_note = matcher.match(api_name, team_name, shirt)
+
             rows.append(
                 {
-                    "player_id": str(player.get("id")),
-                    "player_name": player.get("name", "Unknown"),
-                    "position": position,
+                    "player_id": matched["player_id"] if matched else None,
+                    "player_name": matched["name"] if matched else api_name,
+                    "api_player_id": str(player.get("id")),
+                    "api_name": api_name,
+                    "team": fix_team_name(team_name),
+                    "match_note": match_note,
+                    # the app scores by the squad-list position, so prefer it
+                    "position": matched["position"] if matched else position,
                     "match_label": match_label,
                     "minutes": minutes,
                     "rating": to_float(games.get("rating")),
@@ -327,6 +447,8 @@ def main() -> None:
         + (" [dry-run]" if args.dry_run else "")
     )
 
+    matcher = PlayerMatcher(load_players())
+
     fixtures = fetch_fixtures(args.date, args.league, args.season, args.mock)
     if not fixtures:
         print("No completed fixtures found for this date. Nothing to do.")
@@ -337,20 +459,47 @@ def main() -> None:
     for fixture in fixtures:
         fixture_id = fixture["fixture"]["id"]
         teams_data = fetch_fixture_players(fixture_id, args.mock)
-        all_rows.extend(extract_player_rows(fixture, teams_data))
+        all_rows.extend(extract_player_rows(fixture, teams_data, matcher))
 
     appeared = [r for r in all_rows if r["minutes"] > 0]
-    for row in appeared:
+    matched = [r for r in appeared if r["player_id"]]
+    unmatched = [r for r in appeared if not r["player_id"]]
+    for row in matched:
         row["points"] = calculate_points(row)
 
-    print(f"{len(appeared)} player(s) appeared across all fixtures.")
+    print(
+        f"{len(appeared)} player(s) appeared across all fixtures; "
+        f"{len(matched)} mapped to FIFA squad-list ids."
+    )
+
+    loose = [
+        r for r in matched if r["match_note"] not in ("exact name", "surname")
+    ]
+    if loose:
+        print("\nLoosely matched (verify these look right):")
+        for row in loose:
+            print(
+                f"  - {row['api_name']} -> {row['player_id']} "
+                f"{row['player_name']} ({row['team']}): {row['match_note']}"
+            )
+
+    if unmatched:
+        print(
+            f"\nWARNING: {len(unmatched)} appeared player(s) could not be "
+            "mapped to players.json — SKIPPED, enter manually via admin:"
+        )
+        for row in unmatched:
+            print(
+                f"  - {row['api_name']} ({row['team']}, "
+                f"api id {row['api_player_id']}): {row['match_note']}"
+            )
 
     if args.dry_run:
-        print("Dry run: skipping Supabase write.")
+        print("\nDry run: skipping Supabase write.")
     else:
-        upsert_match_stats(appeared, args.league_id)
+        upsert_match_stats(matched, args.league_id)
 
-    print_summary(appeared)
+    print_summary(matched)
 
 
 if __name__ == "__main__":
