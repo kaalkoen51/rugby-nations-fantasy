@@ -71,8 +71,8 @@
     <h2 class="text-xl font-semibold">Create a league</h2>
     <label class="block text-sm text-slate-400">League name
       <input id="create-name" placeholder="Braai Boys WC 2026" class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100"></label>
-    <label class="block text-sm text-slate-400">Number of managers (5–10 recommended)
-      <input id="create-num" type="number" min="2" max="10" value="8" class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100"></label>
+    <label class="block text-sm text-slate-400">Number of managers (5–15 recommended)
+      <input id="create-num" type="number" min="2" max="15" value="8" class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100"></label>
     <label class="block text-sm text-slate-400">Seconds per pick
       <input id="create-dur" type="number" min="15" max="300" value="60" class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100"></label>
     <button id="create-go" class="w-full bg-wcred hover:bg-wcred-hov rounded-lg py-2.5 font-semibold">Create league</button>
@@ -566,7 +566,7 @@ async function createLeague() {
   const num = parseInt($("create-num").value, 10);
   const dur = parseInt($("create-dur").value, 10);
   if (!name) return toast("Give the league a name.");
-  if (!(num >= 2 && num <= 10)) return toast("Managers must be 2–10.");
+  if (!(num >= 2 && num <= 15)) return toast("Managers must be 2–15.");
   if (!(dur >= 15 && dur <= 300)) return toast("Pick duration must be 15–300s.");
   const row = {
     name, num_managers: num, pick_duration_seconds: dur,
