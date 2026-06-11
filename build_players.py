@@ -16,6 +16,7 @@ row index within a team page is the shirt number.
 import json
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 import requests
@@ -43,15 +44,6 @@ def fetch_text() -> str:
     return text.replace("\x00", "fi")
 
 
-def find_glue(s: str) -> int:
-    """Index of the first lowercase->uppercase seam, where two PDF columns
-    were extracted without a separating space. -1 if none."""
-    for k in range(1, len(s)):
-        if s[k - 1].islower() and s[k].isupper():
-            return k
-    return -1
-
-
 def is_caps_token(tok: str) -> bool:
     """Surname tokens are all-caps, except a 'Mc' prefix (McTOMINAY)."""
     if tok == tok.upper():
@@ -69,68 +61,143 @@ def title_case(name: str) -> str:
     return re.sub(r"[^\W\d_]+", cap, name)
 
 
-def display_first(rest: str) -> str:
-    """Pick the display first name out of the text following the surname.
+def fold(s: str) -> str:
+    """Accent-insensitive lowercase, for comparing across PDF columns that
+    spell the same name with and without diacritics (ALISSON / Álisson)."""
+    s = unicodedata.normalize("NFKD", s)
+    return "".join(c for c in s if not unicodedata.combining(c)).lower()
 
-    `rest` holds the tail of the PLAYER NAME column (the first name as
-    displayed) followed by the FIRST NAME(S), LAST NAME(S) and NAME ON
-    SHIRT columns, with column boundaries that are either a space or a
-    glue seam. The display name usually reappears verbatim at the start
-    of FIRST NAME(S), so try prefixes (shortest first) and keep the one
-    that repeats; fall back to seam/token heuristics otherwise.
+
+SEAM = "\x01"
+
+
+def split_seams(s: str) -> str:
+    """Mark the column boundaries pypdf glued together with a SEAM char.
+
+    Two seam shapes: lowercase->uppercase ("RamsésBECKER"), and an all-caps
+    run followed by a titlecase word ("SANDROAlex" -> before the "A").
+    Mc/Mac surname prefixes are the one legitimate in-word case change.
+    Seam positions matter: a glue seam is always a column boundary, which
+    split_name uses to tell where the PLAYER NAME column ends.
     """
-    seam = find_glue(rest)
-    limit = seam if seam != -1 else len(rest)
+    out = [s[0]] if s else []
+    for k in range(1, len(s)):
+        a, b = s[k - 1], s[k]
+        seam = False
+        if a.islower() and b.isupper():
+            j = k - 1
+            while j > 0 and s[j - 1].isalpha():
+                j -= 1
+            seam = s[j:k] not in ("Mc", "Mac")
+        elif (a.isupper() and b.isupper()
+              and k + 1 < len(s) and s[k + 1].islower()):
+            seam = True
+        if seam:
+            out.append(SEAM)
+        out.append(s[k])
+    return "".join(out)
 
-    ends = [j for j, ch in enumerate(rest[:limit]) if ch == " "] + [limit]
-    for e in ends:
-        cand = rest[:e]
-        if not cand or is_caps_token(cand.split()[-1]):
-            break
-        after = rest[e:].lstrip()
-        if after.startswith(cand) and (
-            len(after) == len(cand) or not after[len(cand)].islower()
+
+def tokenize(blob: str):
+    """Tokens of the blob plus, per token, whether a glue seam precedes it."""
+    tokens, seam_before = [], []
+    for part in split_seams(blob).split(" "):
+        for j, piece in enumerate(part.split(SEAM)):
+            if piece:
+                tokens.append(piece)
+                seam_before.append(j > 0)
+    return tokens, seam_before
+
+
+def respace(word: str, later: str) -> str:
+    """Recover spacing the PDF lost inside an all-caps known-as name.
+
+    The NAME ON SHIRT column often carries the spaced form (ABUHASHEESH
+    elsewhere in the row appears as ABU HASHEESH); if a spaced variant of
+    `word` occurs later in the row as a whole phrase, adopt its spacing.
+    """
+    fw, fl = fold(word), fold(later)
+    if len(fw) != len(word):  # folding changed length; positions won't map
+        return word
+    # No word-boundary anchoring: caps-to-caps column gluing is invisible
+    # ("...ABUHASHEESHABU HASHEESH"), so the spaced variant may sit mid-
+    # "word". Guard against junk splits by requiring 2+ chars per segment.
+    pattern = r" ?".join(map(re.escape, fw))
+    best = None
+    for m in re.finditer(pattern, fl):
+        cand = m.group()
+        if " " in cand and all(len(seg) >= 2 for seg in cand.split(" ")) and (
+            best is None or cand.count(" ") > best.count(" ")
         ):
-            return cand
-
-    if seam != -1:
-        tail = rest[seam:]
-        if len(tail) >= 2 and tail[1].islower():
-            # Title-case after the seam: seam is the boundary between the
-            # display name and FIRST NAME(S), e.g. "BambaCheikh Ahmadou..."
-            return rest[:seam]
-        # Caps after the seam: seam is the FIRST NAME(S) / LAST NAME(S)
-        # boundary, e.g. "Nadhir Ahmed NadhirBENBOUALI" -> "Nadhir".
-
-    head = rest.split()[0]
-    g = find_glue(head)
-    return head[:g] if g != -1 else head
+            best = cand
+    if not best:
+        return word
+    out, i = [], 0
+    for ch in best:
+        if ch == " ":
+            out.append(" ")
+        else:
+            out.append(word[i])
+            i += 1
+    return "".join(out)
 
 
 def split_name(blob: str):
-    """Split the PLAYER NAME column ("LASTNAME Firstname") out of the blob.
+    """Extract (display first name, surname-or-known-as) from a player row.
 
-    The blob is everything between the position code and the date of birth,
-    i.e. the PLAYER NAME, FIRST NAME(S), LAST NAME(S) and NAME ON SHIRT
-    columns run together. The surname is the leading run of all-caps tokens.
+    The blob is everything between the position code and the date of birth:
+    the PLAYER NAME, FIRST NAME(S), LAST NAME(S) and NAME ON SHIRT columns
+    run together. PLAYER NAME comes in two conventions:
+
+    - "SURNAME Firstname" (most teams): leading caps run is the surname and
+      the display first name follows, usually repeated at the start of
+      FIRST NAME(S) ("GUNN AngusAngus Fraser James...").
+    - Known-as, all caps (Brazil, Portugal, Arabic-speaking teams): the
+      whole column is the display name ("ALEX SANDRO", "NEYMAR JR") and
+      FIRST NAME(S) follows directly — recognizable because one of those
+      given names re-uses a word of the caps run ("Alex Sandro", "Neymar").
     """
-    tokens = blob.split()
+    tokens, seam = tokenize(blob)
     last_parts = []
     i = 0
     while i < len(tokens) and is_caps_token(tokens[i]):
         last_parts.append(tokens[i])
         i += 1
     if not last_parts:
-        # Mononym glued straight to the next column ("MARQUINHOSMarcos..."):
-        # the seam there is caps-followed-by-titlecase.
-        tok = tokens[0]
-        for k in range(1, len(tok) - 1):
-            if tok[k - 1].isupper() and tok[k].isupper() and tok[k + 1].islower():
-                return "", tok[:k]
         return None, None
-    if i >= len(tokens):
+    rest, rseam = tokens[i:], seam[i:]
+    if not rest:
         return "", " ".join(last_parts)
-    return display_first(" ".join(tokens[i:])), " ".join(last_parts)
+
+    title_run = []
+    for tok in rest:
+        if is_caps_token(tok):
+            break
+        title_run.append(tok)
+
+    caps_words = {fold(w) for w in last_parts}
+    # Known-as style — the caps run IS the display name — when either the
+    # FIRST NAME(S) column was glued straight onto it (the seam proves the
+    # PLAYER NAME column held nothing else), or its first given name
+    # re-uses a word of the caps run ("WEVERTON Weverton PEREIRA...").
+    if title_run and (rseam[0] or fold(title_run[0]) in caps_words):
+        later = " ".join(rest)
+        return "", " ".join(respace(w, later) for w in last_parts)
+
+    # A glue seam inside the title run likewise marks the exact end of the
+    # PLAYER NAME column: what precedes it is the display first name
+    # ("YILMAZ Baris Alper|Barış Alper..." -> "Baris Alper").
+    for j in range(1, len(title_run)):
+        if rseam[j]:
+            return " ".join(title_run[:j]), " ".join(last_parts)
+
+    # No seam to go by: the display first name is usually repeated at the
+    # start of FIRST NAME(S) ("CACERES Juan Jose Juan Jose...").
+    folded = [fold(t) for t in title_run]
+    for p in range(1, len(title_run) // 2 + 1):
+        if folded[:p] == folded[p : 2 * p]:
+            return " ".join(title_run[:p]), " ".join(last_parts)
+    return (title_run[0] if title_run else ""), " ".join(last_parts)
 
 
 def parse_players(text: str) -> list:

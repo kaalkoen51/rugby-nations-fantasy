@@ -673,7 +673,7 @@
   },
   {
     "player_id": "aut_19",
-    "name": "Christoph Baumgartner",
+    "name": "Dejan Ljubicic",
     "position": "MID",
     "team": "Austria",
     "team_code": "AUT"
@@ -1093,21 +1093,21 @@
   },
   {
     "player_id": "bra_1",
-    "name": "Álisson Alisson",
+    "name": "Alisson",
     "position": "GK",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_2",
-    "name": "Éderson Ederson Silva",
+    "name": "Ederson Silva",
     "position": "MID",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_3",
-    "name": "Gabriel Gabriel Magalhaes",
+    "name": "Gabriel Magalhaes",
     "position": "DEF",
     "team": "Brazil",
     "team_code": "BRA"
@@ -1128,35 +1128,35 @@
   },
   {
     "player_id": "bra_6",
-    "name": "SANDROAlex Alex",
+    "name": "Alex Sandro",
     "position": "DEF",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_7",
-    "name": "JUNIORVinicius Vinicius",
+    "name": "Vinicius Junior",
     "position": "FWD",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_8",
-    "name": "Bruno Bruno Guimaraes",
+    "name": "Bruno Guimaraes",
     "position": "MID",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_9",
-    "name": "Matheus Matheus Cunha",
+    "name": "Matheus Cunha",
     "position": "FWD",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_10",
-    "name": "Neymar Neymar Jr",
+    "name": "Neymar Jr",
     "position": "FWD",
     "team": "Brazil",
     "team_code": "BRA"
@@ -1170,14 +1170,14 @@
   },
   {
     "player_id": "bra_12",
-    "name": "Weverton Weverton",
+    "name": "Weverton",
     "position": "GK",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_13",
-    "name": "Danilo Danilo",
+    "name": "Danilo",
     "position": "DEF",
     "team": "Brazil",
     "team_code": "BRA"
@@ -1191,14 +1191,14 @@
   },
   {
     "player_id": "bra_15",
-    "name": "PEREIRALeonardo Leo",
+    "name": "Leo Pereira",
     "position": "DEF",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_16",
-    "name": "Douglas Douglas Santos",
+    "name": "Douglas Santos",
     "position": "DEF",
     "team": "Brazil",
     "team_code": "BRA"
@@ -1212,63 +1212,63 @@
   },
   {
     "player_id": "bra_18",
-    "name": "Danilo Danilo Santos",
+    "name": "Danilo Santos",
     "position": "MID",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_19",
-    "name": "Endrick Endrick",
+    "name": "Endrick",
     "position": "FWD",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_20",
-    "name": "Lucas Lucas Paqueta",
+    "name": "Lucas Paqueta",
     "position": "MID",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_21",
-    "name": "HENRIQUELuiz Luiz",
+    "name": "Luiz Henrique",
     "position": "FWD",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_22",
-    "name": "MARTINELLIGabriel Gabriel",
+    "name": "Gabriel Martinelli",
     "position": "FWD",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_23",
-    "name": "Ederson Ederson",
+    "name": "Ederson",
     "position": "GK",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_24",
-    "name": "IBANEZRoger Roger",
+    "name": "Roger Ibanez",
     "position": "DEF",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_25",
-    "name": "Igor Igor Thiago",
+    "name": "Igor Thiago",
     "position": "FWD",
     "team": "Brazil",
     "team_code": "BRA"
   },
   {
     "player_id": "bra_26",
-    "name": "Rayan Rayan",
+    "name": "Rayan",
     "position": "FWD",
     "team": "Brazil",
     "team_code": "BRA"
@@ -1289,7 +1289,7 @@
   },
   {
     "player_id": "cpv_3",
-    "name": "BORGESEdilson Diney",
+    "name": "Diney Borges",
     "position": "DEF",
     "team": "Cabo Verde",
     "team_code": "CPV"
@@ -1303,126 +1303,126 @@
   },
   {
     "player_id": "cpv_5",
-    "name": "Logan Logan Costa",
+    "name": "Logan Costa",
     "position": "DEF",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_6",
-    "name": "Kevin Kevin Pina",
+    "name": "Kevin Pina",
     "position": "MID",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_7",
-    "name": "CABRALJovane Jovane",
+    "name": "Jovane Cabral",
     "position": "MID",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_8",
-    "name": "João Joao Paulo",
+    "name": "Joao Paulo",
     "position": "MID",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_9",
-    "name": "BENCHIMOLGilson Gilson",
+    "name": "Gilson Benchimol",
     "position": "FWD",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_10",
-    "name": "Jamiro Jamiro Monteiro",
+    "name": "Jamiro Monteiro",
     "position": "MID",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_11",
-    "name": "RODRIGUESGarry Garry",
+    "name": "Garry Rodrigues",
     "position": "MID",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_12",
-    "name": "ROSAMárcio Marcio",
+    "name": "Marcio Rosa",
     "position": "GK",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_13",
-    "name": "CABRALSidny Sidny Lopes",
+    "name": "Sidny Lopes Cabral",
     "position": "DEF",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_14",
-    "name": "Deroy Deroy Duarte",
+    "name": "Deroy Duarte",
     "position": "MID",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_15",
-    "name": "Laros Laros Duarte",
+    "name": "Laros Duarte",
     "position": "MID",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_16",
-    "name": "SEMEDOJair Yannick",
+    "name": "Yannick Semedo",
     "position": "MID",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_17",
-    "name": "SEMEDOWilly Willy",
+    "name": "Willy Semedo",
     "position": "MID",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_18",
-    "name": "ARCANJOTelmo Telmo",
+    "name": "Telmo Arcanjo",
     "position": "MID",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_19",
-    "name": "Dailon Dailon Livramento",
+    "name": "Dailon Livramento",
     "position": "FWD",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_20",
-    "name": "MENDESRyan Ryan",
+    "name": "Ryan Mendes",
     "position": "FWD",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_21",
-    "name": "Nuno Nuno Da Costa",
+    "name": "Nuno Da Costa",
     "position": "MID",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_22",
-    "name": "MOREIRASteven Steven",
+    "name": "Steven Moreira",
     "position": "DEF",
     "team": "Cabo Verde",
     "team_code": "CPV"
@@ -1436,21 +1436,21 @@
   },
   {
     "player_id": "cpv_24",
-    "name": "Wagner Wagner Pina",
+    "name": "Wagner Pina",
     "position": "DEF",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_25",
-    "name": "Kelvin Kelvin Pires",
+    "name": "Kelvin Pires",
     "position": "DEF",
     "team": "Cabo Verde",
     "team_code": "CPV"
   },
   {
     "player_id": "cpv_26",
-    "name": "Hélio Helio Varela",
+    "name": "Helio Varela",
     "position": "MID",
     "team": "Cabo Verde",
     "team_code": "CPV"
@@ -2913,42 +2913,42 @@
   },
   {
     "player_id": "egy_1",
-    "name": "Mohamed Mohamed Elshenawy",
+    "name": "Mohamed Elshenawy",
     "position": "GK",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_2",
-    "name": "IBRAHIMYasser Yasser",
+    "name": "Yasser Ibrahim",
     "position": "DEF",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_3",
-    "name": "Mohamed Mohamed Hany",
+    "name": "Mohamed Hany",
     "position": "DEF",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_4",
-    "name": "Hossam Hossam Abdelmaguid",
+    "name": "Hossam Abdelmaguid",
     "position": "DEF",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_5",
-    "name": "Ramy Ramy Rabia",
+    "name": "Ramy Rabia",
     "position": "DEF",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_6",
-    "name": "ABDELMONEIMMohamed Mohamed",
+    "name": "Mohamed Abdelmoneim",
     "position": "DEF",
     "team": "Egypt",
     "team_code": "EGY"
@@ -2962,119 +2962,119 @@
   },
   {
     "player_id": "egy_8",
-    "name": "ASHOUREmam Emam",
+    "name": "Emam Ashour",
     "position": "MID",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_9",
-    "name": "ABDELKARIMHamza Hamza",
+    "name": "Hamza Abdelkarim",
     "position": "FWD",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_10",
-    "name": "Mohamed Mohamed Salah",
+    "name": "Mohamed Salah",
     "position": "FWD",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_11",
-    "name": "Mostafa Mostafa Zico",
+    "name": "Mostafa Zico",
     "position": "MID",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_12",
-    "name": "Haissem Haissem Hassan",
+    "name": "Haissem Hassan",
     "position": "FWD",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_13",
-    "name": "Ahmed Ahmed Fatouh",
+    "name": "Ahmed Fatouh",
     "position": "DEF",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_14",
-    "name": "Hamdy Hamdy Fathy",
+    "name": "Hamdy Fathy",
     "position": "MID",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_15",
-    "name": "Karim Karim Hafez",
+    "name": "Karim Hafez",
     "position": "DEF",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_16",
-    "name": "Mahdy Mahdy Soliman",
+    "name": "Mahdy Soliman",
     "position": "GK",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_17",
-    "name": "Mohanad Mohanad Lashin",
+    "name": "Mohanad Lashin",
     "position": "MID",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_18",
-    "name": "DONGANabil Nabil",
+    "name": "Nabil Donga",
     "position": "MID",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_19",
-    "name": "Marawan Marawan Attia",
+    "name": "Marawan Attia",
     "position": "MID",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_20",
-    "name": "ADELIbrahim Ibrahim",
+    "name": "Ibrahim Adel",
     "position": "FWD",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_21",
-    "name": "SABERMahmoud Mahmoud",
+    "name": "Mahmoud Saber",
     "position": "MID",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_22",
-    "name": "MARMOUSHOmar Omar",
+    "name": "Omar Marmoush",
     "position": "FWD",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_23",
-    "name": "SHOUBIRMostafa Mostafa",
+    "name": "Mostafa Shoubir",
     "position": "GK",
     "team": "Egypt",
     "team_code": "EGY"
   },
   {
     "player_id": "egy_24",
-    "name": "Tarek Tarek Alaa",
+    "name": "Tarek Alaa",
     "position": "DEF",
     "team": "Egypt",
     "team_code": "EGY"
@@ -3088,7 +3088,7 @@
   },
   {
     "player_id": "egy_26",
-    "name": "Mohamed Mohamed Alaa",
+    "name": "Mohamed Alaa",
     "position": "GK",
     "team": "Egypt",
     "team_code": "EGY"
@@ -4187,182 +4187,182 @@
   },
   {
     "player_id": "irq_1",
-    "name": "Fahad Fahad Talib",
+    "name": "Fahad Talib",
     "position": "GK",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_2",
-    "name": "Rebin Rebin Sulaka",
+    "name": "Rebin Sulaka",
     "position": "DEF",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_3",
-    "name": "ALIHussein Hussein",
+    "name": "Hussein Ali",
     "position": "DEF",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_4",
-    "name": "Zaid Zaid Tahseen",
+    "name": "Zaid Tahseen",
     "position": "DEF",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_5",
-    "name": "Akam Akam Hashim",
+    "name": "Akam Hashim",
     "position": "DEF",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_6",
-    "name": "Munaf Munaf Younus",
+    "name": "Munaf Younus",
     "position": "DEF",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_7",
-    "name": "Youssef Youssef Amyn",
+    "name": "Youssef Amyn",
     "position": "MID",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_8",
-    "name": "Ibrahim Ibrahim Bayesh",
+    "name": "Ibrahim Bayesh",
     "position": "MID",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_9",
-    "name": "Ali Ali Alhamadi",
+    "name": "Ali Alhamadi",
     "position": "FWD",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_10",
-    "name": "Mohanad Mohanad Ali",
+    "name": "Mohanad Ali",
     "position": "FWD",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_11",
-    "name": "QASIMAhmed Ahmed",
+    "name": "Ahmed Qasem",
     "position": "FWD",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_12",
-    "name": "Jalal Jalal Hassan",
+    "name": "Jalal Hassan",
     "position": "GK",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_13",
-    "name": "Ali Ali Yousif",
+    "name": "Ali Yousif",
     "position": "FWD",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_14",
-    "name": "IQBALZidane Zidane",
+    "name": "Zidane Iqbal",
     "position": "MID",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_15",
-    "name": "Ahmed Ahmed Maknazi",
+    "name": "Ahmed Maknazi",
     "position": "DEF",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_16",
-    "name": "Amir Amir Alammari",
+    "name": "Amir Alammari",
     "position": "MID",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_17",
-    "name": "Ali Ali Jasim",
+    "name": "Ali Jasim",
     "position": "FWD",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_18",
-    "name": "HUSSEINAymen Aymen",
+    "name": "Aymen Hussein",
     "position": "FWD",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_19",
-    "name": "Kevin Kevin Yakob",
+    "name": "Kevin Yakob",
     "position": "MID",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_20",
-    "name": "Aimar Aimar Sher",
+    "name": "Aimar Sher",
     "position": "MID",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_21",
-    "name": "Marko Marko Farji",
+    "name": "Marko Farji",
     "position": "FWD",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_22",
-    "name": "BASILAhmed Ahmed",
+    "name": "Ahmed Basil",
     "position": "GK",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_23",
-    "name": "DOSKIMerchas Merchas",
+    "name": "Merchas Doski",
     "position": "DEF",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_24",
-    "name": "Zaid Zaid Ismael",
+    "name": "Zaid Ismael",
     "position": "MID",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_25",
-    "name": "SAADOONMustafa Mustafa",
+    "name": "Mustafa Saadoon",
     "position": "DEF",
     "team": "Iraq",
     "team_code": "IRQ"
   },
   {
     "player_id": "irq_26",
-    "name": "PUTROSFrans Frans",
+    "name": "Frans Putros",
     "position": "DEF",
     "team": "Iraq",
     "team_code": "IRQ"
@@ -4551,77 +4551,77 @@
   },
   {
     "player_id": "jor_1",
-    "name": "Yazeed Yazeed Abulaila",
+    "name": "Yazeed Abulaila",
     "position": "GK",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_2",
-    "name": "ABUHASHEESHMohammad Mohammad",
+    "name": "Mohammad Abu Hasheesh",
     "position": "DEF",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_3",
-    "name": "Abdallah Abdallah Nasib",
+    "name": "Abdallah Nasib",
     "position": "DEF",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_4",
-    "name": "Husam Husam Abudahab",
+    "name": "Husam Abu Dahab",
     "position": "DEF",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_5",
-    "name": "Yazan Yazan Alarab",
+    "name": "Yazan Alarab",
     "position": "DEF",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_6",
-    "name": "Amer Amer Jamous",
+    "name": "Amer Jamous",
     "position": "MID",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_7",
-    "name": "ABUZRAIQMohammad Mohammad",
+    "name": "Mohammad Abu Zraiq",
     "position": "FWD",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_8",
-    "name": "Noor Noor Alrawabdeh",
+    "name": "Noor Al Rawabdeh",
     "position": "MID",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_9",
-    "name": "Ali Ali Olwan",
+    "name": "Ali Olwan",
     "position": "FWD",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_10",
-    "name": "Mousa Mousa Altamari",
+    "name": "Mousa Altamari",
     "position": "FWD",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_11",
-    "name": "Odeh Odeh Fakhoury",
+    "name": "Odeh Fakhoury",
     "position": "FWD",
     "team": "Jordan",
     "team_code": "JOR"
@@ -4635,7 +4635,7 @@
   },
   {
     "player_id": "jor_13",
-    "name": "Mahmoud Mahmoud Almardi",
+    "name": "Mahmoud Almardi",
     "position": "FWD",
     "team": "Jordan",
     "team_code": "JOR"
@@ -4649,84 +4649,84 @@
   },
   {
     "player_id": "jor_15",
-    "name": "SADEHIbrahim Ibrahim",
+    "name": "Ibrahim Sadeh",
     "position": "MID",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_16",
-    "name": "Mohammad Mohammad Abualnadi",
+    "name": "Mohammad Abu Alnadi",
     "position": "DEF",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_17",
-    "name": "OBAIDSaleem Saleem",
+    "name": "Saleem Obaid",
     "position": "DEF",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_18",
-    "name": "ABUGHOUSHMohammad Mohammad",
+    "name": "Mohammad Abu Ghoush",
     "position": "MID",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_19",
-    "name": "ALROSANSa'ed Saed",
+    "name": "Saed Alrosan",
     "position": "DEF",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_20",
-    "name": "Mohannad Mohannad Abutaha",
+    "name": "Mohannad Abu Taha",
     "position": "MID",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_21",
-    "name": "Nizar Nizar Alrashdan",
+    "name": "Nizar Alrashdan",
     "position": "MID",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_22",
-    "name": "Abdallah Abdallah Alfakhori",
+    "name": "Abdallah Alfakhori",
     "position": "GK",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_23",
-    "name": "Ehsan Ehsan Haddad",
+    "name": "Ehsan Haddad",
     "position": "DEF",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_24",
-    "name": "Ali Ali Azaizeh",
+    "name": "Ali Azaizeh",
     "position": "FWD",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_25",
-    "name": "Mohammad Mohammad Aldaoud",
+    "name": "Mohammad Aldaoud",
     "position": "MID",
     "team": "Jordan",
     "team_code": "JOR"
   },
   {
     "player_id": "jor_26",
-    "name": "Anas Anas Badawi",
+    "name": "Anas Badawi",
     "position": "DEF",
     "team": "Jordan",
     "team_code": "JOR"
@@ -5125,7 +5125,7 @@
   },
   {
     "player_id": "mar_5",
-    "name": "Nayef Aguerd",
+    "name": "Marwane Saadane",
     "position": "DEF",
     "team": "Morocco",
     "team_code": "MAR"
@@ -5209,7 +5209,7 @@
   },
   {
     "player_id": "mar_17",
-    "name": "Abde Ezzalzouli",
+    "name": "Amine Sbai",
     "position": "FWD",
     "team": "Morocco",
     "team_code": "MAR"
@@ -5741,7 +5741,7 @@
   },
   {
     "player_id": "nor_15",
-    "name": "Fredrik Bjorkan",
+    "name": "Fredrik Andre Bjorkan",
     "position": "DEF",
     "team": "Norway",
     "team_code": "NOR"
@@ -5867,7 +5867,7 @@
   },
   {
     "player_id": "pan_7",
-    "name": "Jose Rodriguez",
+    "name": "Jose Luis Rodriguez",
     "position": "MID",
     "team": "Panama",
     "team_code": "PAN"
@@ -5895,7 +5895,7 @@
   },
   {
     "player_id": "pan_11",
-    "name": "Edgar Barcenas",
+    "name": "Edgar Yoel Barcenas",
     "position": "MID",
     "team": "Panama",
     "team_code": "PAN"
@@ -6077,7 +6077,7 @@
   },
   {
     "player_id": "par_11",
-    "name": "Mauricio Mauricio",
+    "name": "Mauricio",
     "position": "MID",
     "team": "Paraguay",
     "team_code": "PAR"
@@ -6189,28 +6189,28 @@
   },
   {
     "player_id": "por_1",
-    "name": "Diogo Diogo Costa",
+    "name": "Diogo Costa",
     "position": "GK",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_2",
-    "name": "SEMEDONélson Nelson",
+    "name": "Nelson Semedo",
     "position": "DEF",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_3",
-    "name": "Rúben Ruben Dias",
+    "name": "Ruben Dias",
     "position": "DEF",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_4",
-    "name": "Tomás Tomas Araujo",
+    "name": "Tomas Araujo",
     "position": "DEF",
     "team": "Portugal",
     "team_code": "POR"
@@ -6224,119 +6224,119 @@
   },
   {
     "player_id": "por_6",
-    "name": "NUNESMatheus Matheus",
+    "name": "Matheus Nunes",
     "position": "MID",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_7",
-    "name": "Cristiano Cristiano Ronaldo",
+    "name": "Cristiano Ronaldo",
     "position": "FWD",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_8",
-    "name": "Bruno Bruno Fernandes",
+    "name": "Bruno Fernandes",
     "position": "MID",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_9",
-    "name": "RAMOSGonçalo Goncalo",
+    "name": "Goncalo Ramos",
     "position": "FWD",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_10",
-    "name": "Bernardo Bernardo Silva",
+    "name": "Bernardo Silva",
     "position": "MID",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_11",
-    "name": "João Joao Felix",
+    "name": "Joao Felix",
     "position": "FWD",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_12",
-    "name": "José Jose Sa",
+    "name": "Jose Sa",
     "position": "GK",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_13",
-    "name": "Renato Renato Veiga",
+    "name": "Renato Veiga",
     "position": "DEF",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_14",
-    "name": "Gonçalo Goncalo Inacio",
+    "name": "Goncalo Inacio",
     "position": "DEF",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_15",
-    "name": "João Joao Neves",
+    "name": "Joao Neves",
     "position": "MID",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_16",
-    "name": "Francisco Francisco Trincao",
+    "name": "Francisco Trincao",
     "position": "FWD",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_17",
-    "name": "Rafael Rafael Leao",
+    "name": "Rafael Leao",
     "position": "FWD",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_18",
-    "name": "Pedro Pedro Neto",
+    "name": "Pedro Neto",
     "position": "FWD",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_19",
-    "name": "GUEDESGonçalo Goncalo",
+    "name": "Goncalo Guedes",
     "position": "FWD",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_20",
-    "name": "João Joao Cancelo",
+    "name": "Joao Cancelo",
     "position": "DEF",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_21",
-    "name": "NEVESRúben Ruben",
+    "name": "Ruben Neves",
     "position": "MID",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_22",
-    "name": "Rui Rui Silva",
+    "name": "Rui Silva",
     "position": "GK",
     "team": "Portugal",
     "team_code": "POR"
@@ -6357,35 +6357,35 @@
   },
   {
     "player_id": "por_25",
-    "name": "MENDESNuno Nuno",
+    "name": "Nuno Mendes",
     "position": "DEF",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "por_26",
-    "name": "Francisco Francisco Conceicao",
+    "name": "Francisco Conceicao",
     "position": "FWD",
     "team": "Portugal",
     "team_code": "POR"
   },
   {
     "player_id": "qat_1",
-    "name": "Mahmoud Mahmoud Abunada",
+    "name": "Mahmoud Abunada",
     "position": "GK",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_2",
-    "name": "MIGUELPedro Pedro",
+    "name": "Pedro Miguel",
     "position": "DEF",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_3",
-    "name": "MENDESLucas Lucas",
+    "name": "Lucas Mendes",
     "position": "DEF",
     "team": "Qatar",
     "team_code": "QAT"
@@ -6399,7 +6399,7 @@
   },
   {
     "player_id": "qat_5",
-    "name": "GABERJassem Jassem",
+    "name": "Jassem Gaber",
     "position": "DEF",
     "team": "Qatar",
     "team_code": "QAT"
@@ -6413,21 +6413,21 @@
   },
   {
     "player_id": "qat_7",
-    "name": "Ahmed Ahmed Alaaeldin",
+    "name": "Ahmed Alaaeldin",
     "position": "FWD",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_8",
-    "name": "JUNIOREdmilson Edmilson",
+    "name": "Edmilson Junior",
     "position": "FWD",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_9",
-    "name": "Mohammed Mohammed Muntari",
+    "name": "Mohammed Muntari",
     "position": "FWD",
     "team": "Qatar",
     "team_code": "QAT"
@@ -6441,294 +6441,294 @@
   },
   {
     "player_id": "qat_11",
-    "name": "AFIFAkram Akram",
+    "name": "Akram Afif",
     "position": "FWD",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_12",
-    "name": "Karim Karim Boudiaf",
+    "name": "Karim Boudiaf",
     "position": "MID",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_13",
-    "name": "Ayoub Ayoub Aloui",
+    "name": "Ayoub Aloui",
     "position": "DEF",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_14",
-    "name": "AHMEDHomam Homam",
+    "name": "Homam Ahmed",
     "position": "DEF",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_15",
-    "name": "Yusuf Yusuf Abdurisag",
+    "name": "Yusuf Abdurisag",
     "position": "FWD",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_16",
-    "name": "KHOUKHIBoualem Boualem",
+    "name": "Boualem Khoukhi",
     "position": "DEF",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_17",
-    "name": "Ahmed Ahmed Alganehi",
+    "name": "Ahmed Alganehi",
     "position": "MID",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_18",
-    "name": "ALBRAKESultan Sultan",
+    "name": "Sultan Albrake",
     "position": "DEF",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_19",
-    "name": "ALIAlmoez Almoez",
+    "name": "Almoez Ali",
     "position": "FWD",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_20",
-    "name": "Ahmed Ahmed Fathy",
+    "name": "Ahmed Fathy",
     "position": "MID",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_21",
-    "name": "Salah Salah Zakaria",
+    "name": "Salah Zakaria",
     "position": "GK",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_22",
-    "name": "Meshaal Meshaal Barsham",
+    "name": "Meshaal Barsham",
     "position": "GK",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_23",
-    "name": "Assim Assim Madibo",
+    "name": "Assim Madibo",
     "position": "MID",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_24",
-    "name": "Tahsin Tahsin Mohammed",
+    "name": "Tahsin Mohammed",
     "position": "FWD",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_25",
-    "name": "ALHUSSEINAlhashmi Alhashmi",
+    "name": "Alhashmi Alhussein",
     "position": "DEF",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "qat_26",
-    "name": "Mohamed Mohamed Manai",
+    "name": "Mohamed Manai",
     "position": "FWD",
     "team": "Qatar",
     "team_code": "QAT"
   },
   {
     "player_id": "ksa_1",
-    "name": "Nawaf Nawaf Alaqidi",
+    "name": "Nawaf Alaqidi",
     "position": "GK",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_2",
-    "name": "Ali Ali Majrashi",
+    "name": "Ali Majrashi",
     "position": "DEF",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_3",
-    "name": "Ali Ali Lajami",
+    "name": "Ali Lajami",
     "position": "DEF",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_4",
-    "name": "Abdulelah Abdulelah Alamri",
+    "name": "Abdulelah Alamri",
     "position": "DEF",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_5",
-    "name": "Hassan Hassan Altambakti",
+    "name": "Hassan Altambakti",
     "position": "DEF",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_6",
-    "name": "Nasser Nasser Aldawsari",
+    "name": "Nasser Aldawsari",
     "position": "MID",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_7",
-    "name": "Musab Musab Aljuwayr",
+    "name": "Musab Aljuwayr",
     "position": "MID",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_8",
-    "name": "Aiman Aiman Yahya",
+    "name": "Aiman Yahya",
     "position": "FWD",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_9",
-    "name": "ALBRIKANFeras Feras",
+    "name": "Feras Albrikan",
     "position": "FWD",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_10",
-    "name": "Salem Salem Aldawsari",
+    "name": "Salem Aldawsari",
     "position": "FWD",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_11",
-    "name": "ALSHEHRISaleh Saleh",
+    "name": "Saleh Alshehri",
     "position": "FWD",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_12",
-    "name": "Saud Saud Abdulhamid",
+    "name": "Saud Abdulhamid",
     "position": "DEF",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_13",
-    "name": "Nawaf Nawaf Bu Washl",
+    "name": "Nawaf Bu Washl",
     "position": "DEF",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_14",
-    "name": "KADISHHassan Hassan",
+    "name": "Hassan Kadish",
     "position": "DEF",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_15",
-    "name": "Abdullah Abdullah Alkhaibari",
+    "name": "Abdullah Alkhaibari",
     "position": "MID",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_16",
-    "name": "Ziyad Ziyad Aljohani",
+    "name": "Ziyad Aljohani",
     "position": "MID",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_17",
-    "name": "Khalid Khalid Alghannam",
+    "name": "Khalid Alghannam",
     "position": "FWD",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_18",
-    "name": "Ala Ala Alhajji",
+    "name": "Ala Alhajji",
     "position": "MID",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_19",
-    "name": "Abdullah Abdullah Alhamddan",
+    "name": "Abdullah Alhamddan",
     "position": "FWD",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_20",
-    "name": "Sultan Sultan Mandash",
+    "name": "Sultan Mandash",
     "position": "FWD",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_21",
-    "name": "Mohammed Mohammed Alowais",
+    "name": "Mohammed Alowais",
     "position": "GK",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_22",
-    "name": "ALKASSARAhmed Ahmed",
+    "name": "Ahmed Alkassar",
     "position": "GK",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_23",
-    "name": "Mohamed Mohamed Kanno",
+    "name": "Mohamed Kanno",
     "position": "MID",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_24",
-    "name": "Moteb Moteb Alharbi",
+    "name": "Moteb Alharbi",
     "position": "DEF",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_25",
-    "name": "Jehad Jehad Thikri",
+    "name": "Jehad Thikri",
     "position": "DEF",
     "team": "Saudi Arabia",
     "team_code": "KSA"
   },
   {
     "player_id": "ksa_26",
-    "name": "Mohammed Mohammed Abu Alshamat",
+    "name": "Mohammed Abu Alshamat",
     "position": "DEF",
     "team": "Saudi Arabia",
     "team_code": "KSA"
