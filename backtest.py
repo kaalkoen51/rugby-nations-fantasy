@@ -60,6 +60,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--season", type=int, default=2022)
     parser.add_argument("--league", type=int, default=1)
+    parser.add_argument("--stage", choices=("all", "group", "knockout"),
+                        default="all", help="filter by tournament stage")
+    parser.add_argument("--top", type=int, default=15,
+                        help="how many tournament totals to list")
     args = parser.parse_args()
 
     fixtures = [
@@ -67,7 +71,12 @@ def main() -> None:
                                            "season": args.season})["response"]
         if f["fixture"]["status"]["short"] in ("FT", "AET", "PEN")
     ]
-    print(f"{len(fixtures)} completed fixtures, season {args.season}")
+    if args.stage != "all":
+        in_group = lambda f: f["league"]["round"].startswith("Group")
+        fixtures = [f for f in fixtures
+                    if in_group(f) == (args.stage == "group")]
+    print(f"{len(fixtures)} completed fixtures, season {args.season}"
+          f" ({args.stage})")
 
     rows = []
     for f in fixtures:
@@ -142,8 +151,10 @@ def main() -> None:
         t["pts"] += r["total"]
         t["base"] += r["base"]
         t["pos"] = r["position"]
-    print("\nTop 15 tournament totals (with defensive actions):")
-    top = sorted(totals.items(), key=lambda kv: kv[1]["pts"], reverse=True)[:15]
+    print(f"\nTop {args.top} totals, {args.stage} fixtures"
+          " (with defensive actions):")
+    top = sorted(totals.items(),
+                 key=lambda kv: kv[1]["pts"], reverse=True)[:args.top]
     for name, t in top:
         print(f"  {t['pts']:>4} ({t['base']:>3} base)  {t['pos']:<4} {name}")
 

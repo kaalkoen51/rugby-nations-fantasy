@@ -8,6 +8,12 @@ on:
       season:
         description: "Season year (e.g. 2022)"
         default: "2022"
+      stage:
+        description: "Stage filter: all, group or knockout"
+        default: "all"
+      top:
+        description: "How many tournament totals to list"
+        default: "15"
 
 jobs:
   backtest:
@@ -25,4 +31,6 @@ jobs:
       - name: Run backtest
         env:
           API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
-        run: python backtest.py --season "${{ inputs.season }}"
+        run: >
+          python backtest.py --season "${{ inputs.season }}"
+          --stage "${{ inputs.stage }}" --top "${{ inputs.top }}"
