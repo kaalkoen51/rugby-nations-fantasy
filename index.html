@@ -601,8 +601,27 @@ function fixtureText(team) {
   return `${f.home === team ? "vs" : "@"} ${opp} · ${when}`;
 }
 
+// photos.json (faces/crests) and injuries.json (availability hints) are
+// optional, like fixtures.json — the app degrades gracefully without them.
+async function loadExtras() {
+  const get = async (file, fallback) => {
+    try { const r = await fetch(file); return r.ok ? await r.json() : fallback; }
+    catch { return fallback; }
+  };
+  if (S.photos === undefined) S.photos = await get("photos.json", null);
+  if (S.injuryByPid === undefined) {
+    const list = await get("injuries.json", []);
+    // Entries auto-expire: only keep reports for recent/upcoming fixtures.
+    const cutoff = new Date(Date.now() - 2 * 86400e3).toISOString().slice(0, 10);
+    S.injuryByPid = {};
+    for (const r of list || []) {
+      if ((r.fixture_date || "") >= cutoff) S.injuryByPid[r.player_id] = r;
+    }
+  }
+}
+
 async function enterLeague() {
-  await Promise.all([loadPlayers(), loadFixtures()]);
+  await Promise.all([loadPlayers(), loadFixtures(), loadExtras()]);
   await refetchAll();
   subscribeRealtime();
 }
@@ -895,9 +914,10 @@ function renderPool() {
 
   $("pool-list").innerHTML = shown.map((e) => {
     const canPick = myTurn && quotaLeft(onClockPicks, e.position) > 0;
-    return `<li class="flex items-center justify-between py-2 gap-2">
-      <div class="min-w-0">
-        <div class="truncate font-medium">${esc(e.name)}</div>
+    return `<li class="flex items-center py-2 gap-2">
+      ${avatarHtml(e.player_id, e.team)}
+      <div class="min-w-0 flex-1">
+        <div class="truncate font-medium">${esc(e.name)} ${availBadges(e.player_id)}</div>
         <div class="text-xs text-slate-400">${esc(e.team)}</div>
       </div>
       <div class="flex items-center gap-2 shrink-0">
@@ -946,7 +966,8 @@ function renderRosters(containerId) {
             ? `<button data-swap="${pk.id}" class="ml-auto shrink-0 text-[10px] underline text-wcgold">swap</button>` : "";
           return `<div class="rounded-lg bg-slate-800/60 px-2 py-1.5 flex items-center gap-1.5">
             <span class="text-[10px] w-14 shrink-0 text-slate-400">${pk.slot}</span>
-            <span class="min-w-0 truncate">${esc(pk.player_name)}
+            ${avatarHtml(pk.player_id, pk.team, "w-5 h-5")}
+            <span class="min-w-0 truncate">${esc(pk.player_name)} ${availBadges(pk.player_id)}
               <span class="text-[10px] text-slate-500">${esc(pk.team)}</span></span>
             <span class="ml-auto shrink-0 text-[10px] font-mono text-slate-400">${entryPoints(pk.player_id, pk.position, pk.team)}p</span>${swap}
           </div>`;
@@ -1292,8 +1313,9 @@ function renderHomeTab() {
       ${mine.map((pk) => `
         <div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-2">
           <span class="text-[10px] w-14 shrink-0 ${pk.is_sub ? "text-slate-500" : "text-slate-300"}">${pk.slot}${pk.kept ? " ⭐" : ""}</span>
+          ${avatarHtml(pk.player_id, pk.team)}
           <span class="min-w-0 flex-1">
-            <span class="block truncate text-sm">${esc(pk.player_name)}</span>
+            <span class="block truncate text-sm">${esc(pk.player_name)} ${availBadges(pk.player_id)}</span>
             <span class="block truncate text-[10px] text-slate-500">${esc(pk.team)}${
               noFix ? "" : " · " + esc(fixtureText(pk.position === "TEAM" ? pk.team : pk.team))}</span>
           </span>
@@ -1437,6 +1459,69 @@ const ownerOf = (pid) => {
   return pk ? S.managers.find((m) => m.id === pk.manager_id)?.name : null;
 };
 
+/* ---------- availability (suspensions & injuries) and avatars ---------- */
+
+// FIFA wipes single yellows after the quarter-finals so nobody misses the
+// final on accumulation; this is the first day of the post-wipe window.
+const YELLOW_RESET_DATE = "2026-07-12";
+
+// Best-effort "suspended for their next match" from our own card data:
+// a red in their latest appearance, or an even count of single-yellow
+// matches with the latest appearance booked (2nd/4th yellow triggers a
+// one-match ban; playing again clears the flag, i.e. ban served). Two
+// yellows in one match arrive as a red and don't count toward accumulation.
+function suspendedNext(pid) {
+  const rows = statRowsFor(pid).filter((r) => r.appeared)
+    .sort((a, b) => String(labelDate(a.match_label))
+      .localeCompare(String(labelDate(b.match_label))));
+  if (!rows.length) return null;
+  const last = rows[rows.length - 1];
+  if ((last.red_cards || 0) > 0) return "red card";
+  const lastPreWipe = String(labelDate(last.match_label)) < YELLOW_RESET_DATE;
+  const yellows = rows.filter((r) =>
+    (String(labelDate(r.match_label)) < YELLOW_RESET_DATE) === lastPreWipe
+    && (r.yellow_cards || 0) > 0 && !(r.red_cards || 0)).length;
+  if ((last.yellow_cards || 0) > 0 && !(last.red_cards || 0) && yellows % 2 === 0)
+    return "2 yellows";
+  return null;
+}
+
+const injuryOf = (pid) => (S.injuryByPid || {})[pid] || null;
+
+// 🟥 suspended next match · 🤕 out injured · ⚠️ doubtful
+function availBadges(pid) {
+  let out = "";
+  const susp = suspendedNext(pid);
+  if (susp) out += `<span title="suspended next match (${susp})">🟥</span>`;
+  const inj = injuryOf(pid);
+  if (inj) out += `<span title="${esc(inj.reason || "injury")}">${
+    inj.status === "out" ? "🤕" : "⚠️"}</span>`;
+  return out;
+}
+
+// Plain-text variant for <option> labels in the trade builder.
+function availText(pid) {
+  const bits = [];
+  if (suspendedNext(pid)) bits.push("🟥 susp");
+  const inj = injuryOf(pid);
+  if (inj) bits.push(inj.status === "out" ? "🤕 out" : "⚠ doubtful");
+  return bits.length ? " · " + bits.join(" ") : "";
+}
+
+// Player faces / team crests via photos.json (optional, like fixtures.json):
+// { players: { "arg_10": <api id> }, teams: { "Argentina": <api id> } }.
+function avatarHtml(playerId, team, size = "w-7 h-7") {
+  const isTeam = String(playerId).startsWith("team:");
+  const id = isTeam ? S.photos?.teams?.[team] : S.photos?.players?.[playerId];
+  if (!id) return `<span class="${size} rounded-full bg-slate-800 shrink-0"></span>`;
+  const url = isTeam
+    ? `https://media.api-sports.io/football/teams/${id}.png`
+    : `https://media.api-sports.io/football/players/${id}.png`;
+  return `<span class="${size} rounded-full bg-slate-800 overflow-hidden shrink-0 inline-flex items-center justify-center">
+    <img src="${url}" loading="lazy" onerror="this.remove()"
+         class="w-full h-full ${isTeam ? "object-contain p-0.5" : "object-cover"}" alt=""></span>`;
+}
+
 function renderStatsDetail() {
   const box = $("stats-detail");
   const p = S.statsSel ? S.playerById[S.statsSel] : null;
@@ -1449,8 +1534,9 @@ function renderStatsDetail() {
   box.innerHTML = `
     <div class="rounded-xl border border-wcgold/60 bg-slate-900 p-4 space-y-3">
       <div class="flex items-start gap-2">
+        ${avatarHtml(p.player_id, p.team, "w-12 h-12")}
         <div class="min-w-0 flex-1">
-          <div class="font-bold truncate">${esc(p.name)}</div>
+          <div class="font-bold truncate">${esc(p.name)} ${availBadges(p.player_id)}</div>
           <div class="text-xs text-slate-400">${teamFixLine(p.team)}</div>
           <div class="text-[10px] text-slate-500 mt-0.5">${
             owner ? "👤 drafted by " + esc(owner) : "free agent"}</div>
@@ -1511,8 +1597,9 @@ function renderStatsTab() {
     const owner = ownerOf(p.player_id);
     return `<li><button data-sp="${esc(p.player_id)}" class="w-full flex items-center gap-2 py-2 text-left">
       <span class="text-slate-500 font-mono w-6 shrink-0">${q ? "" : i + 1 + "."}</span>
+      ${avatarHtml(p.player_id, p.team)}
       <span class="min-w-0 flex-1">
-        <span class="block truncate text-sm">${esc(p.name)}${
+        <span class="block truncate text-sm">${esc(p.name)} ${availBadges(p.player_id)}${
           owner ? ` <span class="rounded bg-slate-700 px-1 py-0.5 text-[10px] text-wcgold">👤 ${esc(owner)}</span>` : ""}</span>
         <span class="block truncate text-[10px] text-slate-500">${esc(p.team)}</span>
       </span>
@@ -1595,7 +1682,8 @@ function renderLineup() {
     return `${header}<button data-lineup="${pk.id}" class="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left border ${
       starter ? "border-wcgold bg-wcred/10" : "border-slate-700 bg-slate-800/60"
     }">
-      <span class="min-w-0 truncate text-sm">${esc(pk.player_name)}
+      ${avatarHtml(pk.player_id, pk.team, "w-5 h-5")}
+      <span class="min-w-0 truncate text-sm">${esc(pk.player_name)} ${availBadges(pk.player_id)}
         <span class="text-[10px] text-slate-500">${esc(pk.team)}</span></span>
       <span class="ml-auto shrink-0 text-[10px] font-mono text-slate-400">${playerPoints(pk.player_id, pk.position)}p</span>
       <span class="shrink-0 text-xs font-semibold ${starter ? "text-wcgold" : "text-slate-500"}">${starter ? "STARTER" : "sub"}</span>
@@ -1688,18 +1776,20 @@ function renderSwapList() {
     .slice(0, 40);
 
   const freeRows = free.map((e) => `
-    <li class="flex items-center justify-between py-2 gap-2">
-      <div class="min-w-0">
-        <div class="truncate font-medium">${esc(e.name)}</div>
+    <li class="flex items-center py-2 gap-2">
+      ${avatarHtml(e.player_id, e.team)}
+      <div class="min-w-0 flex-1">
+        <div class="truncate font-medium">${esc(e.name)} ${availBadges(e.player_id)}</div>
         <div class="text-xs text-slate-400">${teamFixLine(e.team)}</div>
       </div>
       <span class="shrink-0 text-xs font-mono text-slate-400">${entryPoints(e.player_id, e.position, e.team)} pts</span>
       <button data-swapin="${esc(e.player_id)}" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-3 py-1.5 text-sm font-semibold">Swap in</button>
     </li>`).join("") || '<li class="py-4 text-sm text-slate-500">No free agents match.</li>';
   const ownedRows = owned.map(({ pk, owner }) => `
-    <li class="flex items-center justify-between py-2 gap-2">
-      <div class="min-w-0">
-        <div class="truncate font-medium">${esc(pk.player_name)}
+    <li class="flex items-center py-2 gap-2">
+      ${avatarHtml(pk.player_id, pk.team)}
+      <div class="min-w-0 flex-1">
+        <div class="truncate font-medium">${esc(pk.player_name)} ${availBadges(pk.player_id)}
           <span class="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] font-semibold text-wcgold">👤 ${esc(owner?.name ?? "?")}</span></div>
         <div class="text-xs text-slate-400">${teamFixLine(pk.team)}</div>
       </div>
@@ -1777,7 +1867,7 @@ function builderHtml(me) {
   const myPicks = S.picks.filter((p) => p.manager_id === me.id && p.slot !== "TEAM");
   const targetPicks = S.picks.filter((p) => p.manager_id === b.target && p.slot !== "TEAM");
   const optLabel = (p) =>
-    `${p.slot} · ${p.player_name} (${p.team}, ${entryPoints(p.player_id, p.position, p.team)} pts)`;
+    `${p.slot} · ${p.player_name} (${p.team}, ${entryPoints(p.player_id, p.position, p.team)} pts)${availText(p.player_id)}`;
   const targetSelect = `<label class="block text-xs text-slate-400">Trade with
       <select id="trade-target" class="mt-1 w-full rounded-lg bg-slate-800 border border-slate-700 px-2 py-2 text-sm" ${b.parent ? "disabled" : ""}>
         <option value="">— choose trading partner —</option>
@@ -1794,7 +1884,8 @@ function builderHtml(me) {
       <div class="space-y-1">
         ${myPicks.map((p) => `<div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-1.5 text-sm">
           <span class="text-[10px] w-14 shrink-0 text-slate-400">${p.slot}</span>
-          <span class="min-w-0 truncate">${esc(p.player_name)}
+          ${avatarHtml(p.player_id, p.team, "w-5 h-5")}
+          <span class="min-w-0 truncate">${esc(p.player_name)} ${availBadges(p.player_id)}
             <span class="text-[10px] text-slate-500">${teamFixLine(p.team)}</span></span>
           <span class="ml-auto shrink-0 text-[10px] font-mono text-slate-400">${entryPoints(p.player_id, p.position, p.team)}p</span>
           <button data-faswap="${p.id}" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-3 py-1 text-xs font-semibold">Swap</button>

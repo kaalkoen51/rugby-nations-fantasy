@@ -1,0 +1,35 @@
+name: Build photos
+
+# Manual one-shot: regenerates photos.json (player faces / team crests)
+# and commits it. Run it once, and again after FIFA squad changes.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  photos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build photos.json
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: python build_photos.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add photos.json
+          git diff --cached --quiet || { git commit -m "photos: rebuild player/team avatar ids"; git push; }

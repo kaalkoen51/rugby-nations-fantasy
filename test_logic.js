@@ -10,13 +10,13 @@ const stubDoc = {
 };
 const api = new Function(
   "document", "localStorage", "window", "crypto", "navigator",
-  src + "\nreturn { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints };"
+  src + "\nreturn { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, suspendedNext };"
 )(stubDoc, { getItem: () => null, setItem: () => {}, removeItem: () => {} }, {}, {}, {});
 
 const { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores,
         slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick,
         posQuota, picksPerManager, totalPicks,
-        playerBreakdown, playerPoints } = api;
+        playerBreakdown, playerPoints, suspendedNext } = api;
 let fails = 0;
 const check = (label, got, want) => {
   const ok = JSON.stringify(got) === JSON.stringify(want);
@@ -209,5 +209,26 @@ check("eliminated manager shows frozen points",
   [fin[2].total, fin[2].items.length], [42, 0]);
 S.stages = [];
 check("champion pick pending = 0", computeScores()[0].total, 0);
+
+/* suspension indicator (best-effort, from our own card data) */
+S.stats = [
+  row({ player_id: "x1", match_label: "A vs B (2026-06-15)", red_cards: 1 }),
+  row({ player_id: "x2", match_label: "A vs B (2026-06-15)", yellow_cards: 1 }),
+  row({ player_id: "x2", match_label: "A vs C (2026-06-20)", yellow_cards: 1 }),
+  row({ player_id: "x3", match_label: "A vs B (2026-06-15)", yellow_cards: 1 }),
+  row({ player_id: "x4", match_label: "A vs B (2026-06-15)", red_cards: 1 }),
+  row({ player_id: "x4", match_label: "A vs C (2026-06-20)" }),
+  row({ player_id: "x5", match_label: "A vs B (2026-07-08)", yellow_cards: 1 }),
+  row({ player_id: "x5", match_label: "A vs C (2026-07-14)", yellow_cards: 1 }),
+  row({ player_id: "x6", match_label: "A vs B (2026-06-15)", yellow_cards: 2, red_cards: 1 }),
+  row({ player_id: "x6", match_label: "A vs C (2026-06-20)", yellow_cards: 1 }),
+];
+check("red card -> suspended next match", suspendedNext("x1"), "red card");
+check("2nd yellow -> suspended next match", suspendedNext("x2"), "2 yellows");
+check("single yellow -> fine", suspendedNext("x3"), null);
+check("ban cleared after playing again", suspendedNext("x4"), null);
+check("yellow slate wiped after the QFs", suspendedNext("x5"), null);
+check("two-yellow red doesn't count toward accumulation", suspendedNext("x6"), null);
+check("no stats -> no flag", suspendedNext("x7"), null);
 
 process.exit(fails ? 1 : 0);

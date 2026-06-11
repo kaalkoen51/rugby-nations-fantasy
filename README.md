@@ -17,6 +17,10 @@ match stats from API-Football every morning and scores everyone's players.
 | `.github/workflows/live-pull.yml` | Watchdog (every 15 min) that engages `live_pull.py` around kickoffs |
 | `build_players.py` | Regenerates `players.json` if FIFA updates squads |
 | `build_fixtures.py` | Generates `fixtures.json` (next-fixture info on the Home tab) |
+| `build_injuries.py` | Generates `injuries.json` (🤕/⚠️ availability badges) |
+| `build_photos.py` | Generates `photos.json` (player faces & team crests) |
+| `.github/workflows/injuries.yml` | Rebuilds + commits `injuries.json` daily at 06:30 SAST |
+| `.github/workflows/photos.yml` | Manual: rebuilds + commits `photos.json` (run after squad changes) |
 | `backtest.py` | Scores a past World Cup to sanity-check position balance (Actions → "Scoring backtest") |
 | `test_logic.js` | Smoke tests for draft order + scoring (`node test_logic.js`) |
 | `test_daily_pull.py` | Tests for the API→FIFA player-id mapping (`python -m unittest test_daily_pull`) |
@@ -232,6 +236,29 @@ Then commit and push the updated `players.json` so the hosted app picks
 it up. Player ids are `<fifa code>_<shirt number>` (e.g. `arg_10` =
 Messi); TEAM picks use `team:<Country>`.
 
+### Availability badges & avatars
+
+All three are optional static files the app loads like `fixtures.json` —
+missing or stale files just mean no badges/photos, never broken scoring.
+
+- **🟥 suspended next match** — computed in the app from our own
+  `match_stats` cards, no API: red card in the latest appearance, or the
+  2nd/4th accumulated single-yellow (FIFA wipes single yellows after the
+  QFs — `YELLOW_RESET_DATE` in `index.html`). Clears automatically once
+  the player appears again (ban served). Straight-red bans longer than
+  one match aren't tracked — FIFA decides those case by case.
+- **🤕 out / ⚠️ doubtful** — from API-Football injury reports via
+  `injuries.json`, rebuilt daily by the Injuries feed workflow (its own
+  workflow on purpose: it commits to the repo but never touches Supabase
+  or the stats pulls). Treat as a hint, not gospel.
+- **Faces & crests** — `photos.json` maps FIFA player ids to API-Football
+  photo ids; images hotlink from API-Football's public CDN with a plain
+  circle fallback. Rebuild via Actions → "Build photos" after FIFA squad
+  changes.
+
+Because workflows now commit to the repo, run `git pull` before pushing
+local changes.
+
 ### Redraft phases
 
 With a big league (13+ managers) the player pool runs dry as countries
@@ -281,10 +308,10 @@ position groups — a slot only trades within its position, subs included
 
 ### Sanity tests
 
-`node test_logic.js` — 62 checks on the snake order, position quotas,
+`node test_logic.js` — 69 checks on the snake order, position quotas,
 scoring parity with `daily_pull.py` (incl. defensive actions), sub
 activation, lineup-lock history replay, stage bonuses, player stat
-breakdowns, trade validity, and redraft phases (phase quotas, kept
-players, eliminated managers, champion picks).
+breakdowns, trade validity, redraft phases (phase quotas, kept
+players, eliminated managers, champion picks), and suspension flags.
 `python -m unittest test_daily_pull` — 16 tests on the
 API-Football → FIFA player-id mapping.
