@@ -15,7 +15,9 @@ match stats from API-Football every morning and scores everyone's players.
 | `.github/workflows/daily-pull.yml` | Runs the pull daily at 06:00 SAST (04:00 UTC) |
 | `build_players.py` | Regenerates `players.json` if FIFA updates squads |
 | `build_fixtures.py` | Generates `fixtures.json` (next-fixture info on the Home tab) |
+| `backtest.py` | Scores a past World Cup to sanity-check position balance (Actions → "Scoring backtest") |
 | `test_logic.js` | Smoke tests for draft order + scoring (`node test_logic.js`) |
+| `test_daily_pull.py` | Tests for the API→FIFA player-id mapping (`python -m unittest test_daily_pull`) |
 
 Scoring rules live in one place each: `SCORING` in `daily_pull.py` (mirrored
 in `index.html`), and TEAM-pick stage bonuses in `STAGE_BONUS` in
@@ -138,10 +140,17 @@ picks appear live in both tabs. Then create the real league.
 
 In the app: **Admin** tab (leaderboard view) → unlock with the admin token.
 
+- **Pull stats now:** fetch a chosen date's completed matches straight
+  from API-Football and write everyone's stats immediately — same rows
+  the 06:00 workflow writes, so use either or both. Enter your
+  API-Football key once (stored only in that device's browser).
+  In-progress games are skipped; pull again after the final whistle.
 - **Match stats:** enter/edit/delete per-player rows — fallback or
   supplement to the automation (rows upsert on player + match, so the
   6am pull and manual edits don't duplicate). Use the same match-label
   format the automation writes: `Home vs Away (YYYY-MM-DD)`.
+  "Def. actions" = tackles + blocks + interceptions (+1 pt per 2,
+  GK excluded).
 - **Team stages:** set how far each country has progressed (group → r32 →
   r16 → qf → sf → final → winner). This drives TEAM-pick stage bonuses on
   the leaderboard. The automation never touches this — it's always manual,
@@ -227,6 +236,8 @@ position groups — a slot only trades within its position, subs included
 
 ### Sanity tests
 
-`node test_logic.js` — 46 checks on the snake order, position quotas,
-scoring parity with `daily_pull.py`, sub activation, lineup-lock history
-replay, stage bonuses, and trade validity.
+`node test_logic.js` — 49 checks on the snake order, position quotas,
+scoring parity with `daily_pull.py` (incl. defensive actions), sub
+activation, lineup-lock history replay, stage bonuses, and trade
+validity. `python -m unittest test_daily_pull` — 16 tests on the
+API-Football → FIFA player-id mapping.
