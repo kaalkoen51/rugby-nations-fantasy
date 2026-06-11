@@ -1,0 +1,37 @@
+name: Live stats pull
+
+# Watchdog: fires every 15 minutes. live_pull.py exits within seconds
+# when nothing is live and no kickoff is imminent; otherwise it stays
+# up, pulling stats every 5 minutes until the matches end. The
+# concurrency group stops watchdog ticks from stacking while a loop is
+# running. The 06:00 daily pull remains the authoritative sweep.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: live-pull
+  cancel-in-progress: false
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Watch / pull live stats
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          FANTASY_LEAGUE_ID: ${{ secrets.FANTASY_LEAGUE_ID }}
+        run: python live_pull.py

@@ -12,7 +12,9 @@ match stats from API-Football every morning and scores everyone's players.
 | `players.json` | Draft pool: all 48 squads, 1,248 players, from the official FIFA squad lists |
 | `schema.sql` | Supabase schema (idempotent — safe to re-run anytime) |
 | `daily_pull.py` | Daily stats pull → fantasy points → `match_stats` upsert |
+| `live_pull.py` | In-match live scoring loop (5-min updates while games are on) |
 | `.github/workflows/daily-pull.yml` | Runs the pull daily at 06:00 SAST (04:00 UTC) |
+| `.github/workflows/live-pull.yml` | Watchdog (every 15 min) that engages `live_pull.py` around kickoffs |
 | `build_players.py` | Regenerates `players.json` if FIFA updates squads |
 | `build_fixtures.py` | Generates `fixtures.json` (next-fixture info on the Home tab) |
 | `backtest.py` | Scores a past World Cup to sanity-check position balance (Actions → "Scoring backtest") |
@@ -104,6 +106,16 @@ Test it without waiting for 6am: **Actions → Daily stats pull → Run
 workflow** (or `gh workflow run daily-pull.yml`). Before the tournament
 starts it should report "No completed fixtures found" — that means it's
 working.
+
+**Live scoring** is fully automatic and uses the same secrets: a
+watchdog workflow fires every 15 minutes, exits in seconds when nothing
+is on, and otherwise keeps pulling every live fixture's player stats
+every 5 minutes until the matches end (plus one final pull at full
+time), so the leaderboard ticks over during games. Self-healing: every
+pull is a full upsert, and the 06:00 sweep remains authoritative.
+Expect roughly 300–600 API calls on the busiest matchdays — well within
+a paid API-Football plan; disable the workflow from the Actions tab
+after the final to stop the watchdog.
 
 ### 5. Create your league & draft
 
