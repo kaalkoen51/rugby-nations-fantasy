@@ -95,7 +95,12 @@ def main() -> None:
 
     league_id = os.environ.get("FANTASY_LEAGUE_ID")
     if not args.dry_run and not league_id:
-        sys.exit("Error: FANTASY_LEAGUE_ID env var is required.")
+        # Exit green, not red: this watchdog fires every 15 minutes, and a
+        # missing league id would otherwise mean ~96 failure mails a day.
+        log("WARNING: FANTASY_LEAGUE_ID is not set — nothing to score into. "
+            "Create the league, then: gh secret set FANTASY_LEAGUE_ID "
+            "(value = your leagues.id uuid from Supabase). Exiting.")
+        return
 
     matcher = PlayerMatcher(load_players())
     deadline = time.monotonic() + args.max_minutes * 60
