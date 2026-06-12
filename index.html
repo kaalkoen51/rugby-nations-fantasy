@@ -182,6 +182,7 @@
 
   <!-- Leaderboard / rosters -->
   <section data-view="board" class="hidden space-y-4">
+    <div id="board-banner"></div>
     <div class="grid grid-cols-3 gap-2 text-sm">
       <button id="tab-home" class="board-tab rounded-lg py-2 font-semibold" data-tab="home">Home</button>
       <button id="tab-lb" class="board-tab rounded-lg py-2 font-semibold" data-tab="lb">Table</button>
@@ -1375,6 +1376,61 @@ function renderHomeTab() {
   if (lb) lb.onclick = openLineup;
 }
 
+/* ---------- matchday banner ---------- */
+
+const SA_TZ = "Africa/Johannesburg";
+const saDay = (iso) => new Date(iso).toLocaleDateString("en-CA", { timeZone: SA_TZ });
+const saTime = (iso) => new Date(iso).toLocaleTimeString("en-GB",
+  { hour: "2-digit", minute: "2-digit", timeZone: SA_TZ });
+
+// Today's (or the next matchday's) fixtures with SA kickoff times and a
+// per-game tally of whose drafted players are involved. fixtures.json
+// statuses go stale between rebuilds, so "finished" also falls back to
+// "kicked off more than ~2.5h ago".
+function renderBanner() {
+  const box = $("board-banner");
+  if (!box) return;
+  const fx = S.fixtures || [];
+  const over = (f) => ["FT", "AET", "PEN"].includes(f.status)
+    || Date.parse(f.kickoff_utc) < Date.now() - 2.5 * 3600e3;
+  const today = saDay(new Date().toISOString());
+  const day = [...new Set(fx
+    .filter((f) => !over(f) && saDay(f.kickoff_utc) >= today)
+    .map((f) => saDay(f.kickoff_utc)))].sort()[0];
+  if (!day) { box.innerHTML = ""; return; }
+  const games = fx.filter((f) => saDay(f.kickoff_utc) === day)
+    .sort((a, b) => String(a.kickoff_utc).localeCompare(String(b.kickoff_utc)));
+  const label = day === today ? "Today"
+    : day === saDay(new Date(Date.now() + 86400e3).toISOString()) ? "Tomorrow"
+    : new Date(day).toLocaleDateString("en-GB",
+        { weekday: "short", day: "numeric", month: "short" });
+  box.innerHTML = `<div class="rounded-xl border border-slate-700 bg-slate-900 p-3 space-y-1.5">
+    <div class="text-[10px] uppercase tracking-wide text-slate-500">${label} · SA time</div>
+    ${games.map((f) => {
+      const who = {};
+      for (const pk of S.picks) {
+        if (pk.position === "TEAM" || (pk.team !== f.home && pk.team !== f.away)) continue;
+        const m = S.managers.find((x) => x.id === pk.manager_id);
+        if (m) who[m.name] = (who[m.name] || 0) + 1;
+      }
+      const names = Object.entries(who).sort((a, b) => b[1] - a[1])
+        .map(([n, c]) => `${esc(n)} ×${c}`).join(" · ");
+      const isOver = over(f);
+      const isLive = !isOver && Date.parse(f.kickoff_utc) < Date.now();
+      return `<div class="flex items-center gap-1.5 text-sm">
+        <span class="font-mono text-xs w-11 shrink-0 ${
+          isLive ? "text-red-400 font-bold" : isOver ? "text-slate-600" : "text-wcgold"
+        }">${isLive ? "LIVE" : isOver ? "FT" : saTime(f.kickoff_utc)}</span>
+        ${avatarHtml("team:" + f.home, f.home, "w-4 h-4")}
+        <span class="truncate shrink ${isOver ? "text-slate-500" : ""}">${esc(f.home)} – ${esc(f.away)}</span>
+        ${avatarHtml("team:" + f.away, f.away, "w-4 h-4")}
+        <span class="ml-auto pl-1 text-[10px] text-slate-500 text-right truncate max-w-[38%]">${
+          names || "no drafted players"}</span>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
 function setBoardTab(tab) {
   S.boardTab = tab;
   $("board-home").classList.toggle("hidden", tab !== "home");
@@ -1391,6 +1447,7 @@ function setBoardTab(tab) {
 
 function renderBoard() {
   setBoardTab(S.boardTab || "home");
+  renderBanner();
   renderHomeTab();
   const open = new Set([...document.querySelectorAll("#board-lb details[open]")]
     .map((d) => d.dataset.mgr));
