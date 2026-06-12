@@ -1478,10 +1478,10 @@ function topScorers(label, n) {
 }
 
 // Today's (or the next matchday's) fixtures with SA kickoff times, plus an
-// auto-scrolling ticker: upcoming games name each manager's involved
-// players (team crests instead of country names keep it short); finished
-// games show the score and top 3 point-scorers, tappable — like the FT
-// fixture rows — for a fuller breakdown in a panel under the rows.
+// auto-scrolling ticker of games still to play: each manager's involved
+// players (team crests instead of country names keep it short). Finished
+// games show their score on the fixture row, tappable for a panel under
+// the rows with the top point-scorers and ownership.
 // fixtures.json statuses go stale between rebuilds, so "finished" also
 // falls back to "kicked off more than ~2.5h ago". The rendered HTML is
 // cached so realtime refreshes don't restart the ticker animation; the
@@ -1529,23 +1529,13 @@ function renderBanner() {
     </div>`;
   }).join("");
 
-  // Ticker entries — upcoming: crests + whose players feature; finished:
-  // crests + score + top 3 scorers, tappable for the detail panel.
+  // Ticker entries: games still to play only — crests + whose players
+  // feature. Finished games stay out of the ticker; their score and top
+  // scorers live in the tap-to-expand panel on the FT fixture rows.
   const crests = (f) => `${avatarHtml("team:" + f.home, f.home, "w-4 h-4")}<span
     class="px-0.5 text-slate-600">–</span>${avatarHtml("team:" + f.away, f.away, "w-4 h-4")}`;
   const items = games.map((f) => {
-    const l = fxLabel(f);
-    if (over(f)) {
-      if (!hasStats(l)) return "";
-      const [hs, as] = matchScore(l);
-      const tops = topScorers(l, 3).map(({ p, pts }) => {
-        const o = ownerOf(p.player_id);
-        return `${esc(p.name)} ${pts}p <span class="${
-          o ? "text-wcgold" : "text-slate-600"}">(${esc(o || "FA")})</span>`;
-      }).join(", ");
-      return `<button data-ftgame="${esc(l)}" class="inline-flex items-center gap-1">
-        ${crests(f)} <b class="text-slate-300">${hs}–${as}</b>&nbsp;${tops}</button>`;
-    }
+    if (over(f)) return "";
     const byMgr = {};
     for (const pk of S.picks) {
       if (pk.position === "TEAM" || (pk.team !== f.home && pk.team !== f.away)) continue;
