@@ -80,9 +80,18 @@ alter table leagues add column if not exists keeper_window boolean not null defa
 alter table leagues add column if not exists final_phase boolean not null default false;
 alter table managers add column if not exists eliminated boolean not null default false;
 alter table managers add column if not exists frozen_points int;
-alter table managers add column if not exists keeper_pick_id uuid;
+alter table managers add column if not exists keeper_pick_id uuid;  -- legacy, unused
 alter table managers add column if not exists final_pick text;
 alter table picks add column if not exists kept boolean not null default false;
+
+-- Keeper rules per redraft, set by the admin when opening keeper picks:
+-- keeper_max = how many players each manager may keep (kept players fill
+-- squad-quota slots and cost that manager's earliest draft rounds);
+-- keeper_caps = optional per-position limits {"GK":1,...}, null = none.
+-- keeper_pick_ids = each manager's selections (jsonb array of pick ids).
+alter table leagues add column if not exists keeper_max int not null default 1;
+alter table leagues add column if not exists keeper_caps jsonb;
+alter table managers add column if not exists keeper_pick_ids jsonb;
 
 alter table managers add column if not exists join_token text;
 alter table managers add column if not exists draft_position int;

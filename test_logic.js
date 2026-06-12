@@ -186,13 +186,28 @@ S.managers = [
 check("phase 2 quota has no TEAM", posQuota().TEAM, 0);
 check("picks per manager from phase quota", picksPerManager(), 7);
 check("totalPicks counts active managers only", totalPicks(), 14);
-check("kept player rides outside the quota",
-  quotaLeft([{ position: "DEF", kept: true }, { position: "DEF" }], "DEF"), 1);
+check("kept player counts toward the quota",
+  quotaLeft([{ position: "DEF", kept: true }, { position: "DEF" }], "DEF"), 0);
 check("kept player still fills a starter slot",
   slotForNewPick([{ position: "DEF", kept: true }, { position: "DEF" }], "DEF"), "SUB_DEF");
 check("draft order skips eliminated managers",
   [pickInfo(1).manager.name, pickInfo(2).manager.name, pickInfo(3).manager.name],
   ["M1", "M2", "M2"]);
+
+/* keepers consume the earliest rounds and shrink the draft */
+S.picks = [
+  { manager_id: "m1", player_id: "k1", player_name: "Kept FWD",
+    position: "FWD", team: "X", slot: "FWD", kept: true, pick_number: 3 },
+  { manager_id: "m1", player_id: "k2", player_name: "Kept DEF",
+    position: "DEF", team: "Y", slot: "DEF", kept: true, pick_number: 7 },
+];
+check("totalPicks shrinks by kept players", totalPicks(), 12);
+check("keeper-holders join the snake after their kept rounds",
+  [pickInfo(1).manager.name, pickInfo(1).round,
+   pickInfo(2).manager.name, pickInfo(2).round, pickInfo(3).manager.name],
+  ["M2", 1, "M2", 2, "M1"]);
+check("last pick still lands at the squad size", pickInfo(12).round, 7);
+S.picks = [];
 
 /* frozen totals & champion picks in scoring */
 S.picks = []; S.stats = []; S.snapshots = [];

@@ -303,17 +303,27 @@
       <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-3">
         <h3 class="font-semibold text-sm">Redrafts &amp; final phase</h3>
         <p class="text-xs text-slate-500">As the field narrows: (1) optionally remove trailing
-          managers — their points freeze and their players return to the pool; (2) open keeper
-          picks so everyone protects one player; (3) set the new squad size and hit Start —
-          the redraft begins <b>immediately</b> in reverse-standings snake order, so do it when
-          everyone's around, on a day with no matches. TEAM picks always carry through.</p>
+          managers — their points freeze and their players return to the pool; (2) set the keeper
+          rules and open keeper picks; (3) set the new squad size and hit Start — the redraft
+          begins <b>immediately</b> in reverse-standings snake order, so do it when everyone's
+          around, on a day with no matches. Kept players <b>fill squad-quota slots</b> and each
+          keeper costs that manager's earliest draft round. TEAM picks always carry through.</p>
         <div id="adm-phase-info" class="text-sm font-semibold text-wcgold"></div>
         <div id="adm-mgr-list" class="space-y-1"></div>
+        <div class="text-xs text-slate-400">Keeper rules (saved when you open keeper picks).
+          Per-position caps are optional — leave blank for position-independent.</div>
+        <div class="grid grid-cols-5 gap-2 text-sm">
+          <label class="text-xs text-slate-400">Max<input id="adm-k-max" type="number" value="1" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">GK<input id="adm-k-gk" type="number" min="0" placeholder="–" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">DEF<input id="adm-k-def" type="number" min="0" placeholder="–" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">MID<input id="adm-k-mid" type="number" min="0" placeholder="–" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">FWD<input id="adm-k-fwd" type="number" min="0" placeholder="–" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+        </div>
         <div class="flex items-center justify-between gap-3">
           <span id="adm-keeper-status" class="text-xs text-slate-400"></span>
           <button id="adm-keeper-toggle" class="shrink-0 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold"></button>
         </div>
-        <div class="text-xs text-slate-400">New squad per position (the kept player is extra)</div>
+        <div class="text-xs text-slate-400">New squad per position (kept players count toward these)</div>
         <div class="grid grid-cols-4 gap-2 text-sm">
           <label class="text-xs text-slate-400">GK<input id="adm-q-gk" type="number" value="1" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">DEF<input id="adm-q-def" type="number" value="2" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
@@ -379,7 +389,7 @@
 
 // Roster: 14 picks per manager in the initial draft, any order, within
 // position quotas. Redraft phases (2+) use the admin-chosen quota stored
-// on the league row; the kept player rides on top of that quota.
+// on the league row; kept players fill slots inside that quota.
 const PHASE1_QUOTA    = { GK: 2, DEF: 4, MID: 4, FWD: 3, TEAM: 1 };
 const PHASE1_STARTERS = { GK: 1, DEF: 3, MID: 3, FWD: 2 };   // rest are subs
 const GROUPS = ["GK", "DEF", "MID", "FWD", "TEAM"];
@@ -549,8 +559,7 @@ const starterQuota = () => leaguePhase() === 1 ? PHASE1_STARTERS
   : (S.league.phase_starters || S.league.phase_quota || PHASE1_STARTERS);
 const picksPerManager = () =>
   GROUPS.reduce((s, g) => s + (posQuota()[g] || 0), 0);
-const totalPicks = () => picksPerManager() *
-  (leaguePhase() === 1 ? (S.league?.num_managers || 0) : activeManagers().length);
+const totalPicks = () => draftSequence().length;
 
 function route() {
   if (!S.league) { showView("home"); return; }
@@ -786,13 +795,29 @@ function draftOrderManagers() {
 
 // Snake order decides whose turn it is; the manager drafts any position
 // they like, within the phase's position quota.
-function pickInfo(p) {
+//
+// Kept players fill squad slots, so keeper-holders need fewer draft
+// picks. Each keeper costs that manager's earliest round: keep 2 and you
+// join the snake from round 3. With no keepers (phase 1) this is a plain
+// snake. Kept counts are fixed when the redraft starts, so the sequence
+// is deterministic for the whole draft.
+const keptCount = (mgrId) =>
+  managerPicks(mgrId).filter((pk) => pk.kept).length;
+
+function draftSequence() {
   const order = draftOrderManagers();
-  const M = order.length;
-  const round = Math.ceil(p / M);
-  const idx = (p - 1) % M;
-  const manager = round % 2 === 1 ? order[idx] : order[M - 1 - idx];
-  return { round, manager };
+  const rounds = picksPerManager();
+  const seq = [];
+  for (let r = 1; r <= rounds; r++) {
+    const row = r % 2 === 1 ? order : [...order].reverse();
+    for (const m of row) if (keptCount(m.id) < r) seq.push({ round: r, manager: m });
+  }
+  return seq;
+}
+
+function pickInfo(p) {
+  const seq = draftSequence();
+  return seq[Math.min(p, seq.length) - 1];
 }
 
 function availableForGroup(group) {
@@ -806,11 +831,10 @@ function availableForGroup(group) {
 
 const managerPicks = (mgrId) => S.picks.filter((pk) => pk.manager_id === mgrId);
 
-// Kept players (redraft keepers) don't consume quota — they're a bonus
-// slot on top — but they do occupy a starter spot for slotting.
+// Kept players (redraft keepers) fill quota slots like any other pick.
 function quotaLeft(mgrPicks, group) {
   return (posQuota()[group] || 0)
-    - mgrPicks.filter((pk) => pk.position === group && !pk.kept).length;
+    - mgrPicks.filter((pk) => pk.position === group).length;
 }
 
 // First picks in a group fill the starter spots, the rest start as subs;
@@ -1238,10 +1262,11 @@ function scoringHtml() {
     <p class="text-xs"><b>Subs:</b> a sub only scores on days where a starter in their position
       had a match but didn't play. Players who don't appear score 0.</p>
     <p class="text-xs"><b>Redrafts:</b> as the tournament field narrows the admin runs redrafts
-      with smaller squads — everyone keeps 1 player plus their TEAM pick, the rest go back in
-      the pool, and the order is reverse standings (last place picks first). Earlier points stay
-      banked. For the final there are no squads: surviving managers just call the champion
-      for +${FINAL_PICK_BONUS}.</p>
+      with smaller squads — managers may keep up to an admin-set number of players (keepers fill
+      squad slots and each costs your earliest draft round), TEAM picks always carry, the rest
+      go back in the pool, and the order is reverse standings (last place picks first). Earlier
+      points stay banked. For the final there are no squads: surviving managers just call the
+      champion for +${FINAL_PICK_BONUS}.</p>
   </div>`;
 }
 
@@ -1272,19 +1297,29 @@ function phaseCardsHtml(me) {
   }
   let html = "";
   if (S.league.keeper_window) {
+    const maxK = S.league.keeper_max ?? 1;
+    const caps = S.league.keeper_caps || null;
+    const sel = new Set(me.keeper_pick_ids || []);
     const mine = managerPicks(me.id).filter((pk) => pk.slot !== "TEAM");
+    const capLine = caps ? " Position caps: " + ["GK", "DEF", "MID", "FWD"]
+      .filter((g) => caps[g] !== undefined).map((g) => `${caps[g]} ${g}`).join(" · ") + "." : "";
     html += `<div class="rounded-xl border border-wcgold bg-wcred/10 p-4 space-y-2">
-      <div class="font-semibold text-sm">Redraft coming up — choose 1 player to keep</div>
-      <p class="text-xs text-slate-400">Everyone else goes back into the pool (your TEAM pick is
-        kept automatically). You can change your mind until the admin starts the redraft.</p>
+      <div class="font-semibold text-sm">Redraft coming up — keep up to ${maxK} player${maxK === 1 ? "" : "s"}
+        <span class="float-right text-xs text-wcgold">${sel.size}/${maxK} kept</span></div>
+      ${maxK === 0
+        ? '<p class="text-xs text-slate-400">No keepers this redraft — everyone goes back into the pool (your TEAM pick carries automatically).</p>'
+        : `<p class="text-xs text-slate-400">Keepers fill slots in the next squad's position limits,
+          and each keeper costs your earliest draft round. Everyone unkept goes back into the
+          pool (your TEAM pick carries automatically). Change your mind anytime until the
+          redraft starts.${capLine}</p>
       <div class="grid grid-cols-2 gap-1.5 text-sm">
         ${mine.map((pk) => `<button data-keep="${pk.id}" class="rounded-lg px-2 py-1.5 text-left border ${
-          me.keeper_pick_id === pk.id ? "border-wcgold bg-wcred/20" : "border-slate-700 bg-slate-800/60"
+          sel.has(pk.id) ? "border-wcgold bg-wcred/20" : "border-slate-700 bg-slate-800/60"
         }">
-          <span class="block truncate">${me.keeper_pick_id === pk.id ? "⭐ " : ""}${esc(pk.player_name)}</span>
+          <span class="block truncate">${sel.has(pk.id) ? "⭐ " : ""}${esc(pk.player_name)}</span>
           <span class="block truncate text-[10px] text-slate-500">${pk.position} · ${esc(pk.team)} · ${playerPoints(pk.player_id, pk.position)}p</span>
         </button>`).join("")}
-      </div>
+      </div>`}
     </div>`;
   }
   if (S.league.final_phase) {
@@ -1309,13 +1344,35 @@ function phaseCardsHtml(me) {
   return html;
 }
 
-async function setKeeper(pickId) {
+// Toggle a keeper selection, enforcing the admin's max and optional
+// per-position caps. The squad quota itself is validated again when the
+// admin starts the redraft (it may not be entered yet while picking).
+async function toggleKeeper(pickId) {
   const me = myManager();
   if (!S.league.keeper_window) return toast("Keeper picks are closed.");
+  const cur = (me.keeper_pick_ids || []).filter((id) => pickById(id));
+  const next = cur.filter((id) => id !== pickId);
+  if (next.length === cur.length) {           // not selected yet -> add
+    const pk = pickById(pickId);
+    if (!pk) return;
+    const maxK = S.league.keeper_max ?? 1;
+    if (cur.length >= maxK)
+      return toast(`You can keep at most ${maxK} player${maxK === 1 ? "" : "s"} — unselect one first.`);
+    const caps = S.league.keeper_caps || null;
+    const cap = caps?.[pk.position];
+    if (cap !== undefined) {
+      const have = cur.filter((id) => pickById(id)?.position === pk.position).length;
+      if (have >= cap)
+        return toast(`At most ${cap} ${pk.position} keeper${cap === 1 ? "" : "s"} this redraft.`);
+    }
+    next.push(pickId);
+  }
   const { error } = await S.sb.from("managers")
-    .update({ keeper_pick_id: pickId }).eq("id", me.id);
+    .update({ keeper_pick_ids: next }).eq("id", me.id);
   if (error) return toast(error.message);
-  toast("Keeper saved: " + (pickById(pickId)?.player_name || ""));
+  toast(next.length === cur.length + 1
+    ? "Keeper added: " + (pickById(pickId)?.player_name || "")
+    : "Keeper removed: " + (pickById(pickId)?.player_name || ""));
   scheduleRefetch();
 }
 
@@ -1380,7 +1437,7 @@ function renderHomeTab() {
       <div class="px-4 pb-4">${scoringHtml()}</div>
     </details>`;
   box.querySelectorAll("[data-keep]").forEach((b) => b.onclick = () =>
-    setKeeper(b.dataset.keep).catch((e) => toast(e.message)));
+    toggleKeeper(b.dataset.keep).catch((e) => toast(e.message)));
   box.querySelectorAll("[data-final]").forEach((b) => b.onclick = () =>
     setFinalPick(b.dataset.final).catch((e) => toast(e.message)));
   const lb = box.querySelector("#home-lineup");
@@ -2487,11 +2544,13 @@ function admQuotaInputs(prefix) {
   return { GK: v("GK"), DEF: v("DEF"), MID: v("MID"), FWD: v("FWD") };
 }
 
-// A manager's chosen keeper, validated: must still exist, be theirs, and
-// not be the TEAM pick (which carries through automatically).
-function keeperOf(m) {
-  const pk = m.keeper_pick_id && pickById(m.keeper_pick_id);
-  return pk && pk.manager_id === m.id && pk.slot !== "TEAM" ? pk : null;
+// A manager's chosen keepers, in selection order, validated: each must
+// still exist, be theirs, and not be the TEAM pick (which carries
+// through automatically). Count/cap/quota limits are enforced elsewhere.
+function keepersOf(m) {
+  return (m.keeper_pick_ids || [])
+    .map((id) => pickById(id))
+    .filter((pk) => pk && pk.manager_id === m.id && pk.slot !== "TEAM");
 }
 
 async function removeManager(m) {
@@ -2508,12 +2567,25 @@ async function removeManager(m) {
   scheduleRefetch();
 }
 
+// Opening the keeper window also locks in this redraft's keeper rules
+// (max keepers + optional per-position caps) so managers select against
+// known limits.
 async function toggleKeeperWindow() {
   const next = !S.league.keeper_window;
+  const payload = { keeper_window: next };
+  if (next) {
+    payload.keeper_max = Math.max(0, parseInt($("adm-k-max").value, 10) || 0);
+    const caps = {};
+    for (const g of ["GK", "DEF", "MID", "FWD"]) {
+      const v = $("adm-k-" + g.toLowerCase()).value.trim();
+      if (v !== "") caps[g] = Math.max(0, parseInt(v, 10) || 0);
+    }
+    payload.keeper_caps = Object.keys(caps).length ? caps : null;
+  }
   const { error } = await S.sb.from("leagues")
-    .update({ keeper_window: next }).eq("id", S.league.id);
+    .update(payload).eq("id", S.league.id);
   if (error) return toast(error.message);
-  toast(next ? "Keeper picks open — managers choose on their Home tab."
+  toast(next ? `Keeper picks open — up to ${payload.keeper_max} each, chosen on the Home tab.`
              : "Keeper picks closed.");
   scheduleRefetch();
 }
@@ -2527,18 +2599,46 @@ async function startRedraft() {
       return toast(`${g}: starters (${starters[g]}) can't exceed the quota (${quota[g]}).`);
   }
   const active = activeManagers();
-  // Pool feasibility per position once everything but keepers is released.
+  // Kept players fill quota slots, so the pool only needs to cover the
+  // full quota: quota*managers <= players at that position.
   for (const g of ["GK", "DEF", "MID", "FWD"]) {
-    const keptHere = active.filter((m) => keeperOf(m)?.position === g).length;
-    const pool = S.players.filter((p) => p.position === g).length - keptHere;
+    const pool = S.players.filter((p) => p.position === g).length;
     if (quota[g] * active.length > pool)
       return toast(`Not enough ${g}s in the pool: need ${quota[g] * active.length}, have ${pool}.`);
   }
-  const missing = active.filter((m) => !keeperOf(m));
-  if (!confirm(`Start redraft for ${active.length} managers — ${size} per squad `
-    + `(${quota.GK} GK, ${quota.DEF} DEF, ${quota.MID} MID, ${quota.FWD} FWD) + keeper?`
-    + (missing.length ? `\n\nNo keeper chosen (they keep no one): ${missing.map((m) => m.name).join(", ")}` : "")
-    + "\n\nEveryone's other players return to the pool and the draft starts immediately, last place picking first."))
+  // Validate every manager's keepers in selection order against the
+  // admin's max, the per-position caps, and the actual new quota (e.g. a
+  // kept MID is dropped if MID is capped to 0 this round). Excess
+  // selections are dropped, not blockers — the confirm lists them.
+  const maxK = S.league.keeper_max ?? 1;
+  const caps = S.league.keeper_caps || null;
+  const keepersByMgr = {};
+  const droppedNotes = [];
+  for (const m of active) {
+    const valid = [];
+    const perPos = {};
+    for (const pk of keepersOf(m)) {
+      const g = pk.position;
+      const limit = Math.min(caps?.[g] ?? Infinity, quota[g] || 0);
+      if (valid.length >= maxK) {
+        droppedNotes.push(`${m.name}: ${pk.player_name} (over the ${maxK}-keeper max)`);
+      } else if ((perPos[g] || 0) >= limit) {
+        droppedNotes.push(`${m.name}: ${pk.player_name} (${g} keeper limit is ${limit})`);
+      } else {
+        perPos[g] = (perPos[g] || 0) + 1;
+        valid.push(pk);
+        continue;
+      }
+    }
+    keepersByMgr[m.id] = valid;
+  }
+  const noKeep = active.filter((m) => !keepersByMgr[m.id].length);
+  if (!confirm(`Start redraft for ${active.length} managers — squads of ${size} `
+    + `(${quota.GK} GK, ${quota.DEF} DEF, ${quota.MID} MID, ${quota.FWD} FWD), `
+    + "kept players included? Each keeper costs that manager's earliest draft round."
+    + (droppedNotes.length ? `\n\nDROPPED keeper picks (won't be kept):\n${droppedNotes.join("\n")}` : "")
+    + (noKeep.length ? `\n\nKeeping no one: ${noKeep.map((m) => m.name).join(", ")}` : "")
+    + "\n\nEveryone else returns to the pool and the draft starts immediately, last place picking first."))
     return;
   // Bank the outgoing rosters, then reseed the order: reverse standings.
   await snapshotRosters();
@@ -2546,20 +2646,31 @@ async function startRedraft() {
     .sort((a, b) => a.total - b.total);
   await Promise.all(order.map((s, i) => S.sb.from("managers")
     .update({ draft_position: i + 1 }).eq("id", s.manager.id)));
-  // Keepers stay (as starters, on top of the quota); the rest is wiped.
+  // Keepers stay, slotted against the NEW starter quota (first keeper in
+  // a position starts, extras bench); everything else is wiped.
   for (const m of active) {
-    const keep = keeperOf(m);
-    if (keep) {
+    const keeps = keepersByMgr[m.id];
+    const placed = [];
+    for (const keep of keeps) {
+      const have = placed.filter((x) => x === keep.position).length;
+      const slot = have < (starters[keep.position] || 0)
+        ? keep.position : "SUB_" + keep.position;
+      placed.push(keep.position);
       const { error } = await S.sb.from("picks")
-        .update({ kept: true, is_sub: false, slot: keep.position }).eq("id", keep.id);
+        .update({ kept: true, is_sub: slot.startsWith("SUB_"), slot })
+        .eq("id", keep.id);
       if (error) return toast(error.message);
     }
     let del = S.sb.from("picks").delete()
       .eq("league_id", S.league.id).eq("manager_id", m.id).neq("slot", "TEAM");
-    if (keep) del = del.neq("id", keep.id);
+    if (keeps.length)
+      del = del.not("id", "in", `(${keeps.map((k) => k.id).join(",")})`);
     const { error: e2 } = await del;
     if (e2) return toast(e2.message);
   }
+  // Selections are spent; a fresh window starts blank next time.
+  await S.sb.from("managers").update({ keeper_pick_ids: null })
+    .eq("league_id", S.league.id);
   // Open proposals reference deleted picks — clear them out.
   await S.sb.from("trades").update({ status: "cancelled" })
     .eq("league_id", S.league.id).eq("status", "proposed");
@@ -2618,9 +2729,9 @@ function renderAdmin() {
   $("adm-phase-info").textContent = `Phase ${S.league.phase || 1}`
     + (S.league.final_phase ? " · final phase (champion picks)" : "")
     + ` · ${active.length} active manager${active.length === 1 ? "" : "s"}`;
-  const chosen = active.filter((m) => keeperOf(m)).length;
+  const chosen = active.filter((m) => keepersOf(m).length).length;
   $("adm-keeper-status").textContent = S.league.keeper_window
-    ? `Keeper picks OPEN — ${chosen}/${active.length} chosen`
+    ? `Keeper picks OPEN — up to ${S.league.keeper_max ?? 1} each · ${chosen}/${active.length} chose`
     : "Keeper picks closed";
   $("adm-keeper-toggle").textContent =
     S.league.keeper_window ? "Close keeper picks" : "Open keeper picks";
@@ -2630,8 +2741,10 @@ function renderAdmin() {
         <span class="text-xs">frozen at ${m.frozen_points || 0} pts</span></div>`
     : `<div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-1.5 text-sm">
         <span class="truncate flex-1">${esc(m.name)}</span>${
-        S.league.keeper_window ? `<span class="text-[10px] text-slate-500">${
-          keeperOf(m) ? "⭐ " + esc(keeperOf(m).player_name) : "no keeper yet"}</span>` : ""}
+        S.league.keeper_window ? `<span class="text-[10px] text-slate-500 truncate max-w-[50%]">${
+          keepersOf(m).length
+            ? "⭐ " + esc(keepersOf(m).map((pk) => pk.player_name).join(", "))
+            : "no keepers yet"}</span>` : ""}
         <button data-rmmgr="${m.id}" class="text-xs underline text-red-400">remove</button></div>`).join("");
   $("adm-mgr-list").querySelectorAll("[data-rmmgr]").forEach((b) => b.onclick = () =>
     removeManager(S.managers.find((m) => m.id === b.dataset.rmmgr))

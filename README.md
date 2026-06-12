@@ -274,16 +274,26 @@ Admin tab:
 1. **(Optional) Remove trailing managers.** Their total freezes on the
    leaderboard (greyed, "eliminated") and all their players — TEAM pick
    included — return to the pool. Can't be undone.
-2. **Open keeper picks.** Every surviving manager chooses 1 player to
-   protect on their Home tab (their TEAM pick carries automatically).
-   The admin card shows who has/hasn't chosen.
-3. **Set the new squad size** (per-position quota + starters; the kept
-   player rides on top of the quota as a bonus slot) and hit **Start
-   redraft now**. Everything else returns to the pool, open trade
-   proposals are cancelled, and the draft starts **immediately** in
-   reverse-standings snake order (last place picks first) — so do it
-   when everyone's around, on a day with no matches. Earlier rounds
-   stay banked via lineup snapshots.
+2. **Set the keeper rules and open keeper picks.** Per redraft, the
+   admin sets how many players each manager may keep (0 disables
+   keepers) and, optionally, per-position caps — leave the caps blank
+   for position-independent keeping. Rules are saved when the window
+   opens. Managers then star up to that many players on their Home tab
+   (TEAM picks carry automatically); the admin card shows everyone's
+   selections live.
+3. **Set the new squad size** (per-position quota + starters) and hit
+   **Start redraft now**. Kept players **count toward the quota** —
+   keep 1 GK + 1 DEF against limits of 1 GK / 2 DEF and you can't draft
+   another GK and only 1 more DEF — and each keeper costs that
+   manager's earliest draft round (keep 2, join the snake in round 3),
+   so keeper-heavy squads don't also get the premium picks. Keeper
+   selections that don't fit the final quota or caps (e.g. a kept MID
+   when MID is capped to 0) are dropped and listed in the confirm
+   before anything is written. Everything unkept returns to the pool,
+   open trade proposals are cancelled, and the draft starts
+   **immediately** in reverse-standings snake order (last place picks
+   first) — so do it when everyone's around, on a day with no matches.
+   Earlier rounds stay banked via lineup snapshots.
 4. Repeat (typically after the R32, and again around the quarters).
 5. **Start final phase** before the final: all squads dissolve (TEAM
    picks stay for stage bonuses) and every surviving manager calls the
@@ -313,7 +323,7 @@ position groups — a slot only trades within its position, subs included
 
 ### Sanity tests
 
-`node test_logic.js` — 73 checks on the snake order, position quotas,
+`node test_logic.js` — 76 checks on the snake order, position quotas,
 scoring parity with `daily_pull.py` (incl. defensive actions), sub
 activation, lineup-lock history replay, stage bonuses, player stat
 breakdowns, trade validity, redraft phases (phase quotas, kept
