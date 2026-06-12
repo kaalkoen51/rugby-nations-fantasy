@@ -15,7 +15,9 @@ restarts, overlaps with the manual "Pull stats now" button, and the
 06:00 daily sweep are all safe — the last write simply wins.
 
 Environment variables: same as daily_pull.py (API_FOOTBALL_KEY,
-SUPABASE_URL, SUPABASE_SERVICE_KEY, FANTASY_LEAGUE_ID).
+SUPABASE_URL, SUPABASE_SERVICE_KEY, FANTASY_LEAGUE_ID — one league uuid
+or a comma-separated allowlist; every listed league gets the same rows,
+at no extra API-Football cost).
 """
 
 import argparse
@@ -31,6 +33,7 @@ from daily_pull import (
     extract_player_rows,
     fetch_fixture_players,
     load_players,
+    parse_league_ids,
 )
 from daily_pull import upsert_match_stats
 
@@ -64,7 +67,7 @@ def fetch_fixture(fixture_id: int) -> dict:
     return resp[0] if resp else None
 
 
-def pull_fixture(fixture: dict, matcher: PlayerMatcher, league_id: str,
+def pull_fixture(fixture: dict, matcher: PlayerMatcher, league_ids: list,
                  dry_run: bool) -> None:
     fid = fixture["fixture"]["id"]
     home = fixture["teams"]["home"]["name"]
@@ -79,7 +82,7 @@ def pull_fixture(fixture: dict, matcher: PlayerMatcher, league_id: str,
     log(f"  {home} vs {away} [{status}]: {len(matched)} players{note}")
     if dry_run or not matched:
         return
-    upsert_match_stats(matched, league_id)
+    upsert_match_stats(matched, league_ids)
 
 
 def main() -> None:
@@ -95,13 +98,14 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    league_id = os.environ.get("FANTASY_LEAGUE_ID")
-    if not args.dry_run and not league_id:
+    league_ids = parse_league_ids(os.environ.get("FANTASY_LEAGUE_ID"))
+    if not args.dry_run and not league_ids:
         # Exit green, not red: this watchdog fires every 15 minutes, and a
         # missing league id would otherwise mean ~96 failure mails a day.
         log("WARNING: FANTASY_LEAGUE_ID is not set — nothing to score into. "
             "Create the league, then: gh secret set FANTASY_LEAGUE_ID "
-            "(value = your leagues.id uuid from Supabase). Exiting.")
+            "(value = your leagues.id uuid from Supabase, or a comma-"
+            "separated list of several). Exiting.")
         return
 
     matcher = PlayerMatcher(load_players())
@@ -113,7 +117,7 @@ def main() -> None:
         live_ids = {f["fixture"]["id"] for f in live}
 
         for f in live:
-            pull_fixture(f, matcher, league_id, args.dry_run)
+            pull_fixture(f, matcher, league_ids, args.dry_run)
         watched |= live_ids
 
         # One final pull with official full-time data per finished fixture.
@@ -121,7 +125,7 @@ def main() -> None:
             f = fetch_fixture(fid)
             if f and f["fixture"]["status"]["short"] in COMPLETED_STATUSES:
                 log("final whistle:")
-                pull_fixture(f, matcher, league_id, args.dry_run)
+                pull_fixture(f, matcher, league_ids, args.dry_run)
             watched.discard(fid)
 
         if not live:

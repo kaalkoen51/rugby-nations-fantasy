@@ -11,8 +11,10 @@ import unittest
 from daily_pull import (
     PLAYERS_JSON,
     PlayerMatcher,
+    build_stats_payload,
     extract_player_rows,
     normalize_name,
+    parse_league_ids,
     surname_key,
 )
 
@@ -159,6 +161,46 @@ class TestExtractPlayerRows(unittest.TestCase):
             by_api["154"]["match_label"],
             "Argentina vs Scotland (2026-06-15)",
         )
+
+
+class TestMultiLeague(unittest.TestCase):
+    """FANTASY_LEAGUE_ID can allowlist several leagues; the same rows are
+    upserted once per league, with no extra API-Football calls."""
+
+    ROW = {
+        "player_id": "arg_10", "match_label": "Argentina vs Scotland (2026-06-15)",
+        "minutes": 90, "conceded": 0, "goals": 1, "assists": 0,
+        "yellow_cards": 0, "red_cards": 0, "saves": 0, "motm": True,
+        "penalty_saved": 0, "penalty_missed": 0, "defensive_actions": 2,
+    }
+
+    def test_parse_league_ids(self):
+        self.assertEqual(parse_league_ids("aaa"), ["aaa"])
+        self.assertEqual(parse_league_ids(" aaa , bbb ,"), ["aaa", "bbb"])
+        self.assertEqual(parse_league_ids(""), [])
+        self.assertEqual(parse_league_ids(None), [])
+
+    def test_payload_fans_out_per_league(self):
+        payload = build_stats_payload([self.ROW, dict(self.ROW, player_id="sco_8")],
+                                      ["league-a", "league-b"])
+        self.assertEqual(len(payload), 4)
+        self.assertEqual(sorted({p["league_id"] for p in payload}),
+                         ["league-a", "league-b"])
+        # same stats in every league's copy
+        for p in payload:
+            if p["player_id"] == "arg_10":
+                self.assertEqual(p["goals"], 1)
+                self.assertTrue(p["clean_sheet"])
+
+    def test_single_league_string_still_works(self):
+        payload = build_stats_payload([self.ROW], "league-a")
+        self.assertEqual(len(payload), 1)
+        self.assertEqual(payload[0]["league_id"], "league-a")
+
+    def test_comma_string_fans_out(self):
+        payload = build_stats_payload([self.ROW], "league-a,league-b")
+        self.assertEqual({p["league_id"] for p in payload},
+                         {"league-a", "league-b"})
 
 
 class TestRealPlayersJson(unittest.TestCase):

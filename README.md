@@ -92,7 +92,7 @@ secrets:
 | `API_FOOTBALL_KEY` | from [api-football.com](https://www.api-football.com/) dashboard (free tier: 100 req/day, plenty) |
 | `SUPABASE_URL` | project URL from step 1 |
 | `SUPABASE_SERVICE_KEY` | **service_role** key from step 1 |
-| `FANTASY_LEAGUE_ID` | your league's `leagues.id` uuid — exists only after step 5, so come back for this one |
+| `FANTASY_LEAGUE_ID` | your league's `leagues.id` uuid — exists only after step 5, so come back for this one. Comma-separate several uuids to automate multiple leagues (see Multiple leagues under Reference) |
 
 Set them via CLI (each prompts for the value):
 
@@ -241,6 +241,28 @@ Then commit and push the updated `players.json` so the hosted app picks
 it up. Player ids are `<fifa code>_<shirt number>` (e.g. `arg_10` =
 Messi); TEAM picks use `team:<Country>`.
 
+### Multiple leagues
+
+The app is multi-league out of the box: anyone can create a league, and
+every table is keyed by `league_id`, so leagues never see each other's
+drafts, trades, or points. What's gated is the **automation**: the
+`FANTASY_LEAGUE_ID` secret is an allowlist. Set it to one uuid or a
+comma-separated list — every listed league gets the 06:00 daily pull
+and live in-match scoring; unlisted leagues still work fully, but score
+via their admin's **Pull stats now** button only.
+
+Cost of adding a league to the allowlist: zero extra API-Football
+calls. Match stats are fetched once per game and the same rows are
+upserted once per listed league (free Supabase writes). Only the repo
+owner can edit secrets, so only you decide which leagues are automated.
+
+One caveat for hosting other groups on *your* deployment: everyone
+shares one Supabase project with open RLS policies (trust-based
+friend-group design), so it's right for leagues of people you know, not
+strangers. For strangers, point them at forking the repo instead — this
+README is the full setup guide and their instance is fully isolated
+(own data, own API key, own Actions minutes).
+
 ### Availability badges & avatars
 
 All three are optional static files the app loads like `fixtures.json` —
@@ -328,5 +350,5 @@ scoring parity with `daily_pull.py` (incl. defensive actions), sub
 activation, lineup-lock history replay, stage bonuses, player stat
 breakdowns, trade validity, redraft phases (phase quotas, kept
 players, eliminated managers, champion picks), and suspension flags.
-`python -m unittest test_daily_pull` — 16 tests on the
-API-Football → FIFA player-id mapping.
+`python -m unittest test_daily_pull` — 20 tests on the
+API-Football → FIFA player-id mapping and multi-league stat fan-out.

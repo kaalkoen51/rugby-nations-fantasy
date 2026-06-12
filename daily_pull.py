@@ -23,8 +23,10 @@ Environment variables:
     API_FOOTBALL_KEY      required for any non-mock run
     SUPABASE_URL          required for writes (non-dry-run)
     SUPABASE_SERVICE_KEY  required for writes (non-dry-run)
-    FANTASY_LEAGUE_ID     Supabase leagues.id uuid, required for writes
-                          (can also be passed via --league-id)
+    FANTASY_LEAGUE_ID     Supabase leagues.id uuid — or a comma-separated
+                          allowlist of several to score multiple leagues
+                          from one deployment (can also be passed via
+                          --league-id). Required for writes.
 """
 
 import argparse
@@ -358,11 +360,21 @@ def calculate_points(row: dict) -> int:
     return points
 
 
-def upsert_match_stats(rows: list, league_id: str) -> None:
-    supabase_url = require_env("SUPABASE_URL", "Supabase project URL")
-    service_key = require_env("SUPABASE_SERVICE_KEY", "Supabase service role key")
+def parse_league_ids(value) -> list:
+    """FANTASY_LEAGUE_ID holds one league uuid or a comma-separated
+    allowlist; only the leagues listed get the automated scoring (other
+    leagues in the same Supabase project still work via the app's manual
+    "Pull stats now" button)."""
+    return [s.strip() for s in (value or "").split(",") if s.strip()]
 
-    payload = [
+
+def build_stats_payload(rows: list, league_ids) -> list:
+    """One match_stats upsert entry per (row, league). The API fetching
+    is league-independent — fan-out across leagues only multiplies the
+    free Supabase writes, never the API-Football calls."""
+    if isinstance(league_ids, str):
+        league_ids = parse_league_ids(league_ids)
+    return [
         {
             "league_id": league_id,
             "player_id": row["player_id"],
@@ -379,8 +391,16 @@ def upsert_match_stats(rows: list, league_id: str) -> None:
             "penalty_missed": row["penalty_missed"],
             "defensive_actions": row["defensive_actions"],
         }
+        for league_id in league_ids
         for row in rows
     ]
+
+
+def upsert_match_stats(rows: list, league_ids) -> None:
+    supabase_url = require_env("SUPABASE_URL", "Supabase project URL")
+    service_key = require_env("SUPABASE_SERVICE_KEY", "Supabase service role key")
+
+    payload = build_stats_payload(rows, league_ids)
 
     resp = requests.post(
         f"{supabase_url.rstrip('/')}/rest/v1/match_stats",
@@ -396,7 +416,8 @@ def upsert_match_stats(rows: list, league_id: str) -> None:
     )
     if resp.status_code >= 400:
         sys.exit(f"Supabase upsert failed ({resp.status_code}): {resp.text}")
-    print(f"Upserted {len(payload)} rows to match_stats.")
+    leagues = max(1, len(payload) // max(1, len(rows)))
+    print(f"Upserted {len(rows)} rows x {leagues} league(s) to match_stats.")
 
 
 def print_summary(rows: list) -> None:
@@ -434,7 +455,8 @@ def main() -> None:
     parser.add_argument(
         "--league-id",
         default=os.environ.get("FANTASY_LEAGUE_ID"),
-        help="Supabase leagues.id uuid (default: FANTASY_LEAGUE_ID env var)",
+        help="Supabase leagues.id uuid, or a comma-separated allowlist of "
+        "several (default: FANTASY_LEAGUE_ID env var)",
     )
     parser.add_argument(
         "--dry-run",
@@ -448,7 +470,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    if not args.dry_run and not args.league_id:
+    league_ids = parse_league_ids(args.league_id)
+    if not args.dry_run and not league_ids:
         sys.exit(
             "Error: FANTASY_LEAGUE_ID env var (or --league-id) is required "
             "for non-dry-run writes."
@@ -511,7 +534,7 @@ def main() -> None:
     if args.dry_run:
         print("\nDry run: skipping Supabase write.")
     else:
-        upsert_match_stats(matched, args.league_id)
+        upsert_match_stats(matched, league_ids)
 
     print_summary(matched)
 
