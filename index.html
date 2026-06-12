@@ -1451,12 +1451,41 @@ const saDay = (iso) => new Date(iso).toLocaleDateString("en-CA", { timeZone: SA_
 const saTime = (iso) => new Date(iso).toLocaleTimeString("en-GB",
   { hour: "2-digit", minute: "2-digit", timeZone: SA_TZ });
 
-// Today's (or the next matchday's) fixtures with SA kickoff times, plus a
-// slow auto-scrolling ticker naming each manager's involved players per
-// game (counts alone don't fit player names on a phone, a ticker does).
+// Score derived from our own per-player stat rows (sum of goals per
+// side). Own goals aren't in player rows, so treat this as "fantasy
+// score" — right virtually always, and only shown once stats exist.
+function matchScore(label) {
+  const [home, away] = labelTeams(label);
+  let h = 0, a = 0;
+  for (const r of S.stats) {
+    if (r.match_label !== label) continue;
+    const t = S.playerById?.[r.player_id]?.team;
+    if (t === home) h += r.goals || 0;
+    else if (t === away) a += r.goals || 0;
+  }
+  return [h, a];
+}
+
+function topScorers(label, n) {
+  return S.stats.filter((r) => r.match_label === label)
+    .map((r) => {
+      const p = S.playerById?.[r.player_id];
+      return p ? { p, r, pts: calcPlayerPoints(r, p.position) } : null;
+    })
+    .filter(Boolean)
+    .sort((x, y) => y.pts - x.pts)
+    .slice(0, n);
+}
+
+// Today's (or the next matchday's) fixtures with SA kickoff times, plus an
+// auto-scrolling ticker: upcoming games name each manager's involved
+// players (team crests instead of country names keep it short); finished
+// games show the score and top 3 point-scorers, tappable — like the FT
+// fixture rows — for a fuller breakdown in a panel under the rows.
 // fixtures.json statuses go stale between rebuilds, so "finished" also
 // falls back to "kicked off more than ~2.5h ago". The rendered HTML is
-// cached so realtime refreshes don't restart the ticker animation.
+// cached so realtime refreshes don't restart the ticker animation; the
+// detail panel lives in its own div so opening it doesn't either.
 let bannerCache = null;
 function renderBanner() {
   const box = $("board-banner");
@@ -1478,22 +1507,45 @@ function renderBanner() {
     : day === saDay(new Date(Date.now() + 86400e3).toISOString()) ? "Tomorrow"
     : new Date(day).toLocaleDateString("en-GB",
         { weekday: "short", day: "numeric", month: "short" });
+  const fxLabel = (f) =>
+    `${f.home} vs ${f.away} (${String(f.kickoff_utc).slice(0, 10)})`;
+  const hasStats = (l) => S.stats.some((r) => r.match_label === l);
 
   const rows = games.map((f) => {
     const isOver = over(f);
     const isLive = !isOver && Date.parse(f.kickoff_utc) < Date.now();
-    return `<div class="flex items-center gap-1.5 text-sm">
+    const l = fxLabel(f);
+    const score = isOver && hasStats(l) ? matchScore(l) : null;
+    return `<div class="flex items-center gap-1.5 text-sm ${score ? "cursor-pointer" : ""}"
+      ${score ? `data-ftgame="${esc(l)}" role="button"` : ""}>
       <span class="font-mono text-xs w-11 shrink-0 ${
         isLive ? "text-red-400 font-bold" : isOver ? "text-slate-600" : "text-wcgold"
       }">${isLive ? "LIVE" : isOver ? "FT" : saTime(f.kickoff_utc)}</span>
       ${avatarHtml("team:" + f.home, f.home, "w-4 h-4")}
-      <span class="truncate ${isOver ? "text-slate-500" : ""}">${esc(f.home)} – ${esc(f.away)}</span>
+      <span class="truncate ${isOver ? "text-slate-500" : ""}">${esc(f.home)}${
+        score ? ` <b class="text-slate-300">${score[0]} – ${score[1]}</b> ` : " – "}${esc(f.away)}</span>
       ${avatarHtml("team:" + f.away, f.away, "w-4 h-4")}
+      ${score ? '<span class="ml-auto text-slate-600 shrink-0">›</span>' : ""}
     </div>`;
   }).join("");
 
-  // One ticker entry per game still to play: "Home–Away: Mgr A, B · Mgr C".
-  const items = games.filter((f) => !over(f)).map((f) => {
+  // Ticker entries — upcoming: crests + whose players feature; finished:
+  // crests + score + top 3 scorers, tappable for the detail panel.
+  const crests = (f) => `${avatarHtml("team:" + f.home, f.home, "w-4 h-4")}<span
+    class="px-0.5 text-slate-600">–</span>${avatarHtml("team:" + f.away, f.away, "w-4 h-4")}`;
+  const items = games.map((f) => {
+    const l = fxLabel(f);
+    if (over(f)) {
+      if (!hasStats(l)) return "";
+      const [hs, as] = matchScore(l);
+      const tops = topScorers(l, 3).map(({ p, pts }) => {
+        const o = ownerOf(p.player_id);
+        return `${esc(p.name)} ${pts}p <span class="${
+          o ? "text-wcgold" : "text-slate-600"}">(${esc(o || "FA")})</span>`;
+      }).join(", ");
+      return `<button data-ftgame="${esc(l)}" class="inline-flex items-center gap-1">
+        ${crests(f)} <b class="text-slate-300">${hs}–${as}</b>&nbsp;${tops}</button>`;
+    }
     const byMgr = {};
     for (const pk of S.picks) {
       if (pk.position === "TEAM" || (pk.team !== f.home && pk.team !== f.away)) continue;
@@ -1504,9 +1556,9 @@ function renderBanner() {
       .sort((a, b) => b[1].length - a[1].length)
       .map(([n, ps]) => `<span class="text-wcgold">${esc(n)}</span> ${ps.map(esc).join(", ")}`)
       .join(" &middot; ");
-    return mgrs ? `<b class="text-slate-300">${esc(f.home)}–${esc(f.away)}:</b>&nbsp; ${mgrs}` : "";
+    return mgrs ? `<span class="inline-flex items-center gap-1">${crests(f)}&nbsp;${mgrs}</span>` : "";
   }).filter(Boolean);
-  const half = `<span class="pr-12">${
+  const half = `<span class="pr-12 inline-flex items-center">${
     items.join('<span class="text-slate-600 px-3">✦</span>')}</span>`;
   const ticker = items.length ? `<div class="ticker-wrap border-t border-slate-800 pt-1.5">
       <div class="ticker text-[11px] text-slate-400">${half}${half}</div>
@@ -1514,16 +1566,58 @@ function renderBanner() {
 
   const html = `<div class="rounded-xl border border-slate-700 bg-slate-900 p-3 space-y-1.5">
     <div class="text-[10px] uppercase tracking-wide text-slate-500">${label} · SA time</div>
-    ${rows}${ticker}
+    ${rows}<div id="banner-detail"></div>${ticker}
   </div>`;
-  if (html === bannerCache) return;
-  bannerCache = html;
-  box.innerHTML = html;
-  const t = box.querySelector(".ticker");
-  if (t) requestAnimationFrame(() => {       // ~28px/s, never under 20s
-    t.style.setProperty("--ticker-dur",
-      Math.max(20, Math.round(t.scrollWidth / 2 / 28)) + "s");
-  });
+  if (html !== bannerCache) {
+    bannerCache = html;
+    box.innerHTML = html;
+    const t = box.querySelector(".ticker");
+    if (t) requestAnimationFrame(() => {     // ~42px/s, never under 14s
+      t.style.setProperty("--ticker-dur",
+        Math.max(14, Math.round(t.scrollWidth / 2 / 42)) + "s");
+    });
+    box.querySelectorAll("[data-ftgame]").forEach((el) => el.onclick = () => {
+      S.bannerGame = S.bannerGame === el.dataset.ftgame ? null : el.dataset.ftgame;
+      renderBannerDetail();
+    });
+  }
+  renderBannerDetail();
+}
+
+// Expanded FT-game panel: score header + top scorers with ownership.
+// Rendered into its own div so toggling never restarts the ticker.
+function renderBannerDetail() {
+  const d = $("banner-detail");
+  if (!d) return;
+  const l = S.bannerGame;
+  if (!l || !S.stats.some((r) => r.match_label === l)) { d.innerHTML = ""; return; }
+  const [home, away] = labelTeams(l);
+  const [hs, as] = matchScore(l);
+  d.innerHTML = `<div class="rounded-lg bg-slate-800/60 p-2.5 space-y-1 mt-0.5">
+    <div class="flex items-center gap-1.5 text-sm font-semibold">
+      ${avatarHtml("team:" + home, home, "w-5 h-5")}
+      <span class="truncate">${esc(home)} <span class="text-wcgold">${hs} – ${as}</span> ${esc(away)}</span>
+      ${avatarHtml("team:" + away, away, "w-5 h-5")}
+      <button id="banner-close" class="ml-auto text-slate-400 px-1">✕</button>
+    </div>
+    ${topScorers(l, 6).map(({ p, r, pts }) => {
+      const o = ownerOf(p.player_id);
+      return `<div class="flex items-center gap-1.5 text-xs">
+        ${avatarHtml(p.player_id, p.team, "w-5 h-5")}
+        <span class="truncate">${esc(p.name)}</span>
+        <span class="shrink-0 ${o ? "rounded bg-slate-700 px-1 py-0.5 text-[10px] text-wcgold"
+                                  : "text-[10px] text-slate-500"}">${
+          o ? "👤 " + esc(o) : "free agent"}</span>
+        <span class="ml-auto text-slate-500 shrink-0">${statBits(r) || "0"}</span>
+        <span class="font-mono w-7 text-right shrink-0 ${
+          pts > 0 ? "text-wcgold" : "text-slate-500"}">${pts}</span>
+      </div>`;
+    }).join("")}
+  </div>`;
+  d.querySelector("#banner-close").onclick = () => {
+    S.bannerGame = null;
+    renderBannerDetail();
+  };
 }
 
 function setBoardTab(tab) {
