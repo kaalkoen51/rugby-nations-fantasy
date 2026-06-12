@@ -17,6 +17,17 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+  /* Matchday banner ticker: two identical halves scroll -50% for a
+     seamless loop; duration is set per-content from JS. */
+  .ticker-wrap { overflow: hidden; }
+  .ticker { display: inline-flex; white-space: nowrap; will-change: transform;
+            animation: ticker-scroll var(--ticker-dur, 40s) linear infinite; }
+  @keyframes ticker-scroll { from { transform: translateX(0); }
+                             to   { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) {
+    .ticker { animation: none; }
+    .ticker-wrap { overflow-x: auto; }
+  }
   .pos-GK  { background:#7c3aed33; color:#c4b5fd; }
   .pos-DEF { background:#0ea5e933; color:#7dd3fc; }
   .pos-MID { background:#22c55e33; color:#86efac; }
@@ -1383,10 +1394,13 @@ const saDay = (iso) => new Date(iso).toLocaleDateString("en-CA", { timeZone: SA_
 const saTime = (iso) => new Date(iso).toLocaleTimeString("en-GB",
   { hour: "2-digit", minute: "2-digit", timeZone: SA_TZ });
 
-// Today's (or the next matchday's) fixtures with SA kickoff times and a
-// per-game tally of whose drafted players are involved. fixtures.json
-// statuses go stale between rebuilds, so "finished" also falls back to
-// "kicked off more than ~2.5h ago".
+// Today's (or the next matchday's) fixtures with SA kickoff times, plus a
+// slow auto-scrolling ticker naming each manager's involved players per
+// game (counts alone don't fit player names on a phone, a ticker does).
+// fixtures.json statuses go stale between rebuilds, so "finished" also
+// falls back to "kicked off more than ~2.5h ago". The rendered HTML is
+// cached so realtime refreshes don't restart the ticker animation.
+let bannerCache = null;
 function renderBanner() {
   const box = $("board-banner");
   if (!box) return;
@@ -1397,38 +1411,62 @@ function renderBanner() {
   const day = [...new Set(fx
     .filter((f) => !over(f) && saDay(f.kickoff_utc) >= today)
     .map((f) => saDay(f.kickoff_utc)))].sort()[0];
-  if (!day) { box.innerHTML = ""; return; }
+  if (!day) {
+    if (bannerCache !== "") { bannerCache = ""; box.innerHTML = ""; }
+    return;
+  }
   const games = fx.filter((f) => saDay(f.kickoff_utc) === day)
     .sort((a, b) => String(a.kickoff_utc).localeCompare(String(b.kickoff_utc)));
   const label = day === today ? "Today"
     : day === saDay(new Date(Date.now() + 86400e3).toISOString()) ? "Tomorrow"
     : new Date(day).toLocaleDateString("en-GB",
         { weekday: "short", day: "numeric", month: "short" });
-  box.innerHTML = `<div class="rounded-xl border border-slate-700 bg-slate-900 p-3 space-y-1.5">
+
+  const rows = games.map((f) => {
+    const isOver = over(f);
+    const isLive = !isOver && Date.parse(f.kickoff_utc) < Date.now();
+    return `<div class="flex items-center gap-1.5 text-sm">
+      <span class="font-mono text-xs w-11 shrink-0 ${
+        isLive ? "text-red-400 font-bold" : isOver ? "text-slate-600" : "text-wcgold"
+      }">${isLive ? "LIVE" : isOver ? "FT" : saTime(f.kickoff_utc)}</span>
+      ${avatarHtml("team:" + f.home, f.home, "w-4 h-4")}
+      <span class="truncate ${isOver ? "text-slate-500" : ""}">${esc(f.home)} – ${esc(f.away)}</span>
+      ${avatarHtml("team:" + f.away, f.away, "w-4 h-4")}
+    </div>`;
+  }).join("");
+
+  // One ticker entry per game still to play: "Home–Away: Mgr A, B · Mgr C".
+  const items = games.filter((f) => !over(f)).map((f) => {
+    const byMgr = {};
+    for (const pk of S.picks) {
+      if (pk.position === "TEAM" || (pk.team !== f.home && pk.team !== f.away)) continue;
+      const m = S.managers.find((x) => x.id === pk.manager_id);
+      if (m) (byMgr[m.name] ||= []).push(pk.player_name);
+    }
+    const mgrs = Object.entries(byMgr)
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([n, ps]) => `<span class="text-wcgold">${esc(n)}</span> ${ps.map(esc).join(", ")}`)
+      .join(" &middot; ");
+    return mgrs ? `<b class="text-slate-300">${esc(f.home)}–${esc(f.away)}:</b>&nbsp; ${mgrs}` : "";
+  }).filter(Boolean);
+  const half = `<span class="pr-12">${
+    items.join('<span class="text-slate-600 px-3">✦</span>')}</span>`;
+  const ticker = items.length ? `<div class="ticker-wrap border-t border-slate-800 pt-1.5">
+      <div class="ticker text-[11px] text-slate-400">${half}${half}</div>
+    </div>` : "";
+
+  const html = `<div class="rounded-xl border border-slate-700 bg-slate-900 p-3 space-y-1.5">
     <div class="text-[10px] uppercase tracking-wide text-slate-500">${label} · SA time</div>
-    ${games.map((f) => {
-      const who = {};
-      for (const pk of S.picks) {
-        if (pk.position === "TEAM" || (pk.team !== f.home && pk.team !== f.away)) continue;
-        const m = S.managers.find((x) => x.id === pk.manager_id);
-        if (m) who[m.name] = (who[m.name] || 0) + 1;
-      }
-      const names = Object.entries(who).sort((a, b) => b[1] - a[1])
-        .map(([n, c]) => `${esc(n)} ×${c}`).join(" · ");
-      const isOver = over(f);
-      const isLive = !isOver && Date.parse(f.kickoff_utc) < Date.now();
-      return `<div class="flex items-center gap-1.5 text-sm">
-        <span class="font-mono text-xs w-11 shrink-0 ${
-          isLive ? "text-red-400 font-bold" : isOver ? "text-slate-600" : "text-wcgold"
-        }">${isLive ? "LIVE" : isOver ? "FT" : saTime(f.kickoff_utc)}</span>
-        ${avatarHtml("team:" + f.home, f.home, "w-4 h-4")}
-        <span class="truncate shrink ${isOver ? "text-slate-500" : ""}">${esc(f.home)} – ${esc(f.away)}</span>
-        ${avatarHtml("team:" + f.away, f.away, "w-4 h-4")}
-        <span class="ml-auto pl-1 text-[10px] text-slate-500 text-right truncate max-w-[38%]">${
-          names || "no drafted players"}</span>
-      </div>`;
-    }).join("")}
+    ${rows}${ticker}
   </div>`;
+  if (html === bannerCache) return;
+  bannerCache = html;
+  box.innerHTML = html;
+  const t = box.querySelector(".ticker");
+  if (t) requestAnimationFrame(() => {       // ~28px/s, never under 20s
+    t.style.setProperty("--ticker-dur",
+      Math.max(20, Math.round(t.scrollWidth / 2 / 28)) + "s");
+  });
 }
 
 function setBoardTab(tab) {
@@ -2690,6 +2728,9 @@ function wire() {
 async function init() {
   wire();
   setInterval(tickTimer, 500);
+  // Banner LIVE/FT states are time-based; the render cache makes this a
+  // no-op whenever nothing changed, so the ticker animation never jumps.
+  setInterval(renderBanner, 60e3);
   const cfg = getConfig();
   if (!cfg) { showView("config"); return; }
   S.sb = window.supabase.createClient(cfg.url, cfg.key);
