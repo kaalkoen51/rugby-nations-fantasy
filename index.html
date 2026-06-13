@@ -1805,9 +1805,14 @@ function renderHomeTab() {
 /* ---------- matchday banner ---------- */
 
 const SA_TZ = "Africa/Johannesburg";
-const saDay = (iso) => new Date(iso).toLocaleDateString("en-CA", { timeZone: SA_TZ });
+const saDay  = (iso) => new Date(iso).toLocaleDateString("en-CA", { timeZone: SA_TZ });
 const saTime = (iso) => new Date(iso).toLocaleTimeString("en-GB",
   { hour: "2-digit", minute: "2-digit", timeZone: SA_TZ });
+// US Eastern (EDT/EST) drives the "which day's games" selection so that late
+// US evening games (e.g. 21:00 ET = 03:00 SA next day) appear in the same
+// banner card as the earlier games of that US tournament day.
+const ET_TZ = "America/New_York";
+const etDay  = (iso) => new Date(iso).toLocaleDateString("en-CA", { timeZone: ET_TZ });
 
 // Score from the official API result stored on each stat row (handles own
 // goals correctly). Falls back to summing player goals for legacy rows
@@ -1854,18 +1859,18 @@ function renderBanner() {
   const fx = S.fixtures || [];
   const over = (f) => ["FT", "AET", "PEN"].includes(f.status)
     || Date.parse(f.kickoff_utc) < Date.now() - 2.5 * 3600e3;
-  const today = saDay(new Date().toISOString());
+  const todayET = etDay(new Date().toISOString());
   const day = [...new Set(fx
-    .filter((f) => !over(f) && saDay(f.kickoff_utc) >= today)
-    .map((f) => saDay(f.kickoff_utc)))].sort()[0];
+    .filter((f) => !over(f) && etDay(f.kickoff_utc) >= todayET)
+    .map((f) => etDay(f.kickoff_utc)))].sort()[0];
   if (!day) {
     if (bannerCache !== "") { bannerCache = ""; box.innerHTML = ""; }
     return;
   }
-  const games = fx.filter((f) => saDay(f.kickoff_utc) === day)
+  const games = fx.filter((f) => etDay(f.kickoff_utc) === day)
     .sort((a, b) => String(a.kickoff_utc).localeCompare(String(b.kickoff_utc)));
-  const label = day === today ? "Today"
-    : day === saDay(new Date(Date.now() + 86400e3).toISOString()) ? "Tomorrow"
+  const label = day === todayET ? "Today"
+    : day === etDay(new Date(Date.now() + 86400e3).toISOString()) ? "Tomorrow"
     : new Date(day).toLocaleDateString("en-GB",
         { weekday: "short", day: "numeric", month: "short" });
   const fxLabel = (f) =>
