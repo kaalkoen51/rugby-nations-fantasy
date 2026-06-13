@@ -2232,6 +2232,48 @@ function tradeSectionHtml(title, list, incoming) {
   </div>`;
 }
 
+// Trade history: all accepted trades in the league, newest first.
+// After accept_trade the pick slots are swapped in-place, so
+// offered_pick now holds what the proposer received (target's player)
+// and requested_pick holds what the target received (proposer's player).
+function tradeHistoryHtml() {
+  const done = S.trades
+    .filter((t) => t.status === "accepted")
+    .slice()
+    .sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at)));
+  if (!done.length) return "";
+  const cards = done.map((t) => {
+    const proposer = S.managers.find((m) => m.id === t.proposer_manager_id);
+    const target   = S.managers.find((m) => m.id === t.target_manager_id);
+    const when = new Date(t.updated_at).toLocaleDateString("en-GB",
+      { day: "numeric", month: "short", timeZone: SA_TZ });
+    const pairs = (t.trade_items || []).map((it) => {
+      const toProposer = pickById(it.offered_pick_id);
+      const toTarget   = pickById(it.requested_pick_id);
+      return `<div class="text-xs text-slate-400">
+        <span class="text-slate-200">${esc(toProposer?.player_name ?? "?")}</span>
+        <span class="text-slate-500 mx-1">→</span>
+        <span>${esc(proposer?.name ?? "?")}</span>
+        <span class="text-slate-600 mx-2">·</span>
+        <span class="text-slate-200">${esc(toTarget?.player_name ?? "?")}</span>
+        <span class="text-slate-500 mx-1">→</span>
+        <span>${esc(target?.name ?? "?")}</span>
+      </div>`;
+    }).join("");
+    return `<div class="rounded-xl border border-slate-800 bg-slate-900/50 p-3 space-y-1.5">
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-semibold">${esc(proposer?.name ?? "?")} ⇄ ${esc(target?.name ?? "?")}</span>
+        <span class="text-xs text-slate-500">${when}</span>
+      </div>
+      <div class="space-y-0.5">${pairs}</div>
+    </div>`;
+  }).join("");
+  return `<div class="mt-6 space-y-2">
+    <h3 class="font-semibold text-sm">Trade history</h3>
+    ${cards}
+  </div>`;
+}
+
 function renderTrades() {
   const box = $("board-trades");
   const me = myManager();
@@ -2248,6 +2290,7 @@ function renderTrades() {
   if (S.builder) html += builderHtml(me);
   html += tradeSectionHtml("Incoming", S.trades.filter((t) => t.target_manager_id === me.id), true);
   html += tradeSectionHtml("Outgoing", S.trades.filter((t) => t.proposer_manager_id === me.id), false);
+  html += tradeHistoryHtml();
   box.innerHTML = html;
   wireTrades(me);
 }
