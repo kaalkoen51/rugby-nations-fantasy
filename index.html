@@ -207,7 +207,10 @@
     <div id="board-stats" class="hidden space-y-3">
       <input id="stats-search" placeholder="Search any player or country…"
              class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm">
-      <div id="stats-chips" class="flex gap-1.5 flex-wrap text-xs"></div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <div id="stats-chips" class="flex gap-1.5 flex-wrap text-xs"></div>
+        <select id="stats-sort" class="ml-auto rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs"></select>
+      </div>
       <div id="stats-detail"></div>
       <ol id="stats-list" class="rounded-xl border border-slate-700 bg-slate-900 px-4 divide-y divide-slate-800"></ol>
     </div>
@@ -380,6 +383,13 @@
   </div>
 </div>
 
+<!-- Player detail bottom sheet (Home roster → tap a player) -->
+<div id="player-sheet" class="hidden fixed inset-0 z-40 bg-black/60">
+  <div class="absolute bottom-0 inset-x-0 max-h-[85vh] overflow-y-auto bg-slate-900 border-t border-slate-700 rounded-t-2xl p-4">
+    <div id="player-sheet-body"></div>
+  </div>
+</div>
+
 <div id="toast" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-sm z-50 max-w-[90vw]"></div>
 
 <script>
@@ -476,7 +486,8 @@ function genInviteCode() {
 // been applied yet — drop it and retry. Mirrors the self-heal in
 // daily_pull.py's upsert. (Scoring/trade mechanics never read these.)
 const STRIPPABLE_COLUMNS = new Set([
-  "home_score", "away_score", "offered_player_name", "requested_player_name",
+  "home_score", "away_score", "minutes",
+  "offered_player_name", "requested_player_name",
 ]);
 
 // Insert/upsert that tolerates an unapplied additive migration. Throws on
@@ -1136,6 +1147,82 @@ const labelTeams = (l) => {
 // same position had a match that day (their team appears in a match_label)
 // and has no appeared=true row for it. Starter and sub play for different
 // countries, so "same matchday" is the comparable unit, not the same match.
+/* ---------- shared lineup-history helpers (scoring + player detail) ---------- */
+
+// Kickoff epoch-ms for a match label, from fixtures.json, else end of day
+// (which reproduces the older per-date behaviour). No cache: fixtures are
+// static in the app but mutated between cases in the test harness.
+function matchTimeFor(label) {
+  for (const f of S.fixtures || []) {
+    const d = String(f.kickoff_utc || "").slice(0, 10);
+    if (d && `${f.home} vs ${f.away} (${d})` === label) return Date.parse(f.kickoff_utc);
+  }
+  return Date.parse(labelDate(label) + "T23:59:59Z");
+}
+
+// Lineup snapshots grouped per manager, each list oldest-first.
+function snapshotsByManager() {
+  const by = {};
+  for (const s of S.snapshots || []) (by[s.manager_id] ||= []).push(s);
+  for (const k in by) by[k].sort((a, b) =>
+    String(a.effective_from).localeCompare(String(b.effective_from)));
+  return by;
+}
+
+// The roster a manager had locked in for a match at epoch-ms t on date d:
+// latest lock at/before kickoff, with draft-night grace (a same-day lock
+// counts when none predates kickoff), falling back to the baseline
+// snapshot then current picks. This is the exact rule the leaderboard
+// scores by, shared so the player detail can show per-match lineup status.
+function rosterAtFor(mgrId, t, d, snaps) {
+  snaps = snaps || snapshotsByManager()[mgrId] || [];
+  let chosen = null;
+  for (const s of snaps) {
+    if (Date.parse(s.effective_from) <= t) chosen = s; else break;
+  }
+  if (!chosen) {
+    for (const s of snaps) {
+      if (String(s.effective_from).slice(0, 10) <= d) chosen = s; else break;
+    }
+  }
+  chosen = chosen || snaps[0];
+  return chosen ? chosen.roster : managerPicks(mgrId);
+}
+
+// "starter" / "sub" / "team" for a roster entry, or null.
+function slotLabel(entry) {
+  if (!entry) return null;
+  if (entry.position === "TEAM" || entry.slot === "TEAM") return "team";
+  return entry.is_sub ? "sub" : "starter";
+}
+
+// The player's roster entry in one manager's locked lineup for a match.
+function entryForManagerAt(mgrId, pid, label) {
+  return rosterAtFor(mgrId, matchTimeFor(label), labelDate(label))
+    .find((e) => e.player_id === pid) || null;
+}
+
+// Which manager (if any) had the player in their locked roster for a match,
+// and their entry. Picks are unique per league, so at most one matches.
+function ownerEntryAt(pid, label) {
+  const t = matchTimeFor(label), d = labelDate(label);
+  const byMgr = snapshotsByManager();
+  for (const m of S.managers) {
+    const e = rosterAtFor(m.id, t, d, byMgr[m.id] || []).find((x) => x.player_id === pid);
+    if (e) return { manager: m, entry: e };
+  }
+  return null;
+}
+
+// All match labels a team has played that we have stats for, newest first.
+function teamMatchLabels(team) {
+  const labels = new Set();
+  for (const r of S.stats || [])
+    if (labelTeams(r.match_label).includes(team)) labels.add(r.match_label);
+  return [...labels].sort((a, b) =>
+    String(labelDate(b)).localeCompare(String(labelDate(a))));
+}
+
 function computeScores() {
   const statsByPlayer = {};
   const playedByDate = {};
@@ -1166,33 +1253,9 @@ function computeScores() {
     .filter((l) => labelDate(l))
     .sort((a, b) => String(labelDate(a)).localeCompare(String(labelDate(b))));
 
-  // Snapshots per manager, oldest first; rosterAt(t) is the lineup that
-  // was locked in at or before epoch-ms t. Before the first lock (or with
-  // no snapshots at all) the current picks apply.
-  const snapsByMgr = {};
-  for (const s of S.snapshots || []) (snapsByMgr[s.manager_id] ||= []).push(s);
-  for (const k in snapsByMgr) snapsByMgr[k].sort((a, b) =>
-    String(a.effective_from).localeCompare(String(b.effective_from)));
-  const rosterAt = (mgrId, t, d) => {
-    const snaps = snapsByMgr[mgrId] || [];
-    let chosen = null;
-    for (const s of snaps) {
-      if (Date.parse(s.effective_from) <= t) chosen = s;
-      else break;
-    }
-    // Draft-night grace: when no lock predates kickoff (the draft and
-    // first lineup window ran during the opening match), same-day locks
-    // still count for that day's games. Mid-tournament every match has
-    // an earlier lock, so the precise kickoff rule above always wins.
-    if (!chosen) {
-      for (const s of snaps) {
-        if (String(s.effective_from).slice(0, 10) <= d) chosen = s;
-        else break;
-      }
-    }
-    chosen = chosen || snaps[0];
-    return chosen ? chosen.roster : managerPicks(mgrId);
-  };
+  // Snapshots per manager, oldest first; rosterAtFor(t) is the lineup that
+  // was locked in at or before epoch-ms t (see the shared helper above).
+  const snapsByMgr = snapshotsByManager();
 
   return S.managers.map((m) => {
     // Removed managers: total frozen at removal time, no live items.
@@ -1202,7 +1265,7 @@ function computeScores() {
     const earnedByPlayer = {};
     for (const label of statLabels) {
       const d = labelDate(label);
-      const roster = rosterAt(m.id, matchTime(label), d);
+      const roster = rosterAtFor(m.id, matchTime(label), d, snapsByMgr[m.id] || []);
       const starters = roster.filter((e) => !e.is_sub && e.position !== "TEAM");
       for (const entry of roster) {
         if (entry.position === "TEAM") continue;
@@ -1434,8 +1497,12 @@ function renderHomeTab() {
       S.league.trading_open ? "Pick my team for the next games"
                             : "🔒 Lineup locked — opens with the trading window"}</button>
     <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-1">
-      ${mine.map((pk) => `
-        <div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-2">
+      ${mine.map((pk) => {
+        const clickable = pk.position !== "TEAM";
+        return `
+        <div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-2${
+          clickable ? " cursor-pointer hover:bg-slate-800" : ""}"${
+          clickable ? ` data-player="${esc(pk.player_id)}"` : ""}>
           <span class="text-[10px] w-14 shrink-0 ${pk.is_sub ? "text-slate-500" : "text-slate-300"}">${pk.slot}${pk.kept ? " ⭐" : ""}</span>
           ${avatarHtml(pk.player_id, pk.team)}
           <span class="min-w-0 flex-1">
@@ -1445,7 +1512,9 @@ function renderHomeTab() {
           </span>
           <span class="pos-${pk.position} rounded px-1.5 py-0.5 text-[10px] font-semibold shrink-0">${pk.position}</span>
           <span class="shrink-0 w-10 text-right text-xs font-mono text-slate-300">${entryPoints(pk.player_id, pk.position, pk.team)}p</span>
-        </div>`).join("") || '<p class="text-sm text-slate-500">No players yet.</p>'}
+          ${clickable ? '<span class="shrink-0 text-slate-600 text-xs">›</span>' : ""}
+        </div>`;
+      }).join("") || '<p class="text-sm text-slate-500">No players yet.</p>'}
       ${noFix ? '<p class="text-[10px] text-slate-500 pt-1">Fixtures unavailable — run build_fixtures.py and commit fixtures.json to see next games.</p>' : ""}
     </div>`;
   box.innerHTML = `
@@ -1469,6 +1538,8 @@ function renderHomeTab() {
     toggleKeeper(b.dataset.keep).catch((e) => toast(e.message)));
   box.querySelectorAll("[data-final]").forEach((b) => b.onclick = () =>
     setFinalPick(b.dataset.final).catch((e) => toast(e.message)));
+  box.querySelectorAll("[data-player]").forEach((el) => el.onclick = () =>
+    openPlayerDetail(el.dataset.player, me.id));
   const lb = box.querySelector("#home-lineup");
   if (lb) lb.onclick = openLineup;
 }
@@ -1695,6 +1766,18 @@ function renderBoard() {
 S.statsPos = "ALL";
 S.statsSearch = "";
 S.statsSel = null;
+S.statsSort = "points";
+
+// Stats-tab ranking options: label + the match_stats key to total. "points"
+// uses the full fantasy total; the rest are raw counts from existing
+// columns (no schema change — works on the running league immediately).
+const STAT_SORTS = [
+  ["points", "Points"], ["goals", "Goals"], ["assists", "Assists"],
+  ["defensive_actions", "Def. actions"], ["clean_sheet", "Clean sheets"],
+  ["saves", "Saves"], ["motm", "MOTM"], ["yellow_cards", "Yellow cards"],
+  ["red_cards", "Red cards"], ["penalty_saved", "Pens saved"],
+  ["penalty_missed", "Pens missed"],
+];
 
 const statRowsFor = (pid) =>
   (S.stats || []).filter((r) => r.player_id === pid);
@@ -1816,50 +1899,121 @@ function avatarHtml(playerId, team, size = "w-7 h-7") {
          class="w-full h-full ${isTeam ? "object-contain p-0.5" : "object-cover"}" alt=""></span>`;
 }
 
+// Per-category season total for a player, for ranking on the Stats tab.
+function playerStatTotal(pid, key) {
+  let n = 0;
+  for (const r of statRowsFor(pid)) {
+    if (!r.appeared) continue;
+    if (key === "clean_sheet" || key === "motm") n += r[key] ? 1 : 0;
+    else n += r[key] || 0;
+  }
+  return n;
+}
+
+// Match-by-match log: every game the player's team has played that we have
+// data for — minutes/DNP, stat line, points, and lineup status. With
+// managerId the status is relative to that manager (Starter/Sub/not in
+// team); without it (global Stats view) it shows who fielded them and how.
+function matchLogHtml(pid, position, team, managerId) {
+  const labels = teamMatchLabels(team);
+  if (!labels.length)
+    return '<p class="text-xs text-slate-500">No matches played yet — this fills in as games are pulled.</p>';
+  const rowByLabel = {};
+  for (const r of statRowsFor(pid)) rowByLabel[r.match_label] = r;
+  return `<div class="space-y-1">${labels.map((label) => {
+    const r = rowByLabel[label];
+    const [home, away] = labelTeams(label);
+    const opp = home === team ? away : home;
+    const homeAt = home === team;
+    const [hs, as] = matchScore(label);
+    const played = !!(r && r.appeared);
+    const mins = played ? (r.minutes != null ? `${r.minutes}'` : "played") : "did not play";
+    const pts = r ? calcPlayerPoints(r, position) : 0;
+    let status;
+    if (managerId) {
+      const s = slotLabel(entryForManagerAt(managerId, pid, label));
+      status = s === "starter" ? '<span class="text-wcgold">Starter</span>'
+        : s === "sub" ? '<span class="text-sky-300">Sub</span>'
+        : '<span class="text-slate-600">not in team</span>';
+    } else {
+      const os = ownerEntryAt(pid, label);
+      status = os
+        ? `<span class="text-wcgold">${esc(os.manager.name)}</span><span class="text-slate-500"> ${
+            slotLabel(os.entry) === "sub" ? "(sub)" : "(start)"}</span>`
+        : '<span class="text-slate-600">free agent</span>';
+    }
+    return `<div class="rounded-lg bg-slate-800/60 px-2 py-1.5">
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-slate-500 shrink-0">${homeAt ? "vs" : "@"}</span>
+        ${avatarHtml("team:" + opp, opp, "w-4 h-4")}
+        <span class="truncate text-slate-300">${esc(opp)}
+          <span class="text-slate-500">${hs}–${as}</span></span>
+        <span class="ml-auto shrink-0 font-mono ${
+          pts > 0 ? "text-wcgold" : pts < 0 ? "text-red-400" : "text-slate-500"}">${pts}p</span>
+      </div>
+      <div class="flex items-center gap-2 text-[10px] mt-0.5">
+        <span class="shrink-0">${status}</span>
+        <span class="text-slate-500 shrink-0">${mins}</span>
+        <span class="ml-auto truncate text-slate-500">${played ? (statBits(r) || "no stats") : ""}</span>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+// Shared player-detail card body: header, points breakdown, and match log.
+// Used by the Stats tab (global) and the Home roster sheet (opts.managerId
+// = you, so the log shows your starter/sub/not-in-team status per game).
+function playerDetailHtml(p, opts = {}) {
+  const total = playerPoints(p.player_id, p.position);
+  const breakdown = playerBreakdown(p.player_id, p.position);
+  const owner = ownerOf(p.player_id);
+  return `
+    <div class="flex items-start gap-2">
+      ${avatarHtml(p.player_id, p.team, "w-12 h-12")}
+      <div class="min-w-0 flex-1">
+        <div class="font-bold truncate">${esc(p.name)} ${availBadges(p.player_id)}</div>
+        <div class="text-xs text-slate-400">${teamFixLine(p.team)}</div>
+        <div class="text-[10px] text-slate-500 mt-0.5">${
+          owner ? "👤 drafted by " + esc(owner) : "free agent"}</div>
+      </div>
+      <span class="pos-${p.position} rounded px-1.5 py-0.5 text-xs font-semibold shrink-0">${p.position}</span>
+      <span class="text-xl font-bold text-wcgold shrink-0">${total}</span>
+      ${opts.closeId ? `<button id="${opts.closeId}" class="text-slate-400 px-1 -mt-1 shrink-0">✕</button>` : ""}
+    </div>
+    ${breakdown.length ? `<table class="w-full text-xs"><tbody>
+      ${breakdown.map((r) => `<tr class="border-b border-slate-800">
+        <td class="py-1 text-slate-400">${r.label}</td>
+        <td class="py-1 text-right font-mono">×${r.count}</td>
+        <td class="py-1 text-right font-mono w-12 ${
+          r.pts > 0 ? "text-wcgold" : r.pts < 0 ? "text-red-400" : "text-slate-500"
+        }">${r.pts > 0 ? "+" : ""}${r.pts}</td>
+      </tr>`).join("")}
+    </tbody></table>` : ""}
+    <div class="text-[10px] uppercase tracking-wide text-slate-500 pt-1">Match by match${
+      opts.managerId ? " · your lineup" : ""}</div>
+    ${matchLogHtml(p.player_id, p.position, p.team, opts.managerId)}`;
+}
+
 function renderStatsDetail() {
   const box = $("stats-detail");
   const p = S.statsSel ? S.playerById[S.statsSel] : null;
   if (!p) { box.innerHTML = ""; return; }
-  const total = playerPoints(p.player_id, p.position);
-  const rows = playerBreakdown(p.player_id, p.position);
-  const matches = statRowsFor(p.player_id).sort((a, b) =>
-    String(labelDate(a.match_label)).localeCompare(String(labelDate(b.match_label))));
-  const owner = ownerOf(p.player_id);
-  box.innerHTML = `
-    <div class="rounded-xl border border-wcgold/60 bg-slate-900 p-4 space-y-3">
-      <div class="flex items-start gap-2">
-        ${avatarHtml(p.player_id, p.team, "w-12 h-12")}
-        <div class="min-w-0 flex-1">
-          <div class="font-bold truncate">${esc(p.name)} ${availBadges(p.player_id)}</div>
-          <div class="text-xs text-slate-400">${teamFixLine(p.team)}</div>
-          <div class="text-[10px] text-slate-500 mt-0.5">${
-            owner ? "👤 drafted by " + esc(owner) : "free agent"}</div>
-        </div>
-        <span class="pos-${p.position} rounded px-1.5 py-0.5 text-xs font-semibold">${p.position}</span>
-        <span class="text-xl font-bold text-wcgold">${total} pts</span>
-        <button id="stats-close" class="text-slate-400 px-1 -mt-1">✕</button>
-      </div>
-      ${rows.length ? `<table class="w-full text-xs"><tbody>
-        ${rows.map((r) => `<tr class="border-b border-slate-800">
-          <td class="py-1 text-slate-400">${r.label}</td>
-          <td class="py-1 text-right font-mono">×${r.count}</td>
-          <td class="py-1 text-right font-mono w-12 ${
-            r.pts > 0 ? "text-wcgold" : r.pts < 0 ? "text-red-400" : "text-slate-500"
-          }">${r.pts > 0 ? "+" : ""}${r.pts}</td>
-        </tr>`).join("")}
-      </tbody></table>` : ""}
-      ${matches.length ? `<div class="space-y-1">
-        ${matches.map((r) => `<div class="flex items-center gap-2 text-xs rounded-lg bg-slate-800/60 px-2 py-1.5">
-          <span class="truncate flex-1 text-slate-300">${esc(r.match_label)}</span>
-          <span class="text-slate-500 shrink-0">${statBits(r) || "0"}</span>
-          <span class="font-mono w-8 text-right shrink-0">${calcPlayerPoints(r, p.position)}</span>
-        </div>`).join("")}
-      </div>` : '<p class="text-xs text-slate-500">No stats yet — points appear once their matches are pulled.</p>'}
-    </div>`;
+  box.innerHTML = `<div class="rounded-xl border border-wcgold/60 bg-slate-900 p-4 space-y-3">
+    ${playerDetailHtml(p, { closeId: "stats-close" })}</div>`;
   box.querySelector("#stats-close").onclick = () => {
     S.statsSel = null;
     renderStatsDetail();
   };
+}
+
+// Home-tab player detail in a bottom sheet, from your manager's view.
+function openPlayerDetail(pid, managerId) {
+  const p = S.playerById[pid];
+  if (!p) return;
+  $("player-sheet-body").innerHTML =
+    `<div class="space-y-3">${playerDetailHtml(p, { managerId, closeId: "player-sheet-close" })}</div>`;
+  $("player-sheet").classList.remove("hidden");
+  $("player-sheet-close").onclick = () => $("player-sheet").classList.add("hidden");
 }
 
 function renderStatsTab() {
@@ -1870,6 +2024,13 @@ function renderStatsTab() {
     }">${c}</button>`).join("");
   $("stats-chips").querySelectorAll("[data-chip]").forEach((b) =>
     b.onclick = () => { S.statsPos = b.dataset.chip; renderStatsTab(); });
+  $("stats-sort").innerHTML = STAT_SORTS.map(([k, lbl]) =>
+    `<option value="${k}" ${S.statsSort === k ? "selected" : ""}>${lbl}</option>`).join("");
+
+  const sortKey = S.statsSort || "points";
+  const byPoints = sortKey === "points";
+  const valOf = (p) => byPoints ? playerPoints(p.player_id, p.position)
+    : playerStatTotal(p.player_id, sortKey);
 
   const q = S.statsSearch.trim().toLowerCase();
   let pool;
@@ -1882,12 +2043,16 @@ function renderStatsTab() {
     pool = [...ids].map((id) => S.playerById[id]).filter(Boolean);
   }
   if (S.statsPos !== "ALL") pool = pool.filter((p) => p.position === S.statsPos);
-  const ranked = pool
-    .map((p) => ({ p, pts: playerPoints(p.player_id, p.position) }))
-    .sort((a, b) => b.pts - a.pts || a.p.name.localeCompare(b.p.name))
+  let ranked = pool.map((p) => ({
+    p, pts: playerPoints(p.player_id, p.position), val: valOf(p),
+  }));
+  // For a category leaderboard, only list players who have some of it.
+  if (!byPoints && !q) ranked = ranked.filter((x) => x.val > 0);
+  ranked = ranked
+    .sort((a, b) => b.val - a.val || b.pts - a.pts || a.p.name.localeCompare(b.p.name))
     .slice(0, 30);
 
-  $("stats-list").innerHTML = ranked.map(({ p, pts }, i) => {
+  $("stats-list").innerHTML = ranked.map(({ p, pts, val }, i) => {
     const owner = ownerOf(p.player_id);
     return `<li><button data-sp="${esc(p.player_id)}" class="w-full flex items-center gap-2 py-2 text-left">
       <span class="text-slate-500 font-mono w-6 shrink-0">${q ? "" : i + 1 + "."}</span>
@@ -1898,7 +2063,10 @@ function renderStatsTab() {
         <span class="block truncate text-[10px] text-slate-500">${esc(p.team)}</span>
       </span>
       <span class="pos-${p.position} rounded px-1.5 py-0.5 text-[10px] font-semibold shrink-0">${p.position}</span>
-      <span class="font-mono font-bold ${pts > 0 ? "text-wcgold" : "text-slate-500"} w-10 text-right shrink-0">${pts}</span>
+      <span class="shrink-0 w-10 text-right">
+        <span class="block font-mono font-bold ${val > 0 ? "text-wcgold" : "text-slate-500"}">${val}</span>
+        ${byPoints ? "" : `<span class="block text-[10px] text-slate-500">${pts}p</span>`}
+      </span>
     </button></li>`;
   }).join("") || `<li class="py-4 text-sm text-slate-500">${
     q ? "No players match." : "No stats yet — the list fills up once matches are pulled. Search to look anyone up."}</li>`;
@@ -2682,6 +2850,7 @@ async function pullStatsNow() {
             defensive_actions: (+tk.total || 0) + (+tk.blocks || 0)
                                + (+tk.interceptions || 0),
             home_score: +f.goals.home || 0, away_score: +f.goals.away || 0,
+            minutes,
           };
           const rating = parseFloat(games.rating);
           if (!isNaN(rating) && (!best || rating > best.rating))
@@ -2965,6 +3134,10 @@ function wire() {
   $("pool-search").oninput = (e) => { S.poolSearch = e.target.value; renderPool(); };
   $("pool-team").onchange = () => renderPool();
   $("stats-search").oninput = (e) => { S.statsSearch = e.target.value; renderStatsTab(); };
+  $("stats-sort").onchange = (e) => { S.statsSort = e.target.value; renderStatsTab(); };
+  $("player-sheet").onclick = (e) => {
+    if (e.target.id === "player-sheet") $("player-sheet").classList.add("hidden");
+  };
   $("draft-force").onclick = () => {
     if (confirm("Force a random auto-pick for the manager on the clock?"))
       autoPick(pickInfo(S.league.current_pick)).catch((e) => toast(e.message));

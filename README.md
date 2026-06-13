@@ -310,6 +310,24 @@ missing or stale files just mean no badges/photos, never broken scoring.
 Because workflows now commit to the repo, run `git pull` before pushing
 local changes.
 
+### Player detail & stats
+
+- **Tap any player** on your Home roster (or any name on the Stats tab)
+  to see their match-by-match log: minutes (or "did not play"), the stat
+  line, points earned, and — on Home — whether they were your **starter,
+  sub, or not in your team** for each game, reconstructed from the lineup
+  locked at that kickoff. The Stats view instead shows which manager
+  fielded them (or "free agent") per game.
+- **Stats leaderboards** rank by Points (default) or any single category
+  — goals, assists, defensive actions, clean sheets, saves, MOTM, cards,
+  penalties saved/missed — via the dropdown, filterable by position.
+  These read existing `match_stats` columns, so they work on a
+  mid-tournament league with no migration or re-pull.
+- **Minutes** need the `minutes` column (`schema.sql`) and are filled
+  going forward by the pulls; to backfill games already played, re-run
+  the daily/catch-up pull after applying the migration. Until then the
+  log shows "played"/"did not play" from `appeared`.
+
 ### Redraft phases
 
 With a big league (13+ managers) the player pool runs dry as countries
@@ -369,11 +387,12 @@ position groups — a slot only trades within its position, subs included
 
 ### Sanity tests
 
-`node test_logic.js` — 80 checks on the snake order, position quotas,
+`node test_logic.js` — 88 checks on the snake order, position quotas,
 scoring parity with `daily_pull.py` (incl. defensive actions), sub
 activation, lineup-lock history replay, stage bonuses, player stat
-breakdowns, trade validity, redraft phases (phase quotas, kept
-players, eliminated managers, champion picks), suspension flags, and
-resilient writes. `python -m unittest test_daily_pull` — 22 tests on the
-API-Football → FIFA player-id mapping, multi-league stat fan-out, and
-graceful degradation when a migration is unapplied.
+breakdowns, per-match lineup status, category leaderboards, trade
+validity, redraft phases (phase quotas, kept players, eliminated
+managers, champion picks), suspension flags, and resilient writes.
+`python -m unittest test_daily_pull` — 22 tests on the API-Football →
+FIFA player-id mapping, multi-league stat fan-out, and graceful
+degradation when a migration is unapplied.

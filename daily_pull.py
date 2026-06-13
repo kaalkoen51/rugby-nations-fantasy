@@ -395,6 +395,7 @@ def build_stats_payload(rows: list, league_ids) -> list:
             "defensive_actions": row["defensive_actions"],
             "home_score": row.get("home_score"),
             "away_score": row.get("away_score"),
+            "minutes": row.get("minutes"),
         }
         for league_id in league_ids
         for row in rows
@@ -406,7 +407,7 @@ def build_stats_payload(rows: list, league_ids) -> list:
 # whole write with PGRST204; we drop the offending column and retry so an
 # unapplied migration degrades gracefully (these are display-only — they
 # never affect scoring) instead of silently killing every pull.
-OPTIONAL_COLUMNS = ("home_score", "away_score", "defensive_actions")
+OPTIONAL_COLUMNS = ("home_score", "away_score", "defensive_actions", "minutes")
 
 MISSING_COLUMN_RE = re.compile(r"Could not find the '(\w+)' column")
 

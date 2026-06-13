@@ -10,13 +10,15 @@ const stubDoc = {
 };
 const api = new Function(
   "document", "localStorage", "window", "crypto", "navigator",
-  src + "\nreturn { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, suspendedNext, resilientWrite };"
+  src + "\nreturn { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, suspendedNext, resilientWrite, playerStatTotal, teamMatchLabels, entryForManagerAt, ownerEntryAt, slotLabel };"
 )(stubDoc, { getItem: () => null, setItem: () => {}, removeItem: () => {} }, {}, {}, {});
 
 const { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores,
         slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick,
         posQuota, picksPerManager, totalPicks,
-        playerBreakdown, playerPoints, suspendedNext, resilientWrite } = api;
+        playerBreakdown, playerPoints, suspendedNext, resilientWrite,
+        playerStatTotal, teamMatchLabels, entryForManagerAt, ownerEntryAt,
+        slotLabel } = api;
 let fails = 0;
 const check = (label, got, want) => {
   const ok = JSON.stringify(got) === JSON.stringify(want);
@@ -305,6 +307,42 @@ check("ban cleared after playing again", suspendedNext("x4"), null);
 check("yellow slate wiped after the QFs", suspendedNext("x5"), null);
 check("two-yellow red doesn't count toward accumulation", suspendedNext("x6"), null);
 check("no stats -> no flag", suspendedNext("x7"), null);
+
+/* player detail: per-match lineup status, owner, team matches, category totals */
+S.fixtures = [
+  { home: "Brazil", away: "Chile", kickoff_utc: "2026-06-22T19:00:00+00:00", status: "FT" },
+];
+S.managers = [{ id: "m1", name: "Koen" }, { id: "m2", name: "Sam" }];
+S.picks = [
+  { id: "p1", manager_id: "m1", player_id: "bra_4", player_name: "Z One",
+    position: "DEF", team: "Brazil", slot: "DEF", is_sub: false, pick_number: 1 },
+];
+S.playerById = { bra_4: { player_id: "bra_4", name: "Z One", position: "DEF", team: "Brazil" } };
+S.snapshots = [
+  { manager_id: "m1", effective_from: "2026-06-21T08:00:00+00:00",
+    roster: [{ player_id: "bra_4", player_name: "Z One", position: "DEF",
+               team: "Brazil", is_sub: false, slot: "DEF" }] },
+];
+S.stats = [
+  row({ player_id: "bra_4", match_label: "Brazil vs Chile (2026-06-22)",
+        goals: 1, defensive_actions: 4, yellow_cards: 1, minutes: 90 }),
+  row({ player_id: "chi_9", match_label: "Brazil vs Chile (2026-06-22)", goals: 2, minutes: 90 }),
+];
+check("teamMatchLabels finds the team's games",
+  teamMatchLabels("Brazil"), ["Brazil vs Chile (2026-06-22)"]);
+check("entryForManagerAt: starter in my locked lineup",
+  slotLabel(entryForManagerAt("m1", "bra_4", "Brazil vs Chile (2026-06-22)")), "starter");
+check("entryForManagerAt: not in another manager's team",
+  entryForManagerAt("m2", "bra_4", "Brazil vs Chile (2026-06-22)"), null);
+check("ownerEntryAt: resolves the fielding manager",
+  ownerEntryAt("bra_4", "Brazil vs Chile (2026-06-22)").manager.name, "Koen");
+check("ownerEntryAt: free agent when unrostered",
+  ownerEntryAt("chi_9", "Brazil vs Chile (2026-06-22)"), null);
+check("playerStatTotal sums a numeric category", playerStatTotal("bra_4", "defensive_actions"), 4);
+check("playerStatTotal counts goals", playerStatTotal("bra_4", "goals"), 1);
+check("playerStatTotal counts boolean clean sheets",
+  playerStatTotal("bra_4", "clean_sheet"), 0);
+S.fixtures = []; S.snapshots = []; S.picks = [];
 
 /* resilientWrite: an unapplied additive migration (missing optional
    column) is dropped and retried instead of failing the whole write. */

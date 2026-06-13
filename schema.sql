@@ -76,6 +76,11 @@ alter table match_stats add column if not exists defensive_actions int default 0
 alter table match_stats add column if not exists home_score int;
 alter table match_stats add column if not exists away_score int;
 
+-- Minutes played, shown in the per-player match log. Nullable; the app
+-- shows "played"/"did not play" from `appeared` when it's absent, so rows
+-- written before this column (or before a re-pull) still read fine.
+alter table match_stats add column if not exists minutes int;
+
 -- Redraft phases: as the tournament field narrows the admin can remove
 -- trailing managers (their points freeze) and run redrafts with smaller,
 -- admin-chosen squads. Each manager protects one player (picks.kept rides
