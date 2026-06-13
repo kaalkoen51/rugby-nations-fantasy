@@ -312,12 +312,21 @@ local changes.
 
 ### Player detail & stats
 
-- **Tap any player** on your Home roster (or any name on the Stats tab)
-  to see their match-by-match log: minutes (or "did not play"), the stat
-  line, points earned, and — on Home — whether they were your **starter,
-  sub, or not in your team** for each game, reconstructed from the lineup
-  locked at that kickoff. The Stats view instead shows which manager
-  fielded them (or "free agent") per game.
+- **Lineup history pager.** Home (your team) and Table (any manager,
+  when you expand their row) open on the **current lineup** — each
+  player showing points **earned for you** (so it reconciles to your
+  league total), with a **Former players** section listing traded-out
+  players and their banked points, all tappable. Toggle **‹** to step
+  back through each past locked lineup ("Round N", with the matchdays it
+  covered) showing what that exact lineup scored that period; **›** or
+  "back to current" returns. Built entirely from `lineup_snapshots` +
+  `match_stats` — no schema change, works on a mid-tournament league.
+- **Tap any player** (in the pager, or any name on the Stats tab) to see
+  their match-by-match log: minutes (or "did not play"), the stat line,
+  points earned, and whether they were a **starter, sub, or not in the
+  team** for each game, reconstructed from the lineup locked at that
+  kickoff. The Stats view shows which manager fielded them (or "free
+  agent") per game.
 - **Stats leaderboards** rank by Points (default) or any single category
   — goals, assists, defensive actions, clean sheets, saves, MOTM, cards,
   penalties saved/missed — via the dropdown, filterable by position.
@@ -387,12 +396,14 @@ position groups — a slot only trades within its position, subs included
 
 ### Sanity tests
 
-`node test_logic.js` — 88 checks on the snake order, position quotas,
+`node test_logic.js` — 94 checks on the snake order, position quotas,
 scoring parity with `daily_pull.py` (incl. defensive actions), sub
-activation, lineup-lock history replay, stage bonuses, player stat
-breakdowns, per-match lineup status, category leaderboards, trade
-validity, redraft phases (phase quotas, kept players, eliminated
-managers, champion picks), suspension flags, and resilient writes.
+activation, lineup-lock history replay, the per-manager history
+decomposition (current credited + former + per-round split), stage
+bonuses, player stat breakdowns, per-match lineup status, category
+leaderboards, trade validity, redraft phases (phase quotas, kept
+players, eliminated managers, champion picks), suspension flags, and
+resilient writes.
 `python -m unittest test_daily_pull` — 22 tests on the API-Football →
 FIFA player-id mapping, multi-league stat fan-out, and graceful
 degradation when a migration is unapplied.

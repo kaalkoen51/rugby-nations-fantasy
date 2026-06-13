@@ -10,7 +10,7 @@ const stubDoc = {
 };
 const api = new Function(
   "document", "localStorage", "window", "crypto", "navigator",
-  src + "\nreturn { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, suspendedNext, resilientWrite, playerStatTotal, teamMatchLabels, entryForManagerAt, ownerEntryAt, slotLabel };"
+  src + "\nreturn { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, suspendedNext, resilientWrite, playerStatTotal, teamMatchLabels, entryForManagerAt, ownerEntryAt, slotLabel, managerHistory };"
 )(stubDoc, { getItem: () => null, setItem: () => {}, removeItem: () => {} }, {}, {}, {});
 
 const { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores,
@@ -18,7 +18,7 @@ const { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores,
         posQuota, picksPerManager, totalPicks,
         playerBreakdown, playerPoints, suspendedNext, resilientWrite,
         playerStatTotal, teamMatchLabels, entryForManagerAt, ownerEntryAt,
-        slotLabel } = api;
+        slotLabel, managerHistory } = api;
 let fails = 0;
 const check = (label, got, want) => {
   const ok = JSON.stringify(got) === JSON.stringify(want);
@@ -343,6 +343,39 @@ check("playerStatTotal counts goals", playerStatTotal("bra_4", "goals"), 1);
 check("playerStatTotal counts boolean clean sheets",
   playerStatTotal("bra_4", "clean_sheet"), 0);
 S.fixtures = []; S.snapshots = []; S.picks = [];
+
+/* managerHistory: current view (credited + former) ties out to the
+   leaderboard, and past rounds split points by lock period. */
+S.fixtures = [];
+S.managers = [{ id: "m1", name: "Koen" }];
+S.picks = [{ id: "p2", manager_id: "m1", player_id: "bra_2", player_name: "New Def",
+  position: "DEF", team: "Brazil", slot: "DEF", is_sub: false, pick_number: 1 }];
+S.playerById = {
+  fra_5: { player_id: "fra_5", name: "Old Def", position: "DEF", team: "France" },
+  bra_2: { player_id: "bra_2", name: "New Def", position: "DEF", team: "Brazil" },
+};
+S.stats = [
+  row({ player_id: "fra_5", match_label: "France vs Chile (2026-06-12)", goals: 1 }),
+  row({ player_id: "bra_2", match_label: "Brazil vs Peru (2026-06-16)", clean_sheet: true }),
+];
+S.snapshots = [
+  { manager_id: "m1", effective_from: "2026-06-10T08:00:00+00:00",
+    roster: [{ player_id: "fra_5", player_name: "Old Def", position: "DEF",
+               team: "France", is_sub: false, slot: "DEF" }] },
+  { manager_id: "m1", effective_from: "2026-06-15T08:00:00+00:00",
+    roster: [{ player_id: "bra_2", player_name: "New Def", position: "DEF",
+               team: "Brazil", is_sub: false, slot: "DEF" }] },
+];
+const mh = managerHistory("m1");
+check("history total ties out to leaderboard", mh.total, computeScores()[0].total);
+check("history total is 6 banked + 4 current", mh.total, 10);
+check("current view itemises the former player",
+  mh.current.former.map((f) => [f.entry.player_id, f.pts]), [["fra_5", 6]]);
+check("current view shows current player credited", mh.current.items[0].pts, 4);
+check("two past rounds, one per lock period",
+  mh.rounds.map((r) => [r.n, r.subtotal]), [[1, 6], [2, 4]]);
+check("round 1 covers the pre-trade matchday", mh.rounds[0].dates, ["2026-06-12"]);
+S.fixtures = []; S.snapshots = []; S.picks = []; S.playerById = {};
 
 /* resilientWrite: an unapplied additive migration (missing optional
    column) is dropped and retried instead of failing the whole write. */

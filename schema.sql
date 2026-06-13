@@ -93,6 +93,9 @@ alter table leagues add column if not exists keeper_window boolean not null defa
 alter table leagues add column if not exists final_phase boolean not null default false;
 alter table managers add column if not exists eliminated boolean not null default false;
 alter table managers add column if not exists frozen_points int;
+-- When a manager was removed, so the history view stops crediting their
+-- (now-stale) snapshots for matches played after their elimination.
+alter table managers add column if not exists eliminated_at timestamptz;
 alter table managers add column if not exists keeper_pick_id uuid;  -- legacy, unused
 alter table managers add column if not exists final_pick text;
 alter table picks add column if not exists kept boolean not null default false;
