@@ -9,6 +9,9 @@ which wakes it every 15 minutes (see .github/workflows/live-pull.yml):
 - Kickoff within --max-wait (default 90 min) but not yet live ->
   stays alive, polling every --poll seconds; this bridges multi-hour
   gaps in GitHub Actions cron scheduling so nearby games are not missed.
+- Kickoff time just passed but API hasn't flagged the fixture live yet ->
+  stays alive for --kickoff-grace minutes (default 15) to absorb the
+  typical 3-10 min lag before API-Football marks a fixture as "1H".
 - Otherwise it polls every --poll seconds: upserts player stats for
   every live fixture, gives each fixture one final pull when it goes
   full-time, and exits once nothing is live or imminent.
@@ -101,6 +104,11 @@ def main() -> None:
     parser.add_argument("--max-wait", type=int, default=90,
                         help="stay alive if kickoff is within this many "
                         "minutes (bridges cron scheduling gaps; default: 90)")
+    parser.add_argument("--kickoff-grace", type=int, default=15,
+                        help="stay alive this many minutes past scheduled "
+                        "kickoff while waiting for the API to flag the "
+                        "fixture as live (API-Football typically lags "
+                        "3-10 min; default: 15)")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -117,6 +125,7 @@ def main() -> None:
     matcher = PlayerMatcher(load_players())
     deadline = time.monotonic() + args.max_minutes * 60
     watched = set()  # fixture ids we have seen live this run
+    grace_until = None  # monotonic timestamp: stay alive past kickoff lag
 
     while True:
         live = fetch_live_fixtures(args.league)
@@ -136,12 +145,17 @@ def main() -> None:
 
         if not live:
             nxt = minutes_to_next_kickoff(args.league, args.season)
-            if nxt is None or nxt > args.max_wait:
+            if nxt is not None and nxt <= args.lookahead:
+                # Kickoff is imminent or just passed — arm/extend grace window.
+                grace_until = time.monotonic() + args.kickoff_grace * 60
+            if grace_until is not None and time.monotonic() < grace_until:
+                log("nothing live yet — waiting for API to confirm kickoff.")
+            elif nxt is None or nxt > args.max_wait:
                 log("nothing live, next kickoff "
                     + (f"in {nxt:.0f} min" if nxt is not None else "unknown")
                     + " — exiting.")
                 return
-            if nxt > args.lookahead:
+            elif nxt > args.lookahead:
                 log(f"next kickoff in {nxt:.0f} min — staying alive.")
             else:
                 log(f"kickoff in {nxt:.0f} min — standing by.")
