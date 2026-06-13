@@ -6,8 +6,10 @@ Run:
 """
 
 import json
+import os
 import unittest
 
+import daily_pull
 from daily_pull import (
     PLAYERS_JSON,
     PlayerMatcher,
@@ -17,6 +19,15 @@ from daily_pull import (
     parse_league_ids,
     surname_key,
 )
+
+# A fully-populated match_stats source row for upsert tests.
+daily_pull_ROW = {
+    "player_id": "arg_10", "match_label": "Argentina vs Scotland (2026-06-15)",
+    "minutes": 90, "conceded": 0, "goals": 1, "assists": 0,
+    "yellow_cards": 0, "red_cards": 0, "saves": 0, "motm": True,
+    "penalty_saved": 0, "penalty_missed": 0, "defensive_actions": 2,
+    "home_score": 1, "away_score": 0,
+}
 
 ROSTER = [
     {"player_id": "sco_1", "name": "Angus Gunn", "position": "GK", "team": "Scotland", "team_code": "SCO"},
@@ -208,6 +219,65 @@ class TestMultiLeague(unittest.TestCase):
         payload = build_stats_payload([self.ROW], "league-a,league-b")
         self.assertEqual({p["league_id"] for p in payload},
                          {"league-a", "league-b"})
+
+
+class TestUpsertGracefulDegradation(unittest.TestCase):
+    """An unapplied additive migration (missing optional column) must not
+    kill the whole pull: the offending column is dropped and the write
+    retried. Scoring never depends on these columns."""
+
+    class FakeResp:
+        def __init__(self, status_code, text=""):
+            self.status_code = status_code
+            self.text = text
+
+    def setUp(self):
+        os.environ["SUPABASE_URL"] = "https://example.supabase.co"
+        os.environ["SUPABASE_SERVICE_KEY"] = "service-key"
+        self.posts = []
+
+    def _patch_post(self, responses):
+        """Each call pops the next FakeResp; records the payload sent."""
+        seq = list(responses)
+
+        def fake_post(url, params=None, headers=None, json=None, timeout=None):
+            self.posts.append(json)
+            return seq.pop(0)
+        return fake_post
+
+    def test_missing_column_is_dropped_and_retried(self):
+        rows = [dict(daily_pull_ROW)]
+        responses = [
+            self.FakeResp(400, '{"code":"PGRST204","message":'
+                          '"Could not find the \'away_score\' column of '
+                          "'match_stats' in the schema cache\"}"),
+            self.FakeResp(400, '{"code":"PGRST204","message":'
+                          '"Could not find the \'home_score\' column of '
+                          "'match_stats' in the schema cache\"}"),
+            self.FakeResp(201),
+        ]
+        orig = daily_pull.requests.post
+        daily_pull.requests.post = self._patch_post(responses)
+        try:
+            daily_pull.upsert_match_stats(rows, ["league-a"])
+        finally:
+            daily_pull.requests.post = orig
+        # Three attempts; the final payload has both optional cols stripped.
+        self.assertEqual(len(self.posts), 3)
+        final = self.posts[-1][0]
+        self.assertNotIn("away_score", final)
+        self.assertNotIn("home_score", final)
+        self.assertEqual(final["goals"], 1)  # real stats survive
+
+    def test_real_error_still_fails(self):
+        orig = daily_pull.requests.post
+        daily_pull.requests.post = self._patch_post(
+            [self.FakeResp(401, '{"message":"bad key"}')])
+        try:
+            with self.assertRaises(SystemExit):
+                daily_pull.upsert_match_stats([dict(daily_pull_ROW)], ["l"])
+        finally:
+            daily_pull.requests.post = orig
 
 
 class TestRealPlayersJson(unittest.TestCase):

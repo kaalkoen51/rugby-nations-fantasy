@@ -32,6 +32,7 @@ Environment variables:
 import argparse
 import json
 import os
+import re
 import sys
 import unicodedata
 from datetime import datetime, timedelta, timezone
@@ -400,28 +401,50 @@ def build_stats_payload(rows: list, league_ids) -> list:
     ]
 
 
+# Columns added by later, additive schema.sql migrations. If the
+# migration hasn't been applied to a database yet, PostgREST rejects the
+# whole write with PGRST204; we drop the offending column and retry so an
+# unapplied migration degrades gracefully (these are display-only — they
+# never affect scoring) instead of silently killing every pull.
+OPTIONAL_COLUMNS = ("home_score", "away_score", "defensive_actions")
+
+MISSING_COLUMN_RE = re.compile(r"Could not find the '(\w+)' column")
+
+
 def upsert_match_stats(rows: list, league_ids) -> None:
     supabase_url = require_env("SUPABASE_URL", "Supabase project URL")
     service_key = require_env("SUPABASE_SERVICE_KEY", "Supabase service role key")
 
     payload = build_stats_payload(rows, league_ids)
 
-    resp = requests.post(
-        f"{supabase_url.rstrip('/')}/rest/v1/match_stats",
-        params={"on_conflict": "league_id,player_id,match_label"},
-        headers={
-            "apikey": service_key,
-            "Authorization": f"Bearer {service_key}",
-            "Content-Type": "application/json",
-            "Prefer": "resolution=merge-duplicates",
-        },
-        json=payload,
-        timeout=30,
-    )
-    if resp.status_code >= 400:
+    dropped = []
+    while True:
+        resp = requests.post(
+            f"{supabase_url.rstrip('/')}/rest/v1/match_stats",
+            params={"on_conflict": "league_id,player_id,match_label"},
+            headers={
+                "apikey": service_key,
+                "Authorization": f"Bearer {service_key}",
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates",
+            },
+            json=payload,
+            timeout=30,
+        )
+        if resp.status_code < 400:
+            break
+        col = (MISSING_COLUMN_RE.search(resp.text) or [None, None])[1]
+        if col in OPTIONAL_COLUMNS and col not in dropped:
+            for row in payload:
+                row.pop(col, None)
+            dropped.append(col)
+            continue
         sys.exit(f"Supabase upsert failed ({resp.status_code}): {resp.text}")
+
     leagues = max(1, len(payload) // max(1, len(rows)))
-    print(f"Upserted {len(rows)} rows x {leagues} league(s) to match_stats.")
+    note = f" (dropped missing column(s): {', '.join(dropped)} — run schema.sql)" \
+        if dropped else ""
+    print(f"Upserted {len(rows)} rows x {leagues} league(s) to match_stats.{note}")
 
 
 def print_summary(rows: list) -> None:
