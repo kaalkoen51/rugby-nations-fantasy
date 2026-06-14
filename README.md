@@ -356,12 +356,14 @@ players.
   covered) showing what that exact lineup scored that period; **›** or
   "back to current" returns. Built entirely from `lineup_snapshots` +
   `match_stats` — no schema change, works on a mid-tournament league.
-- **Tap any player** (in the pager, or any name on the Stats tab) to see
-  their match-by-match log: minutes (or "did not play"), the stat line,
-  points earned, and whether they were a **starter, sub, or not in the
-  team** for each game, reconstructed from the lineup locked at that
-  kickoff. The Stats view shows which manager fielded them (or "free
-  agent") per game.
+- **Tap any player** — on the Stats tab, in the history pager, or in the
+  **draft/redraft pool** — to open their detail card (a bottom sheet, so
+  the page never jumps). It shows the **next fixture** (opponent crest +
+  date/time) and a match-by-match log: minutes (or "did not play"), the
+  stat line, points earned, and whether they were a **starter, sub, or
+  not in the team** for each game, reconstructed from the lineup locked
+  at that kickoff. The Stats view shows which manager fielded them (or
+  "free agent") per game.
 - **Stats leaderboards** rank by Points (default) or any single category
   — goals, assists, defensive actions, clean sheets, saves, MOTM, cards,
   penalties saved/missed — via the dropdown, filterable by position.
@@ -442,7 +444,7 @@ offered.
 
 ### Sanity tests
 
-`node test_logic.js` — 104 checks on the snake order, position quotas,
+`node test_logic.js` — 107 checks on the snake order, position quotas,
 scoring parity with `daily_pull.py` (incl. defensive actions), sub
 activation, lineup-lock history replay, the per-manager history
 decomposition (current credited + former + per-round split), the

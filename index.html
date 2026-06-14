@@ -211,7 +211,6 @@
         <div id="stats-chips" class="flex gap-1.5 flex-wrap text-xs"></div>
         <select id="stats-sort" class="ml-auto rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs"></select>
       </div>
-      <div id="stats-detail"></div>
       <ol id="stats-list" class="rounded-xl border border-slate-700 bg-slate-900 px-4 divide-y divide-slate-800"></ol>
     </div>
     <div id="board-rosters" class="hidden space-y-2"></div>
@@ -470,10 +469,14 @@ function isAdmin() {
   return !!(S.league && s?.adminToken && s.adminToken === S.league.admin_token);
 }
 
+let _shownView = null;
 function showView(name) {
   document.querySelectorAll("[data-view]").forEach(
     (el) => el.classList.toggle("hidden", el.dataset.view !== name));
-  window.scrollTo(0, 0);
+  // Only jump to top when the view actually changes — a re-render of the
+  // same view (e.g. the refetch after starring a player) must preserve
+  // the current scroll position.
+  if (name !== _shownView) { window.scrollTo(0, 0); _shownView = name; }
 }
 
 function genInviteCode() {
@@ -1051,14 +1054,19 @@ function renderPool() {
     const owner = ownerName[e.player_id];
     const ko = isEliminated(e.team);
     const canPick = myTurn && !owner && !ko && quotaLeft(onClockPicks, e.position) > 0;
-    return `<li class="flex items-center py-2 gap-1.5 ${owner || ko ? "opacity-60" : ""}">
-      ${starHtml(e.player_id)}
+    const tappable = !String(e.player_id).startsWith("team:");  // TEAM has no detail card
+    const inner = `
       ${avatarHtml(e.player_id, e.team)}
       <div class="min-w-0 flex-1">
         <div class="truncate font-medium">${esc(e.name)} ${availBadges(e.player_id)}${
           owner ? ` <span class="rounded bg-slate-700 px-1 py-0.5 text-[10px] text-wcgold">👤 ${esc(owner)}</span>` : ""}</div>
         <div class="text-xs text-slate-400">${teamFixLine(e.team)}</div>
-      </div>
+      </div>`;
+    return `<li class="flex items-center py-2 gap-1.5 ${owner || ko ? "opacity-60" : ""}">
+      ${starHtml(e.player_id)}
+      ${tappable
+        ? `<button data-pooldetail="${esc(e.player_id)}" class="flex-1 min-w-0 flex items-center gap-1.5 text-left">${inner}</button>`
+        : `<div class="flex-1 min-w-0 flex items-center gap-1.5">${inner}</div>`}
       <div class="flex items-center gap-2 shrink-0">
         <span class="text-xs font-mono text-slate-400">${entryPoints(e.player_id, e.position, e.team)} pts</span>
         <span class="pos-${e.position} rounded px-1.5 py-0.5 text-xs font-semibold">${e.position}</span>
@@ -1078,6 +1086,8 @@ function renderPool() {
     if (confirm(`Pick ${entry.name} (${entry.position}, ${entry.team})? They'll slot in as ${slot}.`))
       makePick(entry, { ...info, pickNumber: S.league.current_pick }).catch((er) => toast(er.message));
   });
+  $("pool-list").querySelectorAll("[data-pooldetail]").forEach((b) => b.onclick = () =>
+    openPlayerDetail(b.dataset.pooldetail));
   wireStars($("pool-list"), renderPool);
 }
 
@@ -2076,7 +2086,6 @@ function renderBoard() {
 
 S.statsPos = "ALL";
 S.statsSearch = "";
-S.statsSel = null;
 S.statsSort = "points";
 S.histIdxByMgr = {};   // manager id -> history pager index (0 = current)
 S.showShortlist = false;   // Trades tab: shortlist collapsed until opened
@@ -2286,12 +2295,25 @@ function playerDetailHtml(p, opts = {}) {
   const total = playerPoints(p.player_id, p.position);
   const breakdown = playerBreakdown(p.player_id, p.position);
   const owner = ownerOf(p.player_id);
+  // Next fixture: opponent crest + date/time.
+  const f = nextFixtureFor(p.team);
+  let fxLine = "";
+  if (f) {
+    const opp = f.home === p.team ? f.away : f.home;
+    const when = new Date(f.kickoff_utc).toLocaleString([],
+      { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    fxLine = `<div class="flex items-center gap-1.5 text-xs text-slate-400">
+      <span class="text-slate-500">Next:</span>
+      ${avatarHtml("team:" + opp, opp, "w-4 h-4")}
+      <span class="truncate">${f.home === p.team ? "vs" : "@"} ${esc(opp)} · ${esc(when)}</span>
+    </div>`;
+  }
   return `
     <div class="flex items-start gap-2">
       ${avatarHtml(p.player_id, p.team, "w-12 h-12")}
       <div class="min-w-0 flex-1">
         <div class="font-bold truncate">${esc(p.name)} ${availBadges(p.player_id)}</div>
-        <div class="text-xs text-slate-400">${teamFixLine(p.team)}</div>
+        <div class="text-xs text-slate-400">${esc(p.team)}</div>
         <div class="text-[10px] text-slate-500 mt-0.5">${
           owner ? "👤 drafted by " + esc(owner) : "free agent"}</div>
       </div>
@@ -2300,6 +2322,7 @@ function playerDetailHtml(p, opts = {}) {
       ${starHtml(p.player_id)}
       ${opts.closeId ? `<button id="${opts.closeId}" class="text-slate-400 px-1 -mt-1 shrink-0">✕</button>` : ""}
     </div>
+    ${fxLine}
     ${breakdown.length ? `<table class="w-full text-xs"><tbody>
       ${breakdown.map((r) => `<tr class="border-b border-slate-800">
         <td class="py-1 text-slate-400">${r.label}</td>
@@ -2314,20 +2337,7 @@ function playerDetailHtml(p, opts = {}) {
     ${matchLogHtml(p.player_id, p.position, p.team, opts.managerId)}`;
 }
 
-function renderStatsDetail() {
-  const box = $("stats-detail");
-  const p = S.statsSel ? S.playerById[S.statsSel] : null;
-  if (!p) { box.innerHTML = ""; return; }
-  box.innerHTML = `<div class="rounded-xl border border-wcgold/60 bg-slate-900 p-4 space-y-3">
-    ${playerDetailHtml(p, { closeId: "stats-close" })}</div>`;
-  box.querySelector("#stats-close").onclick = () => {
-    S.statsSel = null;
-    renderStatsDetail();
-  };
-  wireStars(box, renderStatsDetail);
-}
-
-// Home-tab player detail in a bottom sheet, from your manager's view.
+// Player detail in a bottom sheet (Home, Stats, shortlist, draft pool).
 function openPlayerDetail(pid, managerId, perspectiveLabel) {
   const p = S.playerById[pid];
   if (!p) return;
@@ -2395,13 +2405,11 @@ function renderStatsTab() {
       </button></li>`;
   }).join("") || `<li class="py-4 text-sm text-slate-500">${
     q ? "No players match." : "No stats yet — the list fills up once matches are pulled. Search to look anyone up."}</li>`;
-  $("stats-list").querySelectorAll("[data-sp]").forEach((b) => b.onclick = () => {
-    S.statsSel = b.dataset.sp;
-    renderStatsDetail();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
+  // Open the detail in the bottom sheet (a fixed overlay) so the page
+  // doesn't jump — same as tapping a player on the Home tab.
+  $("stats-list").querySelectorAll("[data-sp]").forEach((b) => b.onclick = () =>
+    openPlayerDetail(b.dataset.sp));
   wireStars($("stats-list"), renderStatsTab);
-  renderStatsDetail();
 }
 
 /* ---------- roster snapshots (lineup locks) ---------- */

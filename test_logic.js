@@ -8,10 +8,12 @@ const stubDoc = {
   querySelector: () => null,
   addEventListener: () => {},
 };
+let scrollCalls = 0;
+const winStub = { scrollTo: () => { scrollCalls++; } };
 const api = new Function(
   "document", "localStorage", "window", "crypto", "navigator",
-  src + "\nreturn { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, suspendedNext, resilientWrite, playerStatTotal, teamMatchLabels, entryForManagerAt, ownerEntryAt, slotLabel, managerHistory, poolEntries, availableForGroup, isEliminated, computeYetToPlay };"
-)(stubDoc, { getItem: () => null, setItem: () => {}, removeItem: () => {} }, {}, {}, {});
+  src + "\nreturn { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, suspendedNext, resilientWrite, playerStatTotal, teamMatchLabels, entryForManagerAt, ownerEntryAt, slotLabel, managerHistory, poolEntries, availableForGroup, isEliminated, computeYetToPlay, showView };"
+)(stubDoc, { getItem: () => null, setItem: () => {}, removeItem: () => {} }, winStub, {}, {});
 
 const { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores,
         slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick,
@@ -19,7 +21,7 @@ const { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores,
         playerBreakdown, playerPoints, suspendedNext, resilientWrite,
         playerStatTotal, teamMatchLabels, entryForManagerAt, ownerEntryAt,
         slotLabel, managerHistory, poolEntries, availableForGroup,
-        isEliminated, computeYetToPlay } = api;
+        isEliminated, computeYetToPlay, showView } = api;
 let fails = 0;
 const check = (label, got, want) => {
   const ok = JSON.stringify(got) === JSON.stringify(want);
@@ -433,6 +435,17 @@ check("isEliminated reads the eliminated flag", isEliminated("France"), true);
 check("non-eliminated team is in", isEliminated("Brazil"), false);
 check("unknown team defaults to in", isEliminated("Spain"), false);
 S.stages = [];
+
+/* showView only scrolls to top on an actual view change, so a re-render
+   of the current view (e.g. the refetch after starring) doesn't jump. */
+scrollCalls = 0;
+showView("board");
+check("entering a view scrolls to top", scrollCalls, 1);
+showView("board");
+showView("board");
+check("re-showing the same view does not scroll", scrollCalls, 1);
+showView("draft");
+check("changing view scrolls again", scrollCalls, 2);
 
 /* resilientWrite: an unapplied additive migration (missing optional
    column) is dropped and retried instead of failing the whole write. */
