@@ -166,6 +166,14 @@ create table if not exists trade_items (
 alter table trade_items add column if not exists offered_player_name text;
 alter table trade_items add column if not exists requested_player_name text;
 
+-- Stale-player guard: snapshot each pick's player_id when the trade is
+-- proposed, so accept_trade can verify the picks still hold those exact
+-- players before swapping (a player may have been swapped out / traded
+-- away in the meantime). Nullable; trades proposed before this column
+-- skip the check and behave as before.
+alter table trade_items add column if not exists offered_player_id text;
+alter table trade_items add column if not exists requested_player_id text;
+
 -- Roster snapshots: one row per manager per lineup lock. Scoring for a
 -- matchday uses the latest snapshot taken on or before that day, so
 -- lineup changes and trades never rewrite already-played rounds. Written
@@ -203,6 +211,16 @@ begin
         select * into b from picks where id = item.requested_pick_id;
         if a.id is null or b.id is null then
             raise exception 'trade references a missing pick';
+        end if;
+        -- Stale-player guard: each pick must still hold the player that was
+        -- snapshotted at proposal time. If either was traded away or swapped
+        -- out since, abort — the raise rolls back this whole transaction,
+        -- including the status update above, so the proposal stays open.
+        if (item.offered_player_id is not null
+                and a.player_id is distinct from item.offered_player_id)
+           or (item.requested_player_id is not null
+                and b.player_id is distinct from item.requested_player_id) then
+            raise exception 'this trade is no longer valid — a player in it was traded away';
         end if;
         update picks set player_id = 'tmp:' || item.id where id = a.id;
         update picks set player_id = a.player_id, player_name = a.player_name,

@@ -489,6 +489,7 @@ function genInviteCode() {
 const STRIPPABLE_COLUMNS = new Set([
   "home_score", "away_score", "minutes",
   "offered_player_name", "requested_player_name",
+  "offered_player_id", "requested_player_id",
 ]);
 
 // Insert/upsert that tolerates an unapplied additive migration. Throws on
@@ -3012,6 +3013,8 @@ async function submitTrade(me) {
       trade_id: data.id, offered_pick_id: p.mine.id, requested_pick_id: p.theirs.id,
       offered_player_name: p.mine.player_name,
       requested_player_name: p.theirs.player_name,
+      offered_player_id: p.mine.player_id,
+      requested_player_id: p.theirs.player_id,
     })));
   } catch (e) { return toast(e.message); }
   if (b.parent) {
@@ -3032,7 +3035,12 @@ async function acceptTrade(t) {
   if (err) return toast("Trade is no longer valid: " + err);
   if (!confirm("Accept this trade? Players swap immediately.")) return;
   const { error } = await S.sb.rpc("accept_trade", { p_trade_id: t.id });
-  if (error) return toast("Accept failed: " + error.message);
+  if (error) {
+    // accept_trade raises a clear sentence (stale player / already closed);
+    // re-sync so the roster and proposal reflect what actually happened.
+    scheduleRefetch();
+    return toast(error.message);
+  }
   toast("Trade accepted — players swapped!");
   scheduleRefetch();
 }

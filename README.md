@@ -429,6 +429,17 @@ position groups — a slot only trades within its position, subs included
   proposals can still be answered after the window closes — only *new*
   proposals require it open.
 
+**Double-allocation is DB-enforced.** A unique index on
+`picks (league_id, player_id)` means a player can sit in at most one
+roster slot per league, so two managers racing for the same free agent
+can't both get them — the first write wins and the second is told "that
+player was just taken." Manager-trade acceptance also runs a **stale-
+player guard**: `accept_trade` snapshots each pick's `player_id` when the
+trade is proposed and aborts ("this trade is no longer valid — a player
+in it was traded away") if either pick no longer holds that player by the
+time it's accepted, so you can never be handed a different player than was
+offered.
+
 ### Sanity tests
 
 `node test_logic.js` — 104 checks on the snake order, position quotas,
