@@ -1056,7 +1056,7 @@ function renderPool() {
       <div class="min-w-0 flex-1">
         <div class="truncate font-medium">${esc(e.name)} ${availBadges(e.player_id)}${
           owner ? ` <span class="rounded bg-slate-700 px-1 py-0.5 text-[10px] text-wcgold">👤 ${esc(owner)}</span>` : ""}</div>
-        <div class="text-xs text-slate-400">${esc(e.team)}</div>
+        <div class="text-xs text-slate-400">${teamFixLine(e.team)}</div>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <span class="text-xs font-mono text-slate-400">${entryPoints(e.player_id, e.position, e.team)} pts</span>
@@ -1472,9 +1472,17 @@ function managerHistory(mgrId) {
   // Current view: live roster (credited-for-you) + TEAM/champion + former.
   const picks = managerPicks(mgrId);
   const pickIds = new Set(picks.map((pk) => pk.player_id));
+  // "played in this snapshot" = has stats since the most recent lineup lock.
+  const snapshotStart = snaps.length ? Date.parse(snaps[snaps.length - 1].effective_from) : 0;
+  const nowMs = Date.now();
   const items = picks.map((pk) => ({
     entry: pk,
     pts: pk.slot === "TEAM" ? calcTeamPoints(stageOf(pk.team)) : (earnedByPlayer[pk.player_id] || 0),
+    played: snaps.length > 0 && pk.position !== "TEAM"
+      && (statsByPlayer[pk.player_id] || []).some(r => {
+        const t = matchTimeFor(r.match_label);
+        return t >= snapshotStart && t <= nowMs;
+      }),
   }));
   let finalBonus = 0;
   if (mgr?.final_pick) {
@@ -1670,11 +1678,14 @@ async function setFinalPick(team) {
 
 // One roster row in a history view. Tappable (data-hp) unless it's a
 // TEAM/champion bonus line. `former` marks a banked traded-out player.
+// it.played (set by managerHistory for current items) drives yellow highlight.
 function lineupRowHtml(it, mgrId, former) {
   const e = it.entry;
   const bonus = e.slot === "TEAM" || e.slot === "WIN";
   const tap = !bonus;
   const ptsStr = it.pts == null ? "—" : `${it.pts}p`;
+  const played = !former && it.played;
+  const fxt = tap && !former ? fixtureText(e.team) : "";
   return `<div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-2${
       tap ? " cursor-pointer hover:bg-slate-800" : ""}"${
       tap ? ` data-hp="${esc(e.player_id)}"` : ""}>
@@ -1683,12 +1694,12 @@ function lineupRowHtml(it, mgrId, former) {
       former ? "former" : e.slot}${e.kept ? " ⭐" : ""}</span>
     ${avatarHtml(e.player_id, e.team)}
     <span class="min-w-0 flex-1">
-      <span class="block truncate text-sm">${esc(e.player_name)} ${tap ? availBadges(e.player_id) : ""}</span>
-      <span class="block truncate text-[10px] text-slate-500">${esc(e.team)}</span>
+      <span class="block truncate text-sm ${played ? "text-wcgold" : ""}">${esc(e.player_name)} ${tap ? availBadges(e.player_id) : ""}</span>
+      <span class="block truncate text-[10px] text-slate-500">${esc(e.team)}${fxt ? ` · ${esc(fxt)}` : ""}</span>
     </span>
     ${bonus ? "" : `<span class="pos-${e.position} rounded px-1.5 py-0.5 text-[10px] font-semibold shrink-0">${e.position}</span>`}
     <span class="shrink-0 w-10 text-right text-xs font-mono ${
-      it.pts > 0 ? "text-wcgold" : "text-slate-400"}">${ptsStr}</span>
+      played || it.pts > 0 ? "text-wcgold" : "text-slate-400"}">${ptsStr}</span>
     ${tap ? '<span class="shrink-0 text-slate-600 text-xs">›</span>' : ""}
   </div>`;
 }
@@ -1990,6 +2001,32 @@ function setBoardTab(tab) {
   });
 }
 
+// How many of each manager's current starters have already played a match
+// within their current snapshot window (i.e. since their last lineup lock).
+// Only computed when there is at least one snapshot; returns hasSnapshot flag
+// so the caller can suppress the counter before any lock has been taken.
+function computeYetToPlay() {
+  const statsByPlayer = {};
+  for (const r of S.stats) (statsByPlayer[r.player_id] ||= []).push(r);
+  const now = Date.now();
+  const snapsByMgr = snapshotsByManager();
+  const result = {};
+  for (const m of S.managers) {
+    const snaps = snapsByMgr[m.id] || [];
+    const hasSnapshot = snaps.length > 0;
+    const snapshotStart = hasSnapshot ? Date.parse(snaps[snaps.length - 1].effective_from) : 0;
+    const starters = managerPicks(m.id).filter(pk => !pk.is_sub && pk.position !== "TEAM");
+    const played = !hasSnapshot ? 0 : starters.filter(pk =>
+      (statsByPlayer[pk.player_id] || []).some(r => {
+        const t = matchTimeFor(r.match_label);
+        return t >= snapshotStart && t <= now;
+      })
+    ).length;
+    result[m.id] = { played, total: starters.length, yet: starters.length - played, hasSnapshot };
+  }
+  return result;
+}
+
 function renderBoard() {
   setBoardTab(S.boardTab || "home");
   renderBanner();
@@ -1998,19 +2035,29 @@ function renderBoard() {
     .map((d) => d.dataset.mgr));
   const me = myManager();
   const scores = computeScores().sort((a, b) => b.total - a.total);
-  $("board-lb").innerHTML = scores.map((s, i) => `
+  const yetByMgr = computeYetToPlay();
+  $("board-lb").innerHTML = scores.map((s, i) => {
+    const ytp = yetByMgr[s.manager.id];
+    const ytpLine = ytp?.hasSnapshot && ytp.total > 0
+      ? `<span class="block text-[10px] font-normal text-slate-400">${ytp.yet}/${ytp.total} starters yet to play</span>`
+      : "";
+    return `
     <details data-mgr="${s.manager.id}" class="rounded-xl border border-slate-700 ${
       s.eliminated ? "bg-slate-900/50 opacity-60" : "bg-slate-900"}"
              ${open.has(s.manager.id) ? "open" : ""}>
       <summary class="px-4 py-3 cursor-pointer select-none flex items-center gap-3">
         <span class="text-slate-500 font-mono w-6">${i + 1}.</span>
-        <span class="font-semibold flex-1 truncate">${esc(s.manager.name)}${
-          s.manager.id === me?.id ? ' <span class="text-wcgold text-xs">(you)</span>' : ""}${
-          s.eliminated ? ' <span class="text-[10px] text-red-400">eliminated</span>' : ""}</span>
-        <span class="font-bold text-wcgold">${s.total} pts</span>
+        <span class="flex-1 min-w-0">
+          <span class="block font-semibold truncate">${esc(s.manager.name)}${
+            s.manager.id === me?.id ? ' <span class="text-wcgold text-xs">(you)</span>' : ""}${
+            s.eliminated ? ' <span class="text-[10px] text-red-400">eliminated</span>' : ""}</span>
+          ${ytpLine}
+        </span>
+        <span class="font-bold text-wcgold shrink-0">${s.total} pts</span>
       </summary>
       <div id="hist-lb-${s.manager.id}" class="px-4 pb-3"></div>
-    </details>`).join("") || '<p class="text-sm text-slate-500">No managers.</p>';
+    </details>`;
+  }).join("") || '<p class="text-sm text-slate-500">No managers.</p>';
   // Fill each manager's history pager (current lineup + past rounds).
   for (const s of scores)
     renderHistInto("hist-lb-" + s.manager.id, s.manager.id, `${s.manager.name}'s lineup`);
@@ -2414,13 +2461,16 @@ function renderLineup() {
       : "";
     lastPos = pk.position;
     const starter = S.lineupDraft.has(pk.id);
+    const fxt = fixtureText(pk.team);
     return `${header}<button data-lineup="${pk.id}" class="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left border ${
       starter ? "border-wcgold bg-wcred/10" : "border-slate-700 bg-slate-800/60"
     }">
       ${avatarHtml(pk.player_id, pk.team, "w-5 h-5")}
-      <span class="min-w-0 truncate text-sm">${esc(pk.player_name)} ${availBadges(pk.player_id)}
-        <span class="text-[10px] text-slate-500">${esc(pk.team)}</span></span>
-      <span class="ml-auto shrink-0 text-[10px] font-mono text-slate-400">${playerPoints(pk.player_id, pk.position)}p</span>
+      <span class="min-w-0 flex-1">
+        <span class="block truncate text-sm">${esc(pk.player_name)} ${availBadges(pk.player_id)}</span>
+        <span class="block truncate text-[10px] text-slate-500">${esc(pk.team)}${fxt ? ` · ${esc(fxt)}` : ""}</span>
+      </span>
+      <span class="shrink-0 text-[10px] font-mono text-slate-400">${playerPoints(pk.player_id, pk.position)}p</span>
       <span class="shrink-0 text-xs font-semibold ${starter ? "text-wcgold" : "text-slate-500"}">${starter ? "STARTER" : "sub"}</span>
     </button>`;
   }).join("");
