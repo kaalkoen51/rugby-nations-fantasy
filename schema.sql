@@ -115,6 +115,11 @@ alter table managers add column if not exists draft_position int;
 -- the manager across devices; the app only ever renders your own.
 alter table managers add column if not exists shortlist jsonb;
 
+-- Per-manager squad planner: { "moves": [ { "out": <pick id>,
+-- "choices": [<player id>, ...] } ] } — planned replacements per slot, an
+-- ordered first-choice + backups. Synced, only ever rendered for its owner.
+alter table managers add column if not exists planner jsonb;
+
 alter table picks add column if not exists pick_number int;
 alter table picks add column if not exists is_sub bool default false;
 alter table picks add column if not exists slot text;

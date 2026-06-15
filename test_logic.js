@@ -10,10 +10,15 @@ const stubDoc = {
 };
 let scrollCalls = 0;
 const winStub = { scrollTo: () => { scrollCalls++; } };
+// A session so myManager() resolves to "m1" when a test puts it in S.managers
+// (needed for the per-manager shortlist/planner helpers).
+const _session = JSON.stringify({ leagueId: "L1", managerId: "m1" });
+const lsStub = { getItem: (k) => k === "wcf_session" ? _session : null,
+                 setItem: () => {}, removeItem: () => {} };
 const api = new Function(
   "document", "localStorage", "window", "crypto", "navigator",
-  src + "\nreturn { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, suspendedNext, resilientWrite, playerStatTotal, teamMatchLabels, entryForManagerAt, ownerEntryAt, slotLabel, managerHistory, poolEntries, availableForGroup, isEliminated, computeYetToPlay, showView };"
-)(stubDoc, { getItem: () => null, setItem: () => {}, removeItem: () => {} }, winStub, {}, {});
+  src + "\nreturn { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, suspendedNext, resilientWrite, playerStatTotal, teamMatchLabels, entryForManagerAt, ownerEntryAt, slotLabel, managerHistory, poolEntries, availableForGroup, isEliminated, computeYetToPlay, showView, plannerChoiceRank, choiceStatus };"
+)(stubDoc, lsStub, winStub, {}, {});
 
 const { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores,
         slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick,
@@ -21,7 +26,8 @@ const { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores,
         playerBreakdown, playerPoints, suspendedNext, resilientWrite,
         playerStatTotal, teamMatchLabels, entryForManagerAt, ownerEntryAt,
         slotLabel, managerHistory, poolEntries, availableForGroup,
-        isEliminated, computeYetToPlay, showView } = api;
+        isEliminated, computeYetToPlay, showView,
+        plannerChoiceRank, choiceStatus } = api;
 let fails = 0;
 const check = (label, got, want) => {
   const ok = JSON.stringify(got) === JSON.stringify(want);
@@ -435,6 +441,33 @@ check("isEliminated reads the eliminated flag", isEliminated("France"), true);
 check("non-eliminated team is in", isEliminated("Brazil"), false);
 check("unknown team defaults to in", isEliminated("Spain"), false);
 S.stages = [];
+
+/* squad planner: choice ranking + acquirability tiers (viewing manager m1) */
+S.managers = [
+  { id: "m1", name: "Koen", planner: { moves: [{ out: "pk_out", choices: ["arg_8", "bra_5"] }] } },
+  { id: "m2", name: "Sam" },
+];
+S.playerById = {
+  arg_8: { player_id: "arg_8", name: "FA", position: "MID", team: "Argentina" },
+  bra_5: { player_id: "bra_5", name: "Owned", position: "MID", team: "Brazil" },
+  fra_1: { player_id: "fra_1", name: "Mine", position: "MID", team: "France" },
+};
+S.picks = [
+  { id: "pk_out", manager_id: "m1", player_id: "fra_1", player_name: "Mine",
+    position: "MID", team: "France", slot: "MID" },
+  { id: "pk_b", manager_id: "m2", player_id: "bra_5", player_name: "Owned",
+    position: "MID", team: "Brazil", slot: "MID" },
+];
+S.stages = [];
+check("planner rank: first choice is 1", plannerChoiceRank("arg_8"), 1);
+check("planner rank: backup is 2", plannerChoiceRank("bra_5"), 2);
+check("planner rank: unplanned is null", plannerChoiceRank("zzz"), null);
+check("choice status: unrostered = free agent", choiceStatus("arg_8").kind, "fa");
+check("choice status: other roster = owned", choiceStatus("bra_5").kind, "owned");
+check("choice status: my roster = yours", choiceStatus("fra_1").kind, "yours");
+S.stages = [{ team: "Argentina", eliminated: true }];
+check("choice status: eliminated team = ko", choiceStatus("arg_8").kind, "ko");
+S.stages = []; S.managers = []; S.picks = []; S.playerById = {};
 
 /* showView only scrolls to top on an actual view change, so a re-render
    of the current view (e.g. the refetch after starring) doesn't jump. */

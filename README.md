@@ -326,6 +326,31 @@ local changes.
 - **Draft room → ★ shortlist** filter: during the draft or a redraft,
   narrow the pool to just your shortlisted targets.
 
+### Squad planner
+
+**Trades tab → 🗺 Squad planner** (collapsed by default, private like the
+shortlist — stored per manager in `managers.planner`, only ever rendered
+for its owner). It shows your **whole current squad**; for any slot you
+can plan a replacement: a **first choice + ranked backups**, each showing
+the player's status (free agent / owned by whom / knocked out) and next
+fixture. So at a glance you see the roster you'd have if you made your
+planned moves.
+
+- **Execute (window open):** each move offers a button naming exactly the
+  player it will act on. If the **first choice is available** it's a one-
+  tap "Swap in 1st / Propose 1st" (free agents swap instantly; owned
+  players open a pre-filled proposal). If the **first choice is
+  unavailable** (taken, on your roster, knocked out) it does **not**
+  silently fall back — it shows "1st choice unavailable" and a separate,
+  explicit "Swap in / Propose backup" button you tap intentionally.
+- **Redraft room:** pool players that are in your planner are badged
+  **"1st choice" / "backup"**, and a **🗺 planner** filter chip narrows
+  the pool to just them — so you can draft straight from your plan.
+
+Both the shortlist and planner need `schema.sql` re-run (the
+`managers.shortlist` / `managers.planner` columns); they degrade with a
+"run schema.sql" toast until then.
+
 ### Knocked-out teams
 
 Mark a team **out** in **Admin → Team stages** when they're eliminated
@@ -444,15 +469,16 @@ offered.
 
 ### Sanity tests
 
-`node test_logic.js` — 107 checks on the snake order, position quotas,
+`node test_logic.js` — 114 checks on the snake order, position quotas,
 scoring parity with `daily_pull.py` (incl. defensive actions), sub
 activation, lineup-lock history replay, the per-manager history
 decomposition (current credited + former + per-round split), the
 played-since-lock highlight and starters-yet-to-play counter, stage
 bonuses, player stat breakdowns, per-match lineup status, category
 leaderboards, trade validity, redraft phases (phase quotas, kept
-players, eliminated managers, champion picks), suspension flags, and
-resilient writes.
+players, eliminated managers, champion picks), suspension flags,
+knocked-out filtering, the squad planner (choice ranking + acquirability
+tiers), the no-jump scroll guard, and resilient writes.
 `python -m unittest test_daily_pull` — 22 tests on the API-Football →
 FIFA player-id mapping, multi-league stat fan-out, and graceful
 degradation when a migration is unapplied.

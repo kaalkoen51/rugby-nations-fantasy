@@ -390,6 +390,16 @@
   </div>
 </div>
 
+<!-- Squad-planner choice picker (Trades tab → plan a replacement) -->
+<div id="planner-sheet" class="hidden fixed inset-0 z-40 bg-black/60">
+  <div class="absolute bottom-0 inset-x-0 max-h-[80vh] bg-slate-900 border-t border-slate-700 rounded-t-2xl p-4 flex flex-col">
+    <div id="planner-title" class="font-semibold mb-2 text-sm"></div>
+    <input id="planner-search" placeholder="Search players…" class="mb-2 w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
+    <ul id="planner-list" class="overflow-y-auto divide-y divide-slate-800 flex-1 min-h-0"></ul>
+    <button id="planner-done" class="mt-3 w-full bg-slate-800 border border-slate-700 rounded-lg py-2 text-sm font-semibold">Done</button>
+  </div>
+</div>
+
 <div id="toast" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-sm z-50 max-w-[90vw]"></div>
 
 <script>
@@ -492,7 +502,7 @@ function genInviteCode() {
 const STRIPPABLE_COLUMNS = new Set([
   "home_score", "away_score", "minutes",
   "offered_player_name", "requested_player_name",
-  "offered_player_id", "requested_player_id",
+  "offered_player_id", "requested_player_id", "planner",
 ]);
 
 // Insert/upsert that tolerates an unapplied additive migration. Throws on
@@ -934,6 +944,85 @@ function wireStars(el, rerender) {
   });
 }
 
+/* ---------- squad planner (per-manager, synced; only shown to its owner) ---------- */
+
+const myPlanner = () => {
+  const p = myManager()?.planner;
+  return p && Array.isArray(p.moves) ? p : { moves: [] };
+};
+const plannerMoves = () => myPlanner().moves;
+const moveFor = (outPickId) => plannerMoves().find((m) => m.out === outPickId) || null;
+
+// Best (lowest) rank a player sits at across the viewing manager's planner
+// moves: 1 = a first choice, 2+ = a backup. null if not planned anywhere.
+function plannerChoiceRank(pid) {
+  let best = null;
+  for (const m of plannerMoves()) {
+    const i = (m.choices || []).indexOf(pid);
+    if (i >= 0 && (best === null || i + 1 < best)) best = i + 1;
+  }
+  return best;
+}
+
+// Acquirability of a planned choice for the viewing manager.
+function choiceStatus(pid) {
+  const me = myManager();
+  const p = S.playerById[pid];
+  if (p && isEliminated(p.team)) return { kind: "ko" };
+  const pick = S.picks.find((pk) => pk.player_id === pid);
+  if (!pick) return { kind: "fa" };
+  if (pick.manager_id === me?.id) return { kind: "yours" };
+  return { kind: "owned", pick, manager: S.managers.find((m) => m.id === pick.manager_id) };
+}
+
+async function setPlanner(moves) {
+  const me = myManager();
+  if (!me) return toast("Join as a manager to use the planner.");
+  const prev = me.planner;
+  const next = { moves };
+  me.planner = next;                               // optimistic
+  const { error } = await S.sb.from("managers").update({ planner: next }).eq("id", me.id);
+  if (error) {
+    me.planner = prev;
+    return toast(/planner/.test(error.message)
+      ? "Planner needs a schema update — run schema.sql." : error.message);
+  }
+  scheduleRefetch();
+}
+
+const plannerSetMove = (outPickId, choices) => setPlanner(
+  [...plannerMoves().filter((m) => m.out !== outPickId),
+   ...(choices && choices.length ? [{ out: outPickId, choices }] : [])]);
+function plannerAddChoice(outPickId, pid) {
+  const m = moveFor(outPickId);
+  const choices = m ? [...m.choices] : [];
+  if (!choices.includes(pid)) choices.push(pid);
+  return plannerSetMove(outPickId, choices);
+}
+function plannerRemoveChoice(outPickId, pid) {
+  const m = moveFor(outPickId);
+  return m ? plannerSetMove(outPickId, m.choices.filter((c) => c !== pid)) : Promise.resolve();
+}
+function plannerPromoteChoice(outPickId, pid) {
+  const m = moveFor(outPickId);
+  const i = m ? m.choices.indexOf(pid) : -1;
+  if (i <= 0) return Promise.resolve();
+  const choices = [...m.choices];
+  [choices[i - 1], choices[i]] = [choices[i], choices[i - 1]];
+  return plannerSetMove(outPickId, choices);
+}
+const plannerRemoveMove = (outPickId) =>
+  setPlanner(plannerMoves().filter((m) => m.out !== outPickId));
+
+// "1st choice" / "backup" badge for the redraft pool (viewing manager).
+function plannerBadge(pid) {
+  const rank = plannerChoiceRank(pid);
+  if (!rank) return "";
+  return rank === 1
+    ? '<span class="rounded bg-wcgold/20 px-1 py-0.5 text-[10px] text-wcgold">1st choice</span>'
+    : '<span class="rounded bg-slate-700 px-1 py-0.5 text-[10px] text-slate-300">backup</span>';
+}
+
 // Kept players (redraft keepers) fill quota slots like any other pick.
 function quotaLeft(mgrPicks, group) {
   return (posQuota()[group] || 0)
@@ -1035,11 +1124,17 @@ function renderPool() {
     }">${c}${c !== "ALL" && myTurn ? ` (${quotaLeft(onClockPicks, c)})` : ""}</button>`).join("")
     + `<button data-slfilter class="rounded-full px-3 py-1 border ${
       S.poolShortlistOnly ? "border-wcgold text-wcgold" : "border-slate-700 text-slate-400"
-    }">★ shortlist</button>`;
+    }">★ shortlist</button>`
+    + `<button data-plfilter class="rounded-full px-3 py-1 border ${
+      S.poolPlannerOnly ? "border-wcgold text-wcgold" : "border-slate-700 text-slate-400"
+    }">🗺 planner</button>`;
   $("pool-chips").querySelectorAll("[data-chip]").forEach((b) =>
     b.onclick = () => { S.poolFilter = b.dataset.chip; renderPool(); });
   $("pool-chips").querySelector("[data-slfilter]").onclick = () => {
     S.poolShortlistOnly = !S.poolShortlistOnly; renderPool();
+  };
+  $("pool-chips").querySelector("[data-plfilter]").onclick = () => {
+    S.poolPlannerOnly = !S.poolPlannerOnly; renderPool();
   };
 
   if (!$("pool-team").options.length) {
@@ -1061,6 +1156,7 @@ function renderPool() {
   if (q) entries = entries.filter((e) =>
     e.name.toLowerCase().includes(q) || e.team.toLowerCase().includes(q));
   if (S.poolShortlistOnly) entries = entries.filter((e) => isShortlisted(e.player_id));
+  if (S.poolPlannerOnly) entries = entries.filter((e) => plannerChoiceRank(e.player_id));
   const shown = entries.slice(0, 80);
 
   $("pool-list").innerHTML = shown.map((e) => {
@@ -1071,7 +1167,7 @@ function renderPool() {
     const inner = `
       ${avatarHtml(e.player_id, e.team)}
       <div class="min-w-0 flex-1">
-        <div class="truncate font-medium">${esc(e.name)} ${availBadges(e.player_id)}${
+        <div class="truncate font-medium">${esc(e.name)} ${availBadges(e.player_id)} ${plannerBadge(e.player_id)}${
           owner ? ` <span class="rounded bg-slate-700 px-1 py-0.5 text-[10px] text-wcgold">👤 ${esc(owner)}</span>` : ""}</div>
         <div class="text-xs text-slate-400">${teamFixLine(e.team)}</div>
       </div>`;
@@ -1087,7 +1183,9 @@ function renderPool() {
       </div>
     </li>`;
   }).join("") || `<li class="py-4 text-sm text-slate-500">${
-    S.poolShortlistOnly ? "No shortlisted players match — star players to add them." : "No players match."}</li>`;
+    S.poolShortlistOnly ? "No shortlisted players match — star players to add them."
+    : S.poolPlannerOnly ? "No squad-planner players match — add some in Trades → Squad planner."
+    : "No players match."}</li>`;
   if (entries.length > shown.length) {
     $("pool-list").insertAdjacentHTML("beforeend",
       `<li class="py-2 text-xs text-slate-500">${entries.length - shown.length} more — search or filter to narrow.</li>`);
@@ -2108,6 +2206,10 @@ S.histIdxByMgr = {};   // manager id -> history pager index (0 = current)
 S.showShortlist = false;   // Trades tab: shortlist collapsed until opened
 S.slPos = "ALL";           // shortlist position filter
 S.slSort = "points";       // shortlist sort key
+S.showPlanner = false;     // Trades tab: squad planner collapsed until opened
+S.poolPlannerOnly = false; // draft pool: filter to planner choices
+S.plannerPickFor = null;   // out pick id the choice picker is adding to
+S.plannerSearch = "";      // choice picker search
 
 // Stats-tab ranking options: label + the match_stats key to total. "points"
 // uses the full fantasy total; the rest are raw counts from existing
@@ -2928,6 +3030,157 @@ function tradeForShortlisted(pid) {
   }
 }
 
+// Squad planner section (Trades tab): your whole squad, with planned
+// replacements per slot. Collapsed behind a "Squad planner" button.
+function plannerSectionHtml(me) {
+  const open = !!S.league.trading_open;
+  const myPickIds = new Set(managerPicks(me.id).map((pk) => pk.id));
+  const activeMoves = plannerMoves().filter((m) => myPickIds.has(m.out));
+
+  if (!S.showPlanner) {
+    return `<div class="mt-4">
+      <button id="pl-toggle" class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm font-semibold flex items-center justify-between">
+        <span>🗺 Squad planner <span class="text-slate-500 font-normal">· ${activeMoves.length} planned move${activeMoves.length === 1 ? "" : "s"}</span></span>
+        <span class="text-slate-500">▾</span>
+      </button>
+    </div>`;
+  }
+
+  const mine = managerPicks(me.id).filter((pk) => pk.slot !== "TEAM").sort((a, b) =>
+    (SLOT_RANK[a.slot] ?? 9) - (SLOT_RANK[b.slot] ?? 9) || a.pick_number - b.pick_number);
+  const rows = mine.map((pk) => {
+    const m = moveFor(pk.id);
+    return `<li class="py-2">
+      <div class="flex items-center gap-1.5">
+        ${avatarHtml(pk.player_id, pk.team, "w-5 h-5")}
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm">${esc(pk.player_name)} ${availBadges(pk.player_id)}</span>
+          <span class="block truncate text-[10px] text-slate-500">${pk.slot} · ${esc(pk.team)}</span>
+        </span>
+        ${m ? "" : `<button data-plplan="${pk.id}" class="shrink-0 text-[10px] text-wcgold underline">plan replacement</button>`}
+      </div>
+      ${m ? plannerMoveHtml(pk, m, open) : ""}
+    </li>`;
+  }).join("");
+
+  return `<div class="mt-4 space-y-2">
+    <button id="pl-toggle" class="w-full rounded-xl border border-wcgold/60 bg-wcred/10 px-3 py-2.5 text-sm font-semibold flex items-center justify-between">
+      <span>🗺 Squad planner <span class="text-[10px] text-slate-400 font-normal">· only you can see this</span></span>
+      <span class="text-slate-500">▴ hide</span>
+    </button>
+    <p class="text-[10px] text-slate-500">Plan a replacement per slot (a first choice + backups). ${
+      open ? "Window's open — execute below." : "You'll be able to execute when the trading window opens."}</p>
+    <ul class="rounded-xl border border-slate-700 bg-slate-900 px-3 divide-y divide-slate-800">${rows}</ul>
+    ${plannerMoves().length ? '<button id="pl-clear" class="w-full text-[10px] text-slate-500 underline">clear planner</button>' : ""}
+  </div>`;
+}
+
+// One planned move: ranked choices (with status) + execution controls.
+function plannerMoveHtml(outPick, m, open) {
+  const choices = (m.choices || []).map((pid) => ({ pid, p: S.playerById[pid], st: choiceStatus(pid) }))
+    .filter((c) => c.p);
+  const target = choices.find((c) => c.st.kind === "fa" || c.st.kind === "owned");
+  const statusTxt = (st) => st.kind === "fa" ? '<span class="text-wcgreen">free agent</span>'
+    : st.kind === "owned" ? `<span class="text-wcgold">👤 ${esc(st.manager?.name ?? "?")}</span>`
+    : st.kind === "yours" ? '<span class="text-slate-500">already yours</span>'
+    : '<span class="text-red-400">🚫 knocked out</span>';
+  const choiceRows = choices.map((c, i) => `
+    <div class="flex items-center gap-1.5 text-xs">
+      <span class="text-[10px] text-slate-500 w-7 shrink-0">${i === 0 ? "1st" : "#" + (i + 1)}</span>
+      ${avatarHtml(c.pid, c.p.team, "w-4 h-4")}
+      <span class="min-w-0 truncate flex-1">${esc(c.p.name)} · ${statusTxt(c.st)}</span>
+      ${i > 0 ? `<button data-plup="${outPick.id}|${c.pid}" class="shrink-0 text-slate-400 px-1" title="make higher choice">↑</button>` : ""}
+      <button data-plrm="${outPick.id}|${c.pid}" class="shrink-0 text-red-400 px-1">✕</button>
+    </div>`).join("");
+
+  let exec = "";
+  if (open) {
+    if (!target) {
+      exec = '<div class="text-[10px] text-slate-500">No available option right now.</div>';
+    } else if (choices[0] === target) {
+      exec = `<button data-plexec="${outPick.id}|${target.pid}" class="bg-wcred hover:bg-wcred-hov rounded-lg px-3 py-1.5 text-xs font-semibold">${
+        target.st.kind === "fa" ? "Swap in 1st: " : "Propose 1st: "}${esc(target.p.name)}</button>`;
+    } else {
+      exec = `<div class="space-y-1">
+        <div class="text-[10px] text-amber-400">1st choice (${esc(choices[0].p.name)}) unavailable.</div>
+        <button data-plexec="${outPick.id}|${target.pid}" class="bg-slate-800 border border-wcgold/60 text-wcgold rounded-lg px-3 py-1.5 text-xs font-semibold">${
+          target.st.kind === "fa" ? "Swap in backup: " : "Propose backup: "}${esc(target.p.name)}</button>
+      </div>`;
+    }
+  }
+  return `<div class="mt-1 ml-3 pl-2 border-l border-slate-700 space-y-1">
+    <div class="text-[10px] text-slate-500">Replace with:</div>
+    ${choiceRows || '<div class="text-[10px] text-slate-500">No options yet.</div>'}
+    <div class="flex items-center gap-3 pt-0.5">
+      <button data-pladd="${outPick.id}" class="text-[10px] text-wcgold underline">+ add option</button>
+      <button data-plrmmove="${outPick.id}" class="text-[10px] text-slate-500 underline">remove</button>
+    </div>
+    ${exec}
+  </div>`;
+}
+
+function plannerExec(outPickId, pid) {
+  if (!S.league.trading_open) return toast("Trading window is closed.");
+  const outPick = S.picks.find((pk) => pk.id === outPickId);
+  if (!outPick) return toast("That player is no longer on your roster.");
+  const p = S.playerById[pid];
+  if (!p) return;
+  const st = choiceStatus(pid);
+  if (st.kind === "fa") {
+    if (confirm(`Swap out ${outPick.player_name} for ${p.name} (free agent)?`))
+      doSwap(outPick, { player_id: pid, name: p.name, team: p.team }).catch((e) => toast(e.message));
+  } else if (st.kind === "owned") {
+    openBuilder(st.pick.manager_id, null, [{ mine: outPick.id, theirs: st.pick.id }]);
+  } else {
+    toast("That option isn't available to acquire.");
+  }
+}
+
+function openPlannerPick(outPickId) {
+  const outPick = S.picks.find((pk) => pk.id === outPickId);
+  if (!outPick) return;
+  S.plannerPickFor = outPickId;
+  S.plannerSearch = "";
+  $("planner-search").value = "";
+  $("planner-title").textContent =
+    `Replacement options for ${outPick.player_name} (${slotGroup(outPick.slot)})`;
+  renderPlannerPick();
+  $("planner-sheet").classList.remove("hidden");
+}
+
+function renderPlannerPick() {
+  const outPick = S.picks.find((pk) => pk.id === S.plannerPickFor);
+  if (!outPick) return;
+  const group = slotGroup(outPick.slot);
+  const chosen = new Set(moveFor(outPick.id)?.choices || []);
+  const myIds = new Set(managerPicks(myManager().id).map((pk) => pk.player_id));
+  const q = S.plannerSearch.trim().toLowerCase();
+  const list = S.players
+    .filter((p) => p.position === group && !myIds.has(p.player_id) && !chosen.has(p.player_id)
+      && (!q || p.name.toLowerCase().includes(q) || p.team.toLowerCase().includes(q)))
+    .map((p) => ({ p, pts: playerPoints(p.player_id, p.position) }))
+    .sort((a, b) => b.pts - a.pts || a.p.name.localeCompare(b.p.name))
+    .slice(0, 60);
+  $("planner-list").innerHTML = list.map(({ p, pts }) => {
+    const st = choiceStatus(p.player_id);
+    const stTxt = st.kind === "fa" ? "free agent" : st.kind === "owned" ? `👤 ${esc(st.manager?.name ?? "?")}`
+      : st.kind === "ko" ? "🚫 out" : "";
+    return `<li class="flex items-center py-2 gap-1.5">
+      ${avatarHtml(p.player_id, p.team, "w-6 h-6")}
+      <div class="min-w-0 flex-1">
+        <div class="truncate text-sm">${esc(p.name)} ${availBadges(p.player_id)}</div>
+        <div class="text-[10px] text-slate-500">${esc(p.team)} · ${stTxt}</div>
+      </div>
+      <span class="text-xs font-mono text-slate-400 shrink-0">${pts}p</span>
+      <button data-plpick="${esc(p.player_id)}" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-3 py-1 text-xs font-semibold">Add</button>
+    </li>`;
+  }).join("") || '<li class="py-4 text-sm text-slate-500">No players match.</li>';
+  $("planner-list").querySelectorAll("[data-plpick]").forEach((b) => b.onclick = () => {
+    plannerAddChoice(S.plannerPickFor, b.dataset.plpick);   // optimistic; refresh list
+    renderPlannerPick();
+  });
+}
+
 function renderTrades() {
   const box = $("board-trades");
   const me = myManager();
@@ -2942,6 +3195,7 @@ function renderTrades() {
     ${open && !S.builder ? '<button id="trade-new" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-3 py-1.5 font-semibold">New trade</button>' : ""}
   </div>`;
   if (S.builder) html += builderHtml(me);
+  html += plannerSectionHtml(me);
   html += shortlistSectionHtml(me);
   html += tradeSectionHtml("Incoming", S.trades.filter((t) => t.target_manager_id === me.id), true);
   html += tradeSectionHtml("Outgoing", S.trades.filter((t) => t.proposer_manager_id === me.id), false);
@@ -2965,6 +3219,24 @@ function wireTrades(me) {
     openPlayerDetail(b.dataset.sldetail));
   box.querySelectorAll("[data-sltrade]").forEach((b) => b.onclick = () =>
     tradeForShortlisted(b.dataset.sltrade));
+  // ----- squad planner controls -----
+  const plToggle = box.querySelector("#pl-toggle");
+  if (plToggle) plToggle.onclick = () => { S.showPlanner = !S.showPlanner; renderTrades(); };
+  const plClear = box.querySelector("#pl-clear");
+  if (plClear) plClear.onclick = () => {
+    if (confirm("Clear your whole squad planner?")) setPlanner([]);
+  };
+  box.querySelectorAll("[data-plplan],[data-pladd]").forEach((b) => b.onclick = () =>
+    openPlannerPick(b.dataset.plplan || b.dataset.pladd));
+  box.querySelectorAll("[data-plrmmove]").forEach((b) => b.onclick = () =>
+    plannerRemoveMove(b.dataset.plrmmove));
+  const split = (v) => { const i = v.indexOf("|"); return [v.slice(0, i), v.slice(i + 1)]; };
+  box.querySelectorAll("[data-plrm]").forEach((b) => b.onclick = () =>
+    plannerRemoveChoice(...split(b.dataset.plrm)));
+  box.querySelectorAll("[data-plup]").forEach((b) => b.onclick = () =>
+    plannerPromoteChoice(...split(b.dataset.plup)));
+  box.querySelectorAll("[data-plexec]").forEach((b) => b.onclick = () =>
+    plannerExec(...split(b.dataset.plexec)));
   const newBtn = box.querySelector("#trade-new");
   if (newBtn) newBtn.onclick = () => openBuilder();
   const target = box.querySelector("#trade-target");
@@ -3626,6 +3898,11 @@ function wire() {
   $("stats-sort").onchange = (e) => { S.statsSort = e.target.value; renderStatsTab(); };
   $("player-sheet").onclick = (e) => {
     if (e.target.id === "player-sheet") $("player-sheet").classList.add("hidden");
+  };
+  $("planner-search").oninput = (e) => { S.plannerSearch = e.target.value; renderPlannerPick(); };
+  $("planner-done").onclick = () => $("planner-sheet").classList.add("hidden");
+  $("planner-sheet").onclick = (e) => {
+    if (e.target.id === "planner-sheet") $("planner-sheet").classList.add("hidden");
   };
   $("draft-force").onclick = () => {
     if (confirm("Force a random auto-pick for the manager on the clock?"))
