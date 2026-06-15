@@ -667,6 +667,19 @@ function fixtureText(team) {
   return `${f.home === team ? "vs" : "@"} ${opp} · ${when}`;
 }
 
+// Inline next fixture with the opponent crest: "🇧🇷 vs Brazil · Sun 22 Jun
+// 19:00". Returns "" when no upcoming fixture is known. Caller supplies the
+// flex container.
+function fixtureCrestHtml(team, size = "w-4 h-4") {
+  const f = nextFixtureFor(team);
+  if (!f) return "";
+  const opp = f.home === team ? f.away : f.home;
+  const when = new Date(f.kickoff_utc).toLocaleString([],
+    { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  return `${avatarHtml("team:" + opp, opp, size)}<span class="truncate">${
+    f.home === team ? "vs" : "@"} ${esc(opp)} · ${esc(when)}</span>`;
+}
+
 // photos.json (faces/crests) and injuries.json (availability hints) are
 // optional, like fixtures.json — the app degrades gracefully without them.
 async function loadExtras() {
@@ -2296,18 +2309,9 @@ function playerDetailHtml(p, opts = {}) {
   const breakdown = playerBreakdown(p.player_id, p.position);
   const owner = ownerOf(p.player_id);
   // Next fixture: opponent crest + date/time.
-  const f = nextFixtureFor(p.team);
-  let fxLine = "";
-  if (f) {
-    const opp = f.home === p.team ? f.away : f.home;
-    const when = new Date(f.kickoff_utc).toLocaleString([],
-      { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-    fxLine = `<div class="flex items-center gap-1.5 text-xs text-slate-400">
-      <span class="text-slate-500">Next:</span>
-      ${avatarHtml("team:" + opp, opp, "w-4 h-4")}
-      <span class="truncate">${f.home === p.team ? "vs" : "@"} ${esc(opp)} · ${esc(when)}</span>
-    </div>`;
-  }
+  const fx = fixtureCrestHtml(p.team);
+  const fxLine = fx ? `<div class="flex items-center gap-1.5 text-xs text-slate-400">
+      <span class="text-slate-500">Next:</span> ${fx}</div>` : "";
   return `
     <div class="flex items-start gap-2">
       ${avatarHtml(p.player_id, p.team, "w-12 h-12")}
@@ -2855,6 +2859,9 @@ function shortlistSectionHtml(me) {
         <span class="min-w-0 flex-1">
           <span class="block truncate font-medium text-sm">${esc(p.name)} ${availBadges(p.player_id)}</span>
           <span class="block truncate text-[10px] text-slate-400">${esc(p.team)} · ${status}</span>
+          ${fixtureCrestHtml(p.team, "w-3 h-3")
+            ? `<span class="flex items-center gap-1 text-[10px] text-slate-500 truncate">${fixtureCrestHtml(p.team, "w-3 h-3")}</span>`
+            : ""}
         </span>
         <span class="pos-${p.position} rounded px-1.5 py-0.5 text-[10px] font-semibold shrink-0">${p.position}</span>
         <span class="shrink-0 w-10 text-right">
