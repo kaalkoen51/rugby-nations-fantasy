@@ -195,6 +195,25 @@ create table if not exists lineup_snapshots (
 create index if not exists lineup_snapshots_lookup_idx
     on lineup_snapshots (league_id, manager_id, effective_from);
 
+-- Transaction log: one row per completed roster move, for the Trades tab's
+-- "Transactions" history. Free-agent swaps are written here by the app
+-- (doSwap); manager-to-manager trades stay in `trades` and the UI merges both
+-- into one chronological list. Display-only -- never affects scoring, so the
+-- app degrades gracefully (no log rows) if this migration hasn't been run.
+create table if not exists transactions (
+    id uuid primary key default gen_random_uuid(),
+    league_id uuid references leagues(id) on delete cascade,
+    manager_id uuid references managers(id) on delete cascade,
+    kind text not null default 'swap',
+    out_player_id text,
+    out_player_name text,
+    in_player_id text,
+    in_player_name text,
+    created_at timestamptz default now()
+);
+create index if not exists transactions_league_idx
+    on transactions (league_id, created_at);
+
 -- Atomically execute an accepted trade. Swapping player_id between two
 -- picks rows as plain updates would trip the unique (league_id, player_id)
 -- index mid-swap, so each pair goes through a temp value inside this one
@@ -253,7 +272,7 @@ declare t text;
 begin
     foreach t in array array['leagues','managers','picks','match_stats',
                              'team_stages','trades','trade_items',
-                             'lineup_snapshots'] loop
+                             'lineup_snapshots','transactions'] loop
         begin
             execute format('alter publication supabase_realtime add table %I', t);
         exception when duplicate_object then null;
@@ -269,7 +288,7 @@ declare t text;
 begin
     foreach t in array array['leagues','managers','picks','match_stats',
                              'team_stages','trades','trade_items',
-                             'lineup_snapshots'] loop
+                             'lineup_snapshots','transactions'] loop
         execute format('alter table %I enable row level security', t);
         execute format('drop policy if exists "open access" on %I', t);
         execute format(

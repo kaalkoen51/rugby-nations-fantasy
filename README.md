@@ -477,6 +477,15 @@ in it was traded away") if either pick no longer holds that player by the
 time it's accepted, so you can never be handed a different player than was
 offered.
 
+**Trades tab layout:** pending **incoming/outgoing requests** sit at the
+very top so they can't be missed (and the **Trades nav tab shows a count
+badge** when you have incoming proposals waiting). The bottom of the tab
+has a **Transactions** log — every completed manager trade *and*
+free-agent swap in the league, newest first. Free-agent swaps are recorded
+in a new `transactions` table; **re-run `schema.sql`** to create it (until
+then swaps still work, they just aren't logged — the log degrades to
+empty rather than erroring).
+
 ### Sanity tests
 
 `node test_logic.js` — 120 checks on the snake order, position quotas,

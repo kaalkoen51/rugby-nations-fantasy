@@ -549,7 +549,7 @@ async function loadPlayers() {
 async function refetchAll() {
   const id = getSession()?.leagueId;
   if (!id) return;
-  const [l, m, p, st, tg, tr, sn] = await Promise.all([
+  const [l, m, p, st, tg, tr, sn, tx] = await Promise.all([
     S.sb.from("leagues").select("*").eq("id", id).maybeSingle(),
     S.sb.from("managers").select("*").eq("league_id", id).order("created_at"),
     S.sb.from("picks").select("*").eq("league_id", id).order("pick_number"),
@@ -559,6 +559,8 @@ async function refetchAll() {
       .order("created_at", { ascending: false }),
     S.sb.from("lineup_snapshots").select("*").eq("league_id", id)
       .order("effective_from"),
+    S.sb.from("transactions").select("*").eq("league_id", id)
+      .order("created_at", { ascending: false }),
   ]);
   const err = l.error || m.error || p.error || st.error || tg.error || tr.error;
   if (err) { toast("Load failed: " + err.message); return; }
@@ -570,6 +572,9 @@ async function refetchAll() {
   S.stages = tg.data;
   S.trades = tr.data;
   S.snapshots = sn.data || [];
+  // transactions is an optional, additive table; if the migration hasn't been
+  // run yet, degrade to an empty log rather than failing the whole load.
+  S.transactions = tx && !tx.error ? (tx.data || []) : [];
   ptsCache = null;
   route();
 }
@@ -590,6 +595,7 @@ function subscribeRealtime() {
     // trade_items has no league_id to filter on; unfiltered is fine at this scale.
     .on("postgres_changes", { event: "*", schema: "public", table: "trade_items" }, scheduleRefetch)
     .on("postgres_changes", { event: "*", schema: "public", table: "lineup_snapshots", filter: "league_id=eq." + id }, scheduleRefetch)
+    .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: "league_id=eq." + id }, scheduleRefetch)
     .subscribe((status) => {
       $("conn-dot").className = "w-2 h-2 rounded-full " +
         (status === "SUBSCRIBED" ? "bg-wcgreen" : "bg-amber-400");
@@ -2171,6 +2177,27 @@ function setBoardTab(tab) {
     b.className = "board-tab flex-1 rounded-lg py-2 font-semibold " +
       (on ? "bg-wcred" : "bg-slate-800 border border-slate-700");
   });
+  updateTradeBadge();
+}
+
+// Count badge on the Trades tab for pending incoming requests, so a manager
+// with a proposal waiting sees it from any tab. (setBoardTab only rewrites the
+// button class, not its children, so the badge survives tab switches; we
+// remove+re-add it here to keep the count current.)
+function updateTradeBadge() {
+  const btn = $("tab-trades");
+  if (!btn) return;
+  btn.querySelector("#trade-badge")?.remove();
+  const me = myManager();
+  const n = me ? S.trades.filter((t) =>
+    t.target_manager_id === me.id && t.status === "proposed").length : 0;
+  if (!n) return;
+  const b = document.createElement("span");
+  b.id = "trade-badge";
+  b.className = "ml-1 inline-flex items-center justify-center rounded-full "
+    + "bg-wcgold text-slate-900 text-[10px] font-bold w-4 h-4 align-middle";
+  b.textContent = String(n);
+  btn.appendChild(b);
 }
 
 // How many of each manager's current starters have already played a match
@@ -2772,6 +2799,13 @@ async function doSwap(pick, entry) {
     toast(error.code === "23505" ? "That player was just taken — pick another." : error.message);
     return;
   }
+  // Log the swap for the Transactions history (best-effort: if the
+  // transactions table hasn't been added yet, the swap still succeeds).
+  S.sb.from("transactions").insert({
+    league_id: S.league.id, manager_id: pick.manager_id, kind: "swap",
+    out_player_id: pick.player_id, out_player_name: pick.player_name,
+    in_player_id: entry.player_id, in_player_name: entry.name,
+  }).then(() => {}, () => {});
   toast(`Swapped in ${entry.name} for ${pick.player_name}.`);
   closeSwap();
   scheduleRefetch();
@@ -2920,50 +2954,74 @@ function tradeSectionHtml(title, list, incoming) {
   </div>`;
 }
 
-// Trade history: all accepted trades in the league, newest first.
-// After accept_trade the pick slots are swapped in-place, so
-// Prefers the player-name snapshot taken on each trade_items row when the
-// trade was proposed (offered = proposer's given player, requested =
-// target's given player), so history reads correctly forever. Legacy
-// rows without the snapshot fall back to the live pick, which after
-// accept_trade's in-place swap holds the player each side received.
-function tradeHistoryHtml() {
-  const done = S.trades
-    .filter((t) => t.status === "accepted")
-    .slice()
-    .sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at)));
-  if (!done.length) return "";
-  const cards = done.map((t) => {
-    const proposer = S.managers.find((m) => m.id === t.proposer_manager_id);
-    const target   = S.managers.find((m) => m.id === t.target_manager_id);
-    const when = new Date(t.updated_at).toLocaleDateString("en-GB",
-      { day: "numeric", month: "short", timeZone: SA_TZ });
-    const pairs = (t.trade_items || []).map((it) => {
-      const toProposer = it.requested_player_name
-        ?? pickById(it.offered_pick_id)?.player_name ?? "?";
-      const toTarget = it.offered_player_name
-        ?? pickById(it.requested_pick_id)?.player_name ?? "?";
-      return `<div class="text-xs text-slate-400">
-        <span class="text-slate-200">${esc(toProposer)}</span>
-        <span class="text-slate-500 mx-1">→</span>
-        <span>${esc(proposer?.name ?? "?")}</span>
-        <span class="text-slate-600 mx-2">·</span>
-        <span class="text-slate-200">${esc(toTarget)}</span>
-        <span class="text-slate-500 mx-1">→</span>
-        <span>${esc(target?.name ?? "?")}</span>
-      </div>`;
-    }).join("");
-    return `<div class="rounded-xl border border-slate-800 bg-slate-900/50 p-3 space-y-1.5">
-      <div class="flex items-center justify-between">
-        <span class="text-sm font-semibold">${esc(proposer?.name ?? "?")} ⇄ ${esc(target?.name ?? "?")}</span>
-        <span class="text-xs text-slate-500">${when}</span>
-      </div>
-      <div class="space-y-0.5">${pairs}</div>
+// Transactions log (bottom of the Trades tab): every completed roster move in
+// the league, newest first — accepted manager-to-manager trades AND free-agent
+// swaps merged into one chronological list. Trades read from `trades` (using
+// the player-name snapshots on each trade_items row so they stay faithful even
+// after later swaps/redrafts); swaps read from the `transactions` table. Always
+// renders the heading so the section is discoverable even when empty.
+function txWhen(ts) {
+  return new Date(ts).toLocaleDateString("en-GB",
+    { day: "numeric", month: "short", timeZone: SA_TZ });
+}
+
+function tradeTxCard(t) {
+  const proposer = S.managers.find((m) => m.id === t.proposer_manager_id);
+  const target   = S.managers.find((m) => m.id === t.target_manager_id);
+  const pairs = (t.trade_items || []).map((it) => {
+    const toProposer = it.requested_player_name
+      ?? pickById(it.offered_pick_id)?.player_name ?? "?";
+    const toTarget = it.offered_player_name
+      ?? pickById(it.requested_pick_id)?.player_name ?? "?";
+    return `<div class="text-xs text-slate-400">
+      <span class="text-slate-200">${esc(toProposer)}</span>
+      <span class="text-slate-500 mx-1">→</span>
+      <span>${esc(proposer?.name ?? "?")}</span>
+      <span class="text-slate-600 mx-2">·</span>
+      <span class="text-slate-200">${esc(toTarget)}</span>
+      <span class="text-slate-500 mx-1">→</span>
+      <span>${esc(target?.name ?? "?")}</span>
     </div>`;
   }).join("");
+  return `<div class="rounded-xl border border-slate-800 bg-slate-900/50 p-3 space-y-1.5">
+    <div class="flex items-center justify-between">
+      <span class="text-sm font-semibold">${esc(proposer?.name ?? "?")} ⇄ ${esc(target?.name ?? "?")}
+        <span class="text-[10px] text-slate-500 font-normal">trade</span></span>
+      <span class="text-xs text-slate-500">${txWhen(t.updated_at)}</span>
+    </div>
+    <div class="space-y-0.5">${pairs}</div>
+  </div>`;
+}
+
+function swapTxCard(x) {
+  const mgr = S.managers.find((m) => m.id === x.manager_id);
+  return `<div class="rounded-xl border border-slate-800 bg-slate-900/50 p-3 space-y-1">
+    <div class="flex items-center justify-between">
+      <span class="text-sm font-semibold">${esc(mgr?.name ?? "?")}
+        <span class="text-[10px] text-slate-500 font-normal">free-agent swap</span></span>
+      <span class="text-xs text-slate-500">${txWhen(x.created_at)}</span>
+    </div>
+    <div class="text-xs text-slate-400">
+      <span class="text-wcgreen">+ ${esc(x.in_player_name ?? "?")}</span>
+      <span class="text-slate-600 mx-2">·</span>
+      <span class="text-slate-500">− ${esc(x.out_player_name ?? "?")}</span>
+    </div>
+  </div>`;
+}
+
+function transactionsLogHtml() {
+  const entries = [];
+  for (const t of S.trades.filter((t) => t.status === "accepted"))
+    entries.push({ when: t.updated_at, html: tradeTxCard(t) });
+  for (const x of (S.transactions || []))
+    entries.push({ when: x.created_at, html: swapTxCard(x) });
+  entries.sort((a, b) => String(b.when).localeCompare(String(a.when)));
+  const body = entries.length
+    ? entries.slice(0, 50).map((e) => e.html).join("")
+    : '<p class="text-xs text-slate-500">No trades or free-agent swaps yet.</p>';
   return `<div class="mt-6 space-y-2">
-    <h3 class="font-semibold text-sm">Trade history</h3>
-    ${cards}
+    <h3 class="font-semibold text-sm">Transactions</h3>
+    ${body}
   </div>`;
 }
 
@@ -3309,11 +3367,19 @@ function renderTrades() {
     ${open && !S.builder ? '<button id="trade-new" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-3 py-1.5 font-semibold">New trade</button>' : ""}
   </div>`;
   if (S.builder) html += builderHtml(me);
+  // Pending requests sit at the very top so they can't be missed; only shown
+  // when there's something to act on.
+  const pendingIn = S.trades.filter((t) =>
+    t.target_manager_id === me.id && t.status === "proposed");
+  const pendingOut = S.trades.filter((t) =>
+    t.proposer_manager_id === me.id && t.status === "proposed");
+  if (pendingIn.length)
+    html += tradeSectionHtml(`🔔 Incoming requests (${pendingIn.length})`, pendingIn, true);
+  if (pendingOut.length)
+    html += tradeSectionHtml(`Outgoing — awaiting reply (${pendingOut.length})`, pendingOut, false);
   html += plannerSectionHtml(me);
   html += shortlistSectionHtml(me);
-  html += tradeSectionHtml("Incoming", S.trades.filter((t) => t.target_manager_id === me.id), true);
-  html += tradeSectionHtml("Outgoing", S.trades.filter((t) => t.proposer_manager_id === me.id), false);
-  html += tradeHistoryHtml();
+  html += transactionsLogHtml();   // full history at the bottom
   box.innerHTML = html;
   wireTrades(me);
 }
