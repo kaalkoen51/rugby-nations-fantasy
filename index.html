@@ -3786,11 +3786,19 @@ async function pullStatsNow() {
           const st = (e.statistics || [])[0] || {};
           const games = st.games || {};
           const minutes = +games.minutes || 0;
-          if (!minutes) continue;
-          const pid = mapApiPlayer(team, +games.number || 0, e.player.name);
-          if (!pid) { skipped.push(`${e.player.name} (${team})`); continue; }
           const g = st.goals || {}, cards = st.cards || {},
                 pen = st.penalty || {}, tk = st.tackles || {};
+          const def = (+tk.total || 0) + (+tk.blocks || 0) + (+tk.interceptions || 0);
+          // API-Football sometimes leaves `minutes` null for a just-finished
+          // fixture even for players who featured/scored. Skip only true
+          // non-participants (no minutes AND no recorded stat); keep anyone with
+          // any contribution so a scorer is never dropped for a blank minute.
+          const contributed = (+g.total || 0) || (+g.assists || 0) || (+g.saves || 0)
+            || (+cards.yellow || 0) || (+cards.red || 0)
+            || (+pen.saved || 0) || (+pen.missed || 0) || def;
+          if (!minutes && !contributed) continue;
+          const pid = mapApiPlayer(team, +games.number || 0, e.player.name);
+          if (!pid) { skipped.push(`${e.player.name} (${team})`); continue; }
           const row = {
             league_id: S.league.id, player_id: pid, match_label: label,
             appeared: true,
@@ -3799,8 +3807,7 @@ async function pullStatsNow() {
             yellow_cards: +cards.yellow || 0, red_cards: +cards.red || 0,
             saves: +g.saves || 0, motm: false,
             penalty_saved: +pen.saved || 0, penalty_missed: +pen.missed || 0,
-            defensive_actions: (+tk.total || 0) + (+tk.blocks || 0)
-                               + (+tk.interceptions || 0),
+            defensive_actions: def,
             home_score: +f.goals.home || 0, away_score: +f.goals.away || 0,
             minutes,
           };
