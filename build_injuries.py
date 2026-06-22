@@ -32,18 +32,34 @@ def main() -> None:
     args = parser.parse_args()
 
     matcher = PlayerMatcher(load_players())
-    items = api_get(
-        "injuries", {"league": args.league, "season": args.season}
-    ).get("response", [])
+
+    # API-Football's injury coverage for a national-team tournament is sparse at
+    # the league level (often empty), so gather reports per team as well and
+    # merge. Diagnostic counts are printed so an empty result is explainable.
+    raw = list(api_get("injuries", {"league": args.league, "season": args.season})
+               .get("response", []))
+    league_n = len(raw)
+    teams = api_get("teams", {"league": args.league, "season": args.season}).get(
+        "response", [])
+    for t in teams:
+        tid = (t.get("team", {}) or {}).get("id")
+        if not tid:
+            continue
+        raw += api_get("injuries", {"team": tid, "season": args.season}).get(
+            "response", [])
+    print(f"Fetched {len(raw)} raw injury report(s) "
+          f"(league-level: {league_n}, +per-team).")
 
     # Only reports tied to recent/upcoming fixtures are actionable.
     cutoff = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
     best = {}
     skipped = []
-    for it in items:
+    n_dated = 0
+    for it in raw:
         fx_date = (it.get("fixture", {}).get("date") or "")[:10]
         if not fx_date or fx_date < cutoff:
             continue
+        n_dated += 1
         player = it.get("player", {}) or {}
         team = it.get("team", {}).get("name", "")
         entry, how = matcher.match(player.get("name", ""), team, None)
@@ -70,6 +86,7 @@ def main() -> None:
         ):
             best[entry["player_id"]] = rec
 
+    print(f"{n_dated} report(s) tied to recent/upcoming fixtures (>= {cutoff}).")
     out = sorted(best.values(), key=lambda r: r["player_id"])
     OUT.write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
     print(f"Wrote {len(out)} injury entr{'y' if len(out) == 1 else 'ies'} to {OUT.name}.")
