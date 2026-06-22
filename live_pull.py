@@ -37,6 +37,7 @@ from daily_pull import (
     PlayerMatcher,
     api_get,
     extract_player_rows,
+    featured,
     fetch_fixture_players,
     load_players,
     parse_league_ids,
@@ -81,7 +82,7 @@ def pull_fixture(fixture: dict, matcher: PlayerMatcher, league_ids: list,
     status = fixture["fixture"]["status"]["short"]
     rows = extract_player_rows(
         fixture, fetch_fixture_players(fid, mock=False), matcher)
-    appeared = [r for r in rows if r["minutes"] > 0]
+    appeared = [r for r in rows if featured(r)]
     matched = [r for r in appeared if r["player_id"]]
     unmatched = len(appeared) - len(matched)
     note = f", {unmatched} unmapped" if unmatched else ""

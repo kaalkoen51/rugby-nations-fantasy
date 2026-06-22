@@ -15,6 +15,7 @@ from daily_pull import (
     PlayerMatcher,
     build_stats_payload,
     extract_player_rows,
+    featured,
     normalize_name,
     parse_league_ids,
     surname_key,
@@ -50,6 +51,24 @@ class TestNormalize(unittest.TestCase):
     def test_surname_key_is_last_token(self):
         self.assertEqual(surname_key("Kevin De Bruyne"), "bruyne")
         self.assertEqual(surname_key("Son Heung-Min"), "min")
+
+
+class TestFeatured(unittest.TestCase):
+    """A player is kept if they have minutes OR any stat, so a scorer with
+    API-Football's occasional minutes:null isn't dropped (the regression that
+    made goals vanish for whole matchdays)."""
+
+    def test_played_minutes(self):
+        self.assertTrue(featured({"minutes": 90}))
+
+    def test_scorer_with_blank_minutes_is_kept(self):
+        self.assertTrue(featured({"minutes": 0, "goals": 1}))
+        self.assertTrue(featured({"minutes": 0, "assists": 1}))
+        self.assertTrue(featured({"minutes": 0, "defensive_actions": 3}))
+
+    def test_true_non_participant_is_dropped(self):
+        self.assertFalse(featured({"minutes": 0, "goals": 0, "assists": 0}))
+        self.assertFalse(featured({"minutes": 0}))
 
 
 class TestPlayerMatcher(unittest.TestCase):

@@ -252,6 +252,18 @@ def to_float(value):
         return None
 
 
+# API-Football sometimes returns minutes:null for a just-finished fixture's
+# players even when they featured/scored. Treat a player as having featured if
+# they have minutes OR any recorded stat, so a scorer is never dropped for a
+# blank minute. True non-participants (no minutes, no stats) are still excluded.
+STAT_FIELDS = ("goals", "assists", "saves", "yellow_cards", "red_cards",
+               "penalty_saved", "penalty_missed", "defensive_actions")
+
+
+def featured(row: dict) -> bool:
+    return bool(row.get("minutes")) or any(row.get(k) for k in STAT_FIELDS)
+
+
 def extract_player_rows(fixture: dict, teams_data: list, matcher: PlayerMatcher) -> list:
     """Flatten API-Football fixture-player stats into per-player dicts.
 
@@ -526,7 +538,7 @@ def main() -> None:
         teams_data = fetch_fixture_players(fixture_id, args.mock)
         all_rows.extend(extract_player_rows(fixture, teams_data, matcher))
 
-    appeared = [r for r in all_rows if r["minutes"] > 0]
+    appeared = [r for r in all_rows if featured(r)]
     matched = [r for r in appeared if r["player_id"]]
     unmatched = [r for r in appeared if not r["player_id"]]
     for row in matched:

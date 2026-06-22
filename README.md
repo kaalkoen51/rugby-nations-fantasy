@@ -500,6 +500,6 @@ knocked-out filtering, the squad planner (choice ranking, acquirability
 tiers, and the replacement-picker pool: position scope, own-roster
 exclusion, shortlist/nation filters, keeping chosen players visible), the
 no-jump scroll guard, and resilient writes.
-`python -m unittest test_daily_pull` — 22 tests on the API-Football →
+`python -m unittest test_daily_pull` — 25 tests on the API-Football →
 FIFA player-id mapping, multi-league stat fan-out, and graceful
 degradation when a migration is unapplied.
