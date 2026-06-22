@@ -17,7 +17,7 @@ Run by .github/workflows/injuries.yml daily; needs API_FOOTBALL_KEY.
 
 import argparse
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 from daily_pull import PlayerMatcher, api_get, fix_team_name, load_players
@@ -55,17 +55,14 @@ def main() -> None:
     print(f"Fetched {len(raw)} raw injury report(s) "
           f"(league-level: {league_n}, +per-team).")
 
-    # API-Football ties an injury to a fixture whose date is often in the past
-    # (the last game the player missed), so filtering on it drops current
-    # injuries. Keep reports from a recent window (drops stale club injuries
-    # from earlier in the year) and anchor freshness to the build date instead:
-    # this feed rebuilds daily, so a recovered player simply drops out next run,
-    # and the app expires entries by `as_of` if the feed ever stops.
+    # Flag any injured player the API reports, regardless of the fixture date
+    # (API-Football ties an injury to the last fixture missed, which is usually
+    # in the past). Freshness is anchored to the build date instead: this feed
+    # rebuilds daily, so a recovered player drops out next run, and the app
+    # expires entries by `as_of` if the feed ever stops.
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
     best = {}
     skipped = []
-    n_dated = 0
     for it in raw:
         fx_date = (it.get("fixture", {}).get("date") or "")[:10]
         player = it.get("player", {}) or {}
@@ -73,9 +70,6 @@ def main() -> None:
         ptype = player.get("type") or ""
         print(f"  report: {player.get('name')} ({fix_team_name(team)}) "
               f"type={ptype!r} fixture={fx_date or '—'}")
-        if not fx_date or fx_date < cutoff:
-            continue
-        n_dated += 1
         entry, how = matcher.match(player.get("name", ""), team, None)
         if not entry:
             skipped.append(f"{player.get('name')} ({fix_team_name(team)}): {how}")
@@ -93,11 +87,9 @@ def main() -> None:
         if (
             not prev
             or (prev["status"] != "out" and status == "out")
-            or (prev["status"] == status and fx_date > prev["fixture_date"])
+            or (prev["status"] == status and fx_date > (prev["fixture_date"] or ""))
         ):
             best[entry["player_id"]] = rec
-
-    print(f"{n_dated} report(s) within the last 30 days (>= {cutoff}).")
     out = sorted(best.values(), key=lambda r: r["player_id"])
     OUT.write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
     print(f"Wrote {len(out)} injury entr{'y' if len(out) == 1 else 'ies'} to {OUT.name}.")
