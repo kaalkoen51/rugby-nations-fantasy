@@ -79,6 +79,7 @@ def main() -> None:
     # current status even when the injury happened at the player's club, which
     # the /injuries endpoints don't surface for a national-team tournament.
     flagged = 0
+    scanned = 0
     for t in teams:
         tm = t.get("team", {}) or {}
         tid, tname = tm.get("id"), tm.get("name", "")
@@ -87,7 +88,9 @@ def main() -> None:
         page = 1
         while page <= 6:
             data = safe("players", {"team": tid, "season": args.season, "page": page})
-            for e in data.get("response", []):
+            people = data.get("response", [])
+            scanned += len(people)
+            for e in people:
                 p = e.get("player", {}) or {}
                 if not p.get("injured"):
                     continue
@@ -106,7 +109,8 @@ def main() -> None:
             page += 1
 
     print(f"Sources: {league_n} league + {team_n} team injury report(s); "
-          f"{flagged} player(s) flagged injured via /players across {len(teams)} squads.")
+          f"/players scanned {scanned} player-rows across {len(teams)} squads, "
+          f"{flagged} flagged injured.")
     out = sorted(best.values(), key=lambda r: r["player_id"])
     OUT.write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
     print(f"Wrote {len(out)} injury entr{'y' if len(out) == 1 else 'ies'} to {OUT.name}.")
