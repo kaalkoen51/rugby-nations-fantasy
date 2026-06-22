@@ -33,27 +33,40 @@ def main() -> None:
 
     matcher = PlayerMatcher(load_players())
 
-    # API-Football's injury coverage for a national-team tournament is sparse at
-    # the league level (often empty), so gather reports per team as well and
-    # merge. Diagnostic counts are printed so an empty result is explainable.
-    raw = list(api_get("injuries", {"league": args.league, "season": args.season})
-               .get("response", []))
+    # API-Football's injury index is sparse for national teams at the league and
+    # team+season level (often empty), so gather from three sources and merge:
+    #   1. league+season   2. per team+season   3. per fixture (the authoritative
+    # "ruled out of this game" list, which covers tournament injuries best).
+    def safe_injuries(params):
+        try:
+            return api_get("injuries", params).get("response", [])
+        except SystemExit:   # unsupported param combo on this plan — skip
+            return []
+
+    raw = list(safe_injuries({"league": args.league, "season": args.season}))
     league_n = len(raw)
+
     teams = api_get("teams", {"league": args.league, "season": args.season}).get(
         "response", [])
+    before_team = len(raw)
     for t in teams:
         tid = (t.get("team", {}) or {}).get("id")
-        if not tid:
-            continue
-        try:
-            raw += api_get("injuries", {"team": tid, "season": args.season}).get(
-                "response", [])
-        except SystemExit:
-            # per-team injuries unsupported on this plan/params — skip, don't
-            # fail the whole feed (league-level result still stands).
-            pass
-    print(f"Fetched {len(raw)} raw injury report(s) "
-          f"(league-level: {league_n}, +per-team).")
+        if tid:
+            raw += safe_injuries({"team": tid, "season": args.season})
+    team_n = len(raw) - before_team
+
+    fixtures = api_get("fixtures", {"league": args.league, "season": args.season}).get(
+        "response", [])
+    before_fx = len(raw)
+    for f in fixtures:
+        fid = (f.get("fixture", {}) or {}).get("id")
+        if fid:
+            raw += safe_injuries({"fixture": fid})
+    fixture_n = len(raw) - before_fx
+
+    print(f"Fetched {len(raw)} raw injury report(s) across {len(teams)} teams / "
+          f"{len(fixtures)} fixtures (league: {league_n}, team: {team_n}, "
+          f"fixture: {fixture_n}).")
 
     # Flag any injured player the API reports, regardless of the fixture date
     # (API-Football ties an injury to the last fixture missed, which is usually
