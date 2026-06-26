@@ -4,146 +4,181 @@
   "status": "out",
   "reason": "Hamstring muscle injury",
   "fixture_date": "2026-06-28",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
+ },
+ {
+  "player_id": "aus_4",
+  "status": "out",
+  "reason": "Adductor injury",
+  "fixture_date": "2026-06-26",
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "bel_11",
   "status": "out",
   "reason": "Illness",
   "fixture_date": "2026-06-27",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "bel_2",
   "status": "out",
   "reason": "Leg Injury",
   "fixture_date": "2026-06-27",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "bel_25",
   "status": "out",
   "reason": "Red Card",
   "fixture_date": "2026-06-27",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "bih_4",
   "status": "out",
   "reason": "Red Card",
   "fixture_date": "2026-06-24",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "bra_10",
   "status": "out",
   "reason": "Calf Injury",
   "fixture_date": "2026-06-24",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "bra_11",
   "status": "out",
   "reason": "Hamstring muscle injury",
   "fixture_date": "2026-06-24",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "can_3",
   "status": "out",
-  "reason": "Injured",
+  "reason": "Muscle bruise",
   "fixture_date": "2026-06-24",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "can_8",
   "status": "out",
   "reason": "Fracture of lower leg",
-  "fixture_date": "2026-06-24",
-  "as_of": "2026-06-25"
+  "fixture_date": "2026-06-28",
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "cpv_13",
   "status": "out",
   "reason": "Yellow card suspension",
   "fixture_date": "2026-06-27",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "cuw_14",
   "status": "out",
   "reason": "Muscle Injury",
   "fixture_date": "2025-09-06",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "cze_14",
   "status": "out",
   "reason": "Thigh problems",
   "fixture_date": "2026-06-25",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
+ },
+ {
+  "player_id": "egy_4",
+  "status": "out",
+  "reason": "Suspension through sports court",
+  "fixture_date": "2026-06-27",
+  "as_of": "2026-06-26"
+ },
+ {
+  "player_id": "ger_15",
+  "status": "out",
+  "reason": "Ligament stretching",
+  "fixture_date": "2026-06-25",
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "jpn_8",
   "status": "out",
-  "reason": "Wound",
-  "fixture_date": "2026-06-21",
-  "as_of": "2026-06-25"
+  "reason": "Injured",
+  "fixture_date": "2026-06-25",
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "par_10",
   "status": "out",
   "reason": "Red Card",
   "fixture_date": "2026-06-26",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "qat_14",
   "status": "out",
   "reason": "Red Card",
   "fixture_date": "2026-06-24",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "qat_23",
   "status": "out",
   "reason": "Red Card",
   "fixture_date": "2026-06-24",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "rsa_4",
   "status": "out",
   "reason": "Yellow card suspension",
   "fixture_date": "2026-06-25",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "sen_16",
   "status": "out",
   "reason": "Twisted knee",
   "fixture_date": "2026-06-26",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
+ },
+ {
+  "player_id": "sui_2",
+  "status": "out",
+  "reason": "Calf muscle strain",
+  "fixture_date": "2026-06-24",
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "uru_10",
   "status": "out",
   "reason": "Muscle bruise",
   "fixture_date": "2026-06-27",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "uru_4",
   "status": "out",
   "reason": "Muscle bruise",
   "fixture_date": "2026-06-27",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
  },
  {
   "player_id": "usa_10",
   "status": "out",
   "reason": "Calf muscle strain",
   "fixture_date": "2026-06-19",
-  "as_of": "2026-06-25"
+  "as_of": "2026-06-26"
+ },
+ {
+  "player_id": "usa_15",
+  "status": "out",
+  "reason": "Muscle bruise",
+  "fixture_date": "2026-07-02",
+  "as_of": "2026-06-26"
  }
 ]
