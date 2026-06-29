@@ -324,6 +324,32 @@
           <button id="adm-trading-toggle" class="rounded-lg px-4 py-2 text-sm font-semibold bg-wcred hover:bg-wcred-hov"></button>
         </div>
         <button id="adm-snapshot" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-1.5 text-xs font-semibold">Re-lock current lineups now (fallback)</button>
+        <div class="border-t border-slate-800 pt-2 space-y-2">
+          <div class="text-xs text-slate-400">Window limits (blank/0 = unlimited, real-time)</div>
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <label class="text-xs text-slate-400">Max trades / manager / window<input id="adm-max-trades" type="number" min="0" placeholder="∞" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+            <label class="text-xs text-slate-400">Max free-agent claims / window<input id="adm-max-fa" type="number" min="0" placeholder="∞" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          </div>
+          <label class="flex items-center gap-2 text-xs text-slate-300"><input id="adm-fa-defer" type="checkbox"> Free-agent pickups execute at window close (waiver order), not instantly</label>
+          <button id="adm-save-limits" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-1.5 text-xs font-semibold">Save window limits</button>
+        </div>
+      </div>
+      <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-2">
+        <h3 class="font-semibold text-sm">Head-to-Head log</h3>
+        <p class="text-xs text-slate-500">Pair managers each round; your round score is your lineup's
+          fantasy points. The standings then rank by <b>log points</b> instead of total. Set the scheme
+          <b>before the draft</b>, then generate the fixtures.</p>
+        <label class="flex items-center gap-2 text-sm"><input id="adm-h2h-enabled" type="checkbox"> Enable Head-to-Head standings</label>
+        <div class="grid grid-cols-3 gap-2 text-sm">
+          <label class="text-xs text-slate-400">Win<input id="adm-h2h-win" type="number" value="4" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Draw<input id="adm-h2h-draw" type="number" value="2" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Loss<input id="adm-h2h-loss" type="number" value="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Big-win margin (+1)<input id="adm-h2h-attack" type="number" value="25" min="1" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Small-loss margin (+1)<input id="adm-h2h-losing" type="number" value="7" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+        </div>
+        <button id="adm-save-h2h" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-1.5 text-xs font-semibold">Save H2H settings</button>
+        <button id="adm-gen-h2h" class="w-full bg-slate-800 border border-wcgold/60 text-wcgold rounded-lg py-1.5 text-xs font-semibold">Generate / regenerate fixtures</button>
+        <p id="adm-h2h-info" class="text-xs text-slate-500"></p>
       </div>
       <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-3">
         <h3 class="font-semibold text-sm">Redrafts &amp; final phase</h3>
@@ -521,7 +547,7 @@ const FINAL_PICK_BONUS = 5;
 const S = {
   sb: null, players: [], teams: [],
   league: null, managers: [], picks: [], stats: [], stages: [], trades: [],
-  snapshots: [],
+  snapshots: [], faClaims: [], h2hFixtures: [],
   channel: null,
 };
 
@@ -635,7 +661,7 @@ async function refetchAll() {
     }
     return { data: all, error: null };
   };
-  const [l, m, p, st, tg, tr, sn, tx] = await Promise.all([
+  const [l, m, p, st, tg, tr, sn, tx, fc, hf] = await Promise.all([
     S.sb.from("leagues").select("*").eq("id", id).maybeSingle(),
     S.sb.from("managers").select("*").eq("league_id", id).order("created_at"),
     S.sb.from("picks").select("*").eq("league_id", id).order("pick_number"),
@@ -647,6 +673,9 @@ async function refetchAll() {
       .order("effective_from"),
     S.sb.from("transactions").select("*").eq("league_id", id)
       .order("created_at", { ascending: false }),
+    S.sb.from("fa_claims").select("*").eq("league_id", id)
+      .order("created_at"),
+    S.sb.from("h2h_fixtures").select("*").eq("league_id", id).order("round"),
   ]);
   const err = l.error || m.error || p.error || st.error || tg.error || tr.error;
   if (err) { toast("Load failed: " + err.message); return; }
@@ -661,6 +690,9 @@ async function refetchAll() {
   // transactions is an optional, additive table; if the migration hasn't been
   // run yet, degrade to an empty log rather than failing the whole load.
   S.transactions = tx && !tx.error ? (tx.data || []) : [];
+  // fa_claims / h2h_fixtures are additive too — degrade to empty if missing.
+  S.faClaims = fc && !fc.error ? (fc.data || []) : [];
+  S.h2hFixtures = hf && !hf.error ? (hf.data || []) : [];
   ptsCache = null;
   route();
 }
@@ -682,6 +714,8 @@ function subscribeRealtime() {
     .on("postgres_changes", { event: "*", schema: "public", table: "trade_items" }, scheduleRefetch)
     .on("postgres_changes", { event: "*", schema: "public", table: "lineup_snapshots", filter: "league_id=eq." + id }, scheduleRefetch)
     .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: "league_id=eq." + id }, scheduleRefetch)
+    .on("postgres_changes", { event: "*", schema: "public", table: "fa_claims",    filter: "league_id=eq." + id }, scheduleRefetch)
+    .on("postgres_changes", { event: "*", schema: "public", table: "h2h_fixtures", filter: "league_id=eq." + id }, scheduleRefetch)
     .subscribe((status) => {
       $("conn-dot").className = "w-2 h-2 rounded-full " +
         (status === "SUBSCRIBED" ? "bg-wcgreen" : "bg-amber-400");
@@ -1810,6 +1844,168 @@ function managerHistory(mgrId) {
   };
 }
 
+/* ---------- head-to-head log table ---------- */
+
+// Current H2H scoring config (admin-set before the draft).
+function h2hConfig() {
+  const L = S.league || {};
+  return {
+    win: L.h2h_win ?? 4, draw: L.h2h_draw ?? 2, loss: L.h2h_loss ?? 0,
+    attack_margin: L.h2h_attack_margin ?? 25, losing_margin: L.h2h_losing_margin ?? 7,
+  };
+}
+
+// Log points + bonuses for one matchup (scores a, b). Big win -> attacking
+// bonus to the winner; small loss -> losing bonus to the loser. A draw pays
+// the draw value to both with no bonus.
+function h2hResult(a, b, cfg) {
+  const r = { ptsA: 0, ptsB: 0, bonusA: 0, bonusB: 0 };
+  if (a > b) {
+    r.ptsA = cfg.win; r.ptsB = cfg.loss;
+    if (a - b >= cfg.attack_margin) r.bonusA = 1;
+    if (a - b <= cfg.losing_margin) r.bonusB = 1;
+  } else if (b > a) {
+    r.ptsB = cfg.win; r.ptsA = cfg.loss;
+    if (b - a >= cfg.attack_margin) r.bonusB = 1;
+    if (b - a <= cfg.losing_margin) r.bonusA = 1;
+  } else {
+    r.ptsA = cfg.draw; r.ptsB = cfg.draw;
+  }
+  return r;
+}
+
+// Round-robin pairings (circle method). Odd count gets a null bye partner.
+// Returns rounds[]: each is an array of [home, away] id pairs.
+function roundRobin(ids) {
+  const arr = ids.slice();
+  if (arr.length % 2) arr.push(null);
+  const n = arr.length, rounds = [];
+  let rot = arr.slice(1);
+  for (let r = 0; r < n - 1; r++) {
+    const row = [arr[0], ...rot];
+    const pairs = [];
+    for (let i = 0; i < n / 2; i++) pairs.push([row[i], row[n - 1 - i]]);
+    rounds.push(pairs);
+    rot = [rot[rot.length - 1], ...rot.slice(0, -1)];   // rotate all but the fixed seat
+  }
+  return rounds;
+}
+
+// Tabulate a H2H log from per-manager round scores + fixtures. Pure (no DB),
+// so it's unit-tested directly.
+//   scoresByMgr: { mgrId: [round0, round1, ...] }
+//   fixtures:    [{ round, home, away }]  (away null = bye; round is 1-based)
+// A round counts only when both managers have a score for it.
+function h2hTable(mgrIds, scoresByMgr, fixtures, cfg) {
+  const t = {};
+  for (const id of mgrIds)
+    t[id] = { mgrId: id, P: 0, W: 0, D: 0, L: 0, PF: 0, PA: 0, bonus: 0, logPts: 0 };
+  for (const fx of fixtures) {
+    const { round, home: a, away: b } = fx;
+    if (!a || !b || !t[a] || !t[b]) continue;            // bye / unknown
+    const sa = scoresByMgr[a]?.[round - 1], sb = scoresByMgr[b]?.[round - 1];
+    if (sa === undefined || sb === undefined) continue;  // round not played yet
+    const res = h2hResult(sa, sb, cfg);
+    const ta = t[a], tb = t[b];
+    ta.P++; tb.P++;
+    ta.PF += sa; ta.PA += sb; tb.PF += sb; tb.PA += sa;
+    if (sa > sb) { ta.W++; tb.L++; } else if (sb > sa) { tb.W++; ta.L++; } else { ta.D++; tb.D++; }
+    ta.bonus += res.bonusA; tb.bonus += res.bonusB;
+    ta.logPts += res.ptsA + res.bonusA; tb.logPts += res.ptsB + res.bonusB;
+  }
+  return Object.values(t).sort((x, y) =>
+    y.logPts - x.logPts || (y.PF - y.PA) - (x.PF - x.PA) || y.PF - x.PF);
+}
+
+// Per-manager round scores (each round's player-point subtotal) + the max
+// round index reached. The shared input for the standings + fixtures views.
+function h2hRoundScores() {
+  const mgrs = S.managers.filter((m) => !m.eliminated);
+  const scoresByMgr = {};
+  let maxRound = 0;
+  for (const m of mgrs) {
+    const rs = (managerHistory(m.id).rounds || []).map((r) => r.subtotal);
+    scoresByMgr[m.id] = rs;
+    maxRound = Math.max(maxRound, rs.length);
+  }
+  return { mgrs, scoresByMgr, maxRound };
+}
+
+// Live H2H standings, paired by h2h_fixtures.
+function h2hStandings() {
+  const { mgrs, scoresByMgr } = h2hRoundScores();
+  const fixtures = S.h2hFixtures.map((f) => ({
+    round: f.round, home: f.home_manager_id, away: f.away_manager_id }));
+  const rows = h2hTable(mgrs.map((m) => m.id), scoresByMgr, fixtures, h2hConfig());
+  for (const r of rows) r.name = S.managers.find((m) => m.id === r.mgrId)?.name || "?";
+  return rows;
+}
+
+// This-round matchup cards with live scores (the current round = the latest
+// with any played match). Leader bolded; result/bonus shown once decided.
+function h2hFixturesHtml(round, scoresByMgr) {
+  const fixtures = S.h2hFixtures.filter((f) => f.round === round);
+  if (!round || !fixtures.length) return "";
+  const cfg = h2hConfig();
+  const nameOf = (id) => S.managers.find((m) => m.id === id)?.name || "?";
+  const cards = fixtures.map((f) => {
+    if (!f.away_manager_id)
+      return `<div class="rounded-lg bg-slate-800/60 px-3 py-2 text-sm text-slate-400">${esc(nameOf(f.home_manager_id))} — bye</div>`;
+    const sa = scoresByMgr[f.home_manager_id]?.[round - 1] ?? 0;
+    const sb = scoresByMgr[f.away_manager_id]?.[round - 1] ?? 0;
+    const res = h2hResult(sa, sb, cfg);
+    const side = (id, s, pts, lead) => `<span class="flex-1 min-w-0 ${lead ? "text-wcgold font-semibold" : "text-slate-300"} ${id === f.away_manager_id ? "text-right" : ""}">
+      <span class="truncate">${esc(nameOf(id))}</span> <span class="font-mono">${s}</span>${pts ? `<span class="text-[10px] text-slate-500"> +${pts}</span>` : ""}</span>`;
+    return `<div class="rounded-lg bg-slate-800/60 px-3 py-2 text-sm flex items-center gap-2">
+      ${side(f.home_manager_id, sa, res.ptsA + res.bonusA, sa > sb)}
+      <span class="text-slate-600 text-xs shrink-0">v</span>
+      ${side(f.away_manager_id, sb, res.ptsB + res.bonusB, sb > sa)}</div>`;
+  }).join("");
+  return `<div class="rounded-xl border border-slate-700 bg-slate-900 p-3 mb-3 space-y-1.5">
+    <div class="text-xs uppercase tracking-wide text-slate-500">Round ${round} — head to head (live)</div>
+    ${cards}</div>`;
+}
+
+// Standings order (manager ids, best first) — H2H log when enabled, else
+// cumulative points. Drives waiver seeding and redraft reverse order.
+function standingsOrder() {
+  if (S.league?.h2h_enabled && S.h2hFixtures.length)
+    return h2hStandings().map((r) => r.mgrId);
+  return computeScores().sort((a, b) => b.total - a.total).map((s) => s.manager.id);
+}
+
+/* ---------- free-agent waivers (deferred pickups) ---------- */
+
+// Resolve queued free-agent claims by waiver priority (lower order = picks
+// first). Contested player -> highest-priority claimant wins and drops to the
+// bottom of the order; the rest fail. Already-rostered players are skipped.
+// Pure: returns { awards, failed (claim ids), order (updated) }.
+function resolveFaClaims(claims, waiverOrder, taken) {
+  const order = { ...waiverOrder };
+  const seen = new Set(taken || []);
+  let maxOrder = Object.values(order).reduce((m, v) => Math.max(m, v), -1);
+  const groups = {};
+  for (const c of claims) (groups[c.in_player_id] ||= []).push(c);
+  const awards = [], failed = [];
+  const prio = (m) => (order[m] === undefined || order[m] === null ? Infinity : order[m]);
+  // Deterministic: contested groups first, then by player id.
+  const players = Object.keys(groups).sort((p, q) =>
+    (groups[q].length > 1) - (groups[p].length > 1) || String(p).localeCompare(String(q)));
+  for (const pid of players) {
+    const group = groups[pid];
+    if (seen.has(pid)) { group.forEach((c) => failed.push(c.id)); continue; }
+    const ranked = group.slice().sort((a, b) =>
+      prio(a.manager_id) - prio(b.manager_id) ||
+      String(a.created_at || "").localeCompare(String(b.created_at || "")));
+    const winner = ranked[0];
+    awards.push(winner);
+    seen.add(pid);
+    ranked.slice(1).forEach((c) => failed.push(c.id));
+    if (group.length > 1) { maxOrder += 1; order[winner.manager_id] = maxOrder; }  // contested drop
+  }
+  return { awards, failed, order };
+}
+
 // Shared rules content: scoring per position + stage bonuses + sub rule.
 // Built from the SCORING/STAGE_BONUS constants so it can't drift.
 function scoringHtml() {
@@ -2365,13 +2561,37 @@ function renderBoard() {
   const open = new Set([...document.querySelectorAll("#board-lb details[open]")]
     .map((d) => d.dataset.mgr));
   const me = myManager();
-  const scores = computeScores().sort((a, b) => b.total - a.total);
+  const scores = computeScores();
   const yetByMgr = computeYetToPlay();
-  $("board-lb").innerHTML = scores.map((s, i) => {
+  // Head-to-Head mode: rank by log points (then points diff, then points for);
+  // each row shows W-D-L + log points, with the cumulative total as "PF".
+  const h2hOn = !!(S.league.h2h_enabled && S.h2hFixtures.length);
+  let h2hByMgr = {}, fixturesBlock = "";
+  if (h2hOn) {
+    const { mgrs, scoresByMgr, maxRound } = h2hRoundScores();
+    const fixtures = S.h2hFixtures.map((f) => ({
+      round: f.round, home: f.home_manager_id, away: f.away_manager_id }));
+    for (const r of h2hTable(mgrs.map((m) => m.id), scoresByMgr, fixtures, h2hConfig()))
+      h2hByMgr[r.mgrId] = r;
+    fixturesBlock = h2hFixturesHtml(maxRound, scoresByMgr);
+    scores.sort((a, b) => {
+      const ra = h2hByMgr[a.manager.id], rb = h2hByMgr[b.manager.id];
+      return (rb?.logPts || 0) - (ra?.logPts || 0)
+        || ((rb?.PF - rb?.PA) || 0) - ((ra?.PF - ra?.PA) || 0)
+        || b.total - a.total;
+    });
+  } else {
+    scores.sort((a, b) => b.total - a.total);
+  }
+  $("board-lb").innerHTML = fixturesBlock + scores.map((s, i) => {
     const ytp = yetByMgr[s.manager.id];
-    const ytpLine = ytp?.hasSnapshot && ytp.total > 0
-      ? `<span class="block text-[10px] font-normal text-slate-400">${ytp.yet}/${ytp.total} starters yet to play</span>`
-      : "";
+    const r = h2hByMgr[s.manager.id];
+    const subLine = h2hOn && r
+      ? `<span class="block text-[10px] font-normal text-slate-400">${r.W}W-${r.D}D-${r.L}L · ${s.total} PF${r.bonus ? ` · ${r.bonus} bonus` : ""}</span>`
+      : (ytp?.hasSnapshot && ytp.total > 0
+        ? `<span class="block text-[10px] font-normal text-slate-400">${ytp.yet}/${ytp.total} starters yet to play</span>`
+        : "");
+    const primary = h2hOn ? `${r?.logPts || 0} pts` : `${s.total} pts`;
     return `
     <details data-mgr="${s.manager.id}" class="rounded-xl border border-slate-700 ${
       s.eliminated ? "bg-slate-900/50 opacity-60" : "bg-slate-900"}"
@@ -2382,9 +2602,9 @@ function renderBoard() {
           <span class="block font-semibold truncate">${esc(s.manager.name)}${
             s.manager.id === me?.id ? ' <span class="text-wcgold text-xs">(you)</span>' : ""}${
             s.eliminated ? ' <span class="text-[10px] text-red-400">eliminated</span>' : ""}</span>
-          ${ytpLine}
+          ${subLine}
         </span>
-        <span class="font-bold text-wcgold shrink-0">${s.total} pts</span>
+        <span class="font-bold text-wcgold shrink-0">${primary}</span>
       </summary>
       <div id="hist-lb-${s.manager.id}" class="px-4 pb-3"></div>
     </details>`;
@@ -2930,8 +3150,11 @@ function renderSwapList() {
     : "");
   $("swap-list").querySelectorAll("[data-swapin]").forEach((b) => b.onclick = () => {
     const entry = free.find((e) => e.player_id === b.dataset.swapin);
-    if (entry && confirm(`Swap ${pick.player_name} out for ${entry.name}?`))
-      doSwap(pick, entry).catch((er) => toast(er.message));
+    const prompt = S.league.fa_defer_to_close
+      ? `Claim ${entry?.name}? It processes at window close (waiver order).`
+      : `Swap ${pick.player_name} out for ${entry?.name}?`;
+    if (entry && confirm(prompt))
+      swapOrClaim(pick, entry).catch((er) => toast(er.message));
   });
   $("swap-list").querySelectorAll("[data-tradefor]").forEach((b) => b.onclick = () => {
     const theirs = S.picks.find((pk) => pk.id === b.dataset.tradefor);
@@ -2939,6 +3162,36 @@ function renderSwapList() {
     closeSwap();
     openBuilder(theirs.manager_id, null, [{ mine: pick.id, theirs: theirs.id }]);
   });
+}
+
+// Free-agent pickup: instant swap, or a queued waiver claim when the league
+// runs in deferred mode (admin: free agents execute at window close).
+function swapOrClaim(pick, entry) {
+  return S.league.fa_defer_to_close ? submitFaClaim(pick, entry) : doSwap(pick, entry);
+}
+
+async function submitFaClaim(pick, entry) {
+  if (!S.league.trading_open) return toast("Trading window is closed.");
+  const me = myManager();
+  const cap = S.league.max_fa_per_window;
+  if (cap) {
+    const mine = (S.faClaims || []).filter((c) =>
+      c.manager_id === me.id && c.status === "pending").length;
+    if (mine >= cap) return toast(`Free-agent claim limit reached (${cap} per window).`);
+  }
+  // One pending claim per slot — replace an existing one on the same pick.
+  const dupe = (S.faClaims || []).find((c) =>
+    c.manager_id === me.id && c.pick_id === pick.id && c.status === "pending");
+  if (dupe) await S.sb.from("fa_claims").delete().eq("id", dupe.id);
+  const { error } = await S.sb.from("fa_claims").insert({
+    league_id: S.league.id, manager_id: me.id, pick_id: pick.id,
+    out_player_id: pick.player_id, out_player_name: pick.player_name,
+    in_player_id: entry.player_id, in_player_name: entry.name,
+  });
+  if (error) return toast(error.message);
+  toast(`Claim submitted: ${entry.name} — processes at window close.`);
+  closeSwap();
+  scheduleRefetch();
 }
 
 async function doSwap(pick, entry) {
@@ -3383,8 +3636,11 @@ function plannerExec(outPickId, pid) {
   if (!p) return;
   const st = choiceStatus(pid);
   if (st.kind === "fa") {
-    if (confirm(`Swap out ${outPick.player_name} for ${p.name} (free agent)?`))
-      doSwap(outPick, { player_id: pid, name: p.name, team: p.team }).catch((e) => toast(e.message));
+    const prompt = S.league.fa_defer_to_close
+      ? `Claim ${p.name}? Processes at window close (waiver order).`
+      : `Swap out ${outPick.player_name} for ${p.name} (free agent)?`;
+    if (confirm(prompt))
+      swapOrClaim(outPick, { player_id: pid, name: p.name, team: p.team }).catch((e) => toast(e.message));
   } else if (st.kind === "owned") {
     openBuilder(st.pick.manager_id, null, [{ mine: outPick.id, theirs: st.pick.id }]);
   } else {
@@ -3528,6 +3784,7 @@ function renderTrades() {
     html += tradeSectionHtml(`🔔 Incoming requests (${pendingIn.length})`, pendingIn, true);
   if (pendingOut.length)
     html += tradeSectionHtml(`Outgoing — awaiting reply (${pendingOut.length})`, pendingOut, false);
+  html += claimsSectionHtml(me);
   html += plannerSectionHtml(me);
   html += shortlistSectionHtml(me);
   html += transactionsLogHtml();   // full history at the bottom
@@ -3535,9 +3792,33 @@ function renderTrades() {
   wireTrades(me);
 }
 
+// Pending free-agent claims (deferred mode) — your queued pickups that
+// process at window close, with a cancel button.
+function claimsSectionHtml(me) {
+  if (!S.league.fa_defer_to_close) return "";
+  const mine = (S.faClaims || []).filter((c) =>
+    c.manager_id === me.id && c.status === "pending");
+  const cap = S.league.max_fa_per_window;
+  const head = `<div class="text-xs uppercase tracking-wide text-slate-500 mt-4 mb-1">⏳ Free-agent claims${
+    cap ? ` (${mine.length}/${cap})` : ""} — process at window close</div>`;
+  if (!mine.length)
+    return head + `<p class="text-xs text-slate-500 mb-2">No claims queued. Free agents you pick up
+      are claimed now and awarded at close by waiver order (ties to the lower-ranked manager).</p>`;
+  const rows = mine.map((c) => `<div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-1.5 mb-1 text-sm">
+    <span class="truncate flex-1">in <b>${esc(c.in_player_name)}</b> <span class="text-slate-500">for ${esc(c.out_player_name)}</span></span>
+    <button data-cancelclaim="${c.id}" class="shrink-0 text-xs underline text-red-400">cancel</button>
+  </div>`).join("");
+  return head + rows;
+}
+
 function wireTrades(me) {
   const box = $("board-trades");
   const byId = (id) => S.trades.find((t) => t.id === id);
+  box.querySelectorAll("[data-cancelclaim]").forEach((b) => b.onclick = async () => {
+    const { error } = await S.sb.from("fa_claims").delete().eq("id", b.dataset.cancelclaim);
+    if (error) return toast(error.message);
+    toast("Claim cancelled."); scheduleRefetch();
+  });
   wireStars(box, renderTrades);
   const slToggle = box.querySelector("#sl-toggle");
   if (slToggle) slToggle.onclick = () => { S.showShortlist = !S.showShortlist; renderTrades(); };
@@ -3651,6 +3932,9 @@ async function submitTrade(me) {
 
 async function acceptTrade(t) {
   if (!S.league.trading_open) return toast("Trading window is closed.");
+  const cap = S.league.max_trades_per_window;
+  if (cap && tradesThisWindow(myManager().id) >= cap)
+    return toast(`Trade limit reached (${cap} per window).`);
   const pairs = (t.trade_items || []).map((it) => ({
     mine: pickById(it.offered_pick_id), theirs: pickById(it.requested_pick_id),
   }));
@@ -4161,6 +4445,22 @@ function renderAdmin() {
   $("adm-trading-status").className =
     "text-sm font-semibold " + (open ? "text-wcgold" : "text-slate-400");
   $("adm-trading-toggle").textContent = open ? "Close trading" : "Open trading";
+  if (document.activeElement?.id !== "adm-max-trades")
+    $("adm-max-trades").value = S.league.max_trades_per_window || "";
+  if (document.activeElement?.id !== "adm-max-fa")
+    $("adm-max-fa").value = S.league.max_fa_per_window || "";
+  $("adm-fa-defer").checked = !!S.league.fa_defer_to_close;
+  $("adm-h2h-enabled").checked = !!S.league.h2h_enabled;
+  const setIf = (id, v) => { if (document.activeElement?.id !== id) $(id).value = v; };
+  setIf("adm-h2h-win", S.league.h2h_win ?? 4);
+  setIf("adm-h2h-draw", S.league.h2h_draw ?? 2);
+  setIf("adm-h2h-loss", S.league.h2h_loss ?? 0);
+  setIf("adm-h2h-attack", S.league.h2h_attack_margin ?? 25);
+  setIf("adm-h2h-losing", S.league.h2h_losing_margin ?? 7);
+  const rounds = new Set(S.h2hFixtures.map((f) => f.round)).size;
+  $("adm-h2h-info").textContent = S.h2hFixtures.length
+    ? `${rounds} rounds of fixtures generated.`
+    : "No fixtures yet — generate after everyone has joined.";
   const active = activeManagers();
   $("adm-phase-info").textContent = `Phase ${S.league.phase || 1}`
     + (S.league.final_phase ? " · final phase (champion picks)" : "")
@@ -4192,13 +4492,107 @@ function renderAdmin() {
 
 async function toggleTrading() {
   const next = !S.league.trading_open;
-  const { error } = await S.sb.from("leagues")
-    .update({ trading_open: next }).eq("id", S.league.id);
+  // Closing: execute any queued free-agent pickups (waiver order) BEFORE
+  // snapshotting, so locked lineups reflect the new rosters.
+  let awarded = 0;
+  if (!next) awarded = await processFaClaims();
+  const patch = { trading_open: next };
+  if (next) patch.window_opened_at = new Date().toISOString();
+  const { error } = await S.sb.from("leagues").update(patch).eq("id", S.league.id);
   if (error) return toast(error.message);
   if (!next) await snapshotRosters(); // closing = lock everyone's lineups in
   toast(next ? "Trading window opened — lineups and trades unlocked."
-             : "Trading window closed — lineups locked in for the next games.");
+             : `Trading window closed — lineups locked${awarded ? `, ${awarded} pickup(s) processed` : ""}.`);
   scheduleRefetch();
+}
+
+// Process queued free-agent claims at window close. Returns the number
+// awarded. Pure resolution is in resolveFaClaims(); this applies it.
+async function processFaClaims() {
+  const pending = (S.faClaims || []).filter((c) => c.status === "pending");
+  if (!pending.length) return 0;
+  // Waiver order: existing values, then seed any unseeded from reverse
+  // standings (worst-placed gets the highest priority = lowest order).
+  const order = {};
+  for (const m of S.managers) if (m.waiver_order != null) order[m.id] = m.waiver_order;
+  let next = Object.values(order).reduce((a, v) => Math.max(a, v), -1) + 1;
+  for (const id of standingsOrder().reverse())
+    if (order[id] === undefined) order[id] = next++;
+  const taken = S.picks.map((p) => p.player_id);
+  const { awards, failed, order: newOrder } = resolveFaClaims(pending, order, taken);
+
+  const awardedIds = [], failedIds = [...failed];
+  for (const c of awards) {
+    const team = S.playerById?.[c.in_player_id]?.team || null;
+    const { error } = await S.sb.from("picks")
+      .update({ player_id: c.in_player_id, player_name: c.in_player_name, team })
+      .eq("id", c.pick_id).eq("player_id", c.out_player_id);
+    if (error) { failedIds.push(c.id); continue; }
+    awardedIds.push(c.id);
+    const pk = S.picks.find((p) => p.id === c.pick_id);     // keep local state fresh for snapshot
+    if (pk) { pk.player_id = c.in_player_id; pk.player_name = c.in_player_name; pk.team = team; }
+    S.sb.from("transactions").insert({
+      league_id: S.league.id, manager_id: c.manager_id, kind: "waiver",
+      out_player_id: c.out_player_id, out_player_name: c.out_player_name,
+      in_player_id: c.in_player_id, in_player_name: c.in_player_name,
+    }).then(() => {}, () => {});
+  }
+  if (awardedIds.length) await S.sb.from("fa_claims").update({ status: "awarded" }).in("id", awardedIds);
+  if (failedIds.length) await S.sb.from("fa_claims").update({ status: "failed" }).in("id", failedIds);
+  for (const m of S.managers)
+    if (newOrder[m.id] !== undefined && newOrder[m.id] !== m.waiver_order)
+      await S.sb.from("managers").update({ waiver_order: newOrder[m.id] }).eq("id", m.id);
+  return awardedIds.length;
+}
+
+async function saveWindowLimits() {
+  const n = (id) => { const v = parseInt($(id).value, 10); return Number.isFinite(v) && v > 0 ? v : null; };
+  const { error } = await S.sb.from("leagues").update({
+    max_trades_per_window: n("adm-max-trades"),
+    max_fa_per_window: n("adm-max-fa"),
+    fa_defer_to_close: $("adm-fa-defer").checked,
+  }).eq("id", S.league.id);
+  if (error) return toast(error.message);
+  toast("Window limits saved.");
+  scheduleRefetch();
+}
+
+async function saveH2HSettings() {
+  const i = (id) => parseInt($(id).value, 10) || 0;
+  const { error } = await S.sb.from("leagues").update({
+    h2h_enabled: $("adm-h2h-enabled").checked,
+    h2h_win: i("adm-h2h-win"), h2h_draw: i("adm-h2h-draw"), h2h_loss: i("adm-h2h-loss"),
+    h2h_attack_margin: Math.max(1, i("adm-h2h-attack")), h2h_losing_margin: Math.max(0, i("adm-h2h-losing")),
+  }).eq("id", S.league.id);
+  if (error) return toast(error.message);
+  toast("H2H settings saved.");
+  scheduleRefetch();
+}
+
+// Build a round-robin fixture list (cycled to cover the whole tournament).
+async function generateH2HSchedule() {
+  const ids = activeManagers().map((m) => m.id);
+  if (ids.length < 2) return toast("Need at least 2 managers to schedule.");
+  const rr = roundRobin(ids);                 // rounds of [home, away] pairs
+  const TOURNAMENT_ROUNDS = 13;               // generous; extra rounds go unused
+  const rows = [];
+  for (let r = 0; r < TOURNAMENT_ROUNDS; r++) {
+    for (const [home, away] of rr[r % rr.length])
+      rows.push({ league_id: S.league.id, round: r + 1,
+        home_manager_id: home, away_manager_id: away });
+  }
+  await S.sb.from("h2h_fixtures").delete().eq("league_id", S.league.id);
+  const { error } = await S.sb.from("h2h_fixtures").insert(rows);
+  if (error) return toast(error.message);
+  toast(`H2H fixtures generated for ${ids.length} managers.`);
+  scheduleRefetch();
+}
+
+function tradesThisWindow(mgrId) {
+  const since = S.league?.window_opened_at ? Date.parse(S.league.window_opened_at) : 0;
+  return (S.trades || []).filter((t) => t.status === "accepted"
+    && Date.parse(t.updated_at || t.created_at) >= since
+    && (t.proposer_manager_id === mgrId || t.target_manager_id === mgrId)).length;
 }
 
 /* ---------- home & init ---------- */
@@ -4262,6 +4656,9 @@ function wire() {
   $("adm-drafted").onchange = admRenderPlayerSearch;
   $("adm-tsearch").oninput = admRenderStages;
   $("adm-trading-toggle").onclick = () => toggleTrading().catch((e) => toast(e.message));
+  $("adm-save-limits").onclick = () => saveWindowLimits().catch((e) => toast(e.message));
+  $("adm-save-h2h").onclick = () => saveH2HSettings().catch((e) => toast(e.message));
+  $("adm-gen-h2h").onclick = () => generateH2HSchedule().catch((e) => toast(e.message));
   $("adm-keeper-toggle").onclick = () => toggleKeeperWindow().catch((e) => toast(e.message));
   $("adm-redraft").onclick = () => startRedraft().catch((e) => toast(e.message));
   $("adm-final").onclick = () => startFinalPhase().catch((e) => toast(e.message));

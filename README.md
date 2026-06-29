@@ -128,6 +128,38 @@ concession) — confirm with the source.
 winning the **title +20**. In the final phase, surviving managers predict
 the champion for **+5**.
 
+## League formats (optional, admin-set)
+
+Two competition modes layer on top of the draft (Admin tab). Both default
+off, so a league runs exactly as before until you turn them on.
+
+### Head-to-Head log table
+Enable in **Admin → Head-to-Head**, set the scheme **before the draft**,
+then **Generate fixtures** (round-robin; byes for odd manager counts). Each
+round you're paired with another manager; your score is your lineup's
+fantasy points that round. The standings then **rank by log points** instead
+of cumulative total:
+
+- **Win 4 / Draw 2 / Loss 0** (configurable), plus
+- **+1 big-win bonus** (win by ≥ the attacking margin, default 25) and
+  **+1 small-loss bonus** (lose by ≤ the losing margin, default 7).
+
+The Table tab shows the log (W-D-L, points-for, bonus, log points) and the
+current round's matchups with **live scores**; rows still expand to each
+manager's lineup history. Cumulative total remains the "points for" column.
+
+### Trade-window limits & waivers
+In **Admin → Trading window**, blank/0 = unlimited (the default real-time
+behaviour). You can set:
+
+- **Max trades per manager per window** — caps accepted manager-to-manager trades.
+- **Max free-agent claims per window** — caps each manager's pickups.
+- **Free agents execute at window close** — pickups become **waiver claims**
+  that all process when you close the window, in **reverse-standings order**.
+  Two managers claiming the same player → the lower-ranked one wins, and
+  **winning a contested claim drops that manager to the bottom** of the
+  waiver order (rolling priority). Uncontested pickups don't cost priority.
+
 ---
 
 ## Setup guide

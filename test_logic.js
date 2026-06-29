@@ -20,13 +20,14 @@ const lsStub = { getItem: (k) => k === "wcf_session" ? _session : null,
                  setItem: () => {}, removeItem: () => {} };
 const api = new Function(
   "document", "localStorage", "window", "crypto", "navigator",
-  src + "\nreturn { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, suspendedNext, playerStatTotal, isEliminated };"
+  src + "\nreturn { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, suspendedNext, playerStatTotal, isEliminated, h2hResult, roundRobin, h2hTable, resolveFaClaims };"
 )(stubDoc, lsStub, winStub, {}, {});
 
 const { S, pickInfo, calcPlayerPoints, calcTeamPoints, computeScores,
         slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick,
         posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints,
-        suspendedNext, playerStatTotal, isEliminated } = api;
+        suspendedNext, playerStatTotal, isEliminated,
+        h2hResult, roundRobin, h2hTable, resolveFaClaims } = api;
 
 let fails = 0;
 const check = (label, got, want) => {
@@ -234,6 +235,50 @@ S.stats = [
 check("red card in latest game = suspended", suspendedNext("wal_7"), "red card");
 S.stats = [row({ player_id: "wal_7", match_label: "Wales vs Fiji (2026-07-04)", appeared: true, yellow_cards: 1 })];
 check("single yellow is not a ban (sin-bin only)", suspendedNext("wal_7"), null);
+
+/* ---------- head-to-head log points & bonuses ---------- */
+const H = { win: 4, draw: 2, loss: 0, attack_margin: 25, losing_margin: 7 };
+check("big win = win + attack bonus", h2hResult(50, 10, H), { ptsA: 4, ptsB: 0, bonusA: 1, bonusB: 0 });
+check("narrow win = win + losing bonus to loser", h2hResult(20, 15, H), { ptsA: 4, ptsB: 0, bonusA: 0, bonusB: 1 });
+check("draw = draw both, no bonus", h2hResult(20, 20, H), { ptsA: 2, ptsB: 2, bonusA: 0, bonusB: 0 });
+check("attack margin is inclusive", h2hResult(25, 0, H).bonusA, 1);
+check("losing margin is inclusive", h2hResult(7, 0, H).bonusB, 1);
+check("away big win mirrors", h2hResult(10, 50, H), { ptsA: 0, ptsB: 4, bonusA: 0, bonusB: 1 });
+
+/* ---------- round-robin schedule ---------- */
+const rr4 = roundRobin(["a", "b", "c", "d"]);
+check("4 managers -> 3 rounds", rr4.length, 3);
+const allPairs = rr4.flat().map((p) => p.slice().sort().join("-")).sort();
+check("every pair meets exactly once", allPairs, ["a-b", "a-c", "a-d", "b-c", "b-d", "c-d"]);
+const rr3 = roundRobin(["a", "b", "c"]);
+check("odd count -> 3 rounds with byes", rr3.length, 3);
+check("odd count gives each a bye", rr3.flat().filter((p) => p.includes(null)).length, 3);
+
+/* ---------- H2H standings tabulation + ordering ---------- */
+const h2hFx = [{ round: 1, home: "a", away: "b" }, { round: 2, home: "a", away: "b" }];
+const tbl = h2hTable(["a", "b"],
+  { a: [50, 10], b: [10, 20] }, h2hFx, H);
+check("standings sorted by log points", tbl[0].mgrId, "a");
+check("leader log points (win+attack, then loss)", tbl[0].logPts, 5);
+check("leader has 1 bonus, 1W 1L", [tbl[0].bonus, tbl[0].W, tbl[0].L], [1, 1, 1]);
+check("loser log points (win then loss)", tbl[1].logPts, 4);
+check("tiebreak by points difference", h2hTable(["a", "b"],
+  { a: [30, 10], b: [10, 20] }, h2hFx, H)[0].mgrId, "a");  // both 4 log pts, a diff +10
+check("unplayed round is skipped", h2hTable(["a", "b"],
+  { a: [30], b: [10] }, h2hFx, H)[0].P, 1);
+
+/* ---------- free-agent waiver resolution ---------- */
+const claim = (id, mgr, pid, t) => ({ id, manager_id: mgr, in_player_id: pid, created_at: t });
+const uncontested = resolveFaClaims([claim("c1", "m1", "p1", "t1")], { m1: 0, m2: 1 }, []);
+check("uncontested: claim awarded", uncontested.awards.map((a) => a.id), ["c1"]);
+check("uncontested: priority unchanged", uncontested.order.m1, 0);
+const contested = resolveFaClaims(
+  [claim("c1", "m1", "p1", "t1"), claim("c2", "m2", "p1", "t2")], { m1: 1, m2: 0 }, []);
+check("contested: lowest order wins", contested.awards.map((a) => a.id), ["c2"]);
+check("contested: other claim fails", contested.failed, ["c1"]);
+check("contested winner drops to bottom", contested.order.m2, 2);
+const taken = resolveFaClaims([claim("c1", "m1", "p1", "t1")], { m1: 0 }, ["p1"]);
+check("already-rostered player: claim fails", [taken.awards.length, taken.failed], [0, ["c1"]]);
 
 console.log(fails ? `\n${fails} check(s) FAILED` : "\nAll checks passed");
 process.exit(fails ? 1 : 0);

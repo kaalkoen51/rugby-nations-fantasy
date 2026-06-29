@@ -280,6 +280,60 @@ begin
 end
 $fn$;
 
+-- Trade-window limits & free-agent waivers. window_opened_at marks when the
+-- current window opened so per-window counts are "rows since this time".
+-- max_*_per_window null/0 = unlimited (the original real-time behaviour).
+-- When fa_defer_to_close is true, free-agent pickups queue in fa_claims and
+-- run at window close in reverse-standings waiver order. Additive.
+alter table leagues add column if not exists window_opened_at timestamptz;
+alter table leagues add column if not exists max_trades_per_window int;
+alter table leagues add column if not exists max_fa_per_window int;
+alter table leagues add column if not exists fa_defer_to_close boolean not null default false;
+
+-- Head-to-Head log table config (set before the draft). When h2h_enabled,
+-- the standings rank by H2H log points instead of cumulative total.
+alter table leagues add column if not exists h2h_enabled boolean not null default false;
+alter table leagues add column if not exists h2h_win int not null default 4;
+alter table leagues add column if not exists h2h_draw int not null default 2;
+alter table leagues add column if not exists h2h_loss int not null default 0;
+alter table leagues add column if not exists h2h_attack_margin int not null default 25;
+alter table leagues add column if not exists h2h_losing_margin int not null default 7;
+
+-- Rolling waiver priority (lower = picks first). Seeded from reverse
+-- standings on the first close; a manager who wins a *contested* claim drops
+-- to the bottom. Null until seeded.
+alter table managers add column if not exists waiver_order int;
+
+-- Queued free-agent pickups (when fa_defer_to_close). One row per claim;
+-- processed at window close. pick_id is the roster slot to fill.
+create table if not exists fa_claims (
+    id uuid primary key default gen_random_uuid(),
+    league_id uuid references leagues(id) on delete cascade,
+    manager_id uuid references managers(id) on delete cascade,
+    pick_id uuid references picks(id) on delete cascade,
+    out_player_id text,
+    out_player_name text,
+    in_player_id text,
+    in_player_name text,
+    status text not null default 'pending'
+        check (status in ('pending','awarded','failed')),
+    created_at timestamptz default now()
+);
+create index if not exists fa_claims_league_idx on fa_claims (league_id, status);
+
+-- Head-to-Head fixtures: who plays whom each round (round-robin). away_manager_id
+-- null = a bye. Generated at draft completion; admin can regenerate.
+create table if not exists h2h_fixtures (
+    id uuid primary key default gen_random_uuid(),
+    league_id uuid references leagues(id) on delete cascade,
+    round int not null,
+    home_manager_id uuid references managers(id) on delete cascade,
+    away_manager_id uuid references managers(id) on delete cascade,
+    created_at timestamptz default now()
+);
+create unique index if not exists h2h_fixtures_round_home_key
+    on h2h_fixtures (league_id, round, home_manager_id);
+
 -- Realtime: stream changes to connected clients.
 -- (wrapped so re-running this file never errors on already-added tables)
 do $$
@@ -287,7 +341,8 @@ declare t text;
 begin
     foreach t in array array['leagues','managers','picks','match_stats',
                              'team_stages','trades','trade_items',
-                             'lineup_snapshots','transactions'] loop
+                             'lineup_snapshots','transactions',
+                             'fa_claims','h2h_fixtures'] loop
         begin
             execute format('alter publication supabase_realtime add table %I', t);
         exception when duplicate_object then null;
@@ -303,7 +358,8 @@ declare t text;
 begin
     foreach t in array array['leagues','managers','picks','match_stats',
                              'team_stages','trades','trade_items',
-                             'lineup_snapshots','transactions'] loop
+                             'lineup_snapshots','transactions',
+                             'fa_claims','h2h_fixtures'] loop
         execute format('alter table %I enable row level security', t);
         execute format('drop policy if exists "open access" on %I', t);
         execute format(
