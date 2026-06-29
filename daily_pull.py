@@ -53,57 +53,66 @@ API_BASE = "https://api.draftsport.com"
 MOCK_DIR = Path(__file__).parent / "mock_data"
 PLAYERS_JSON = Path(__file__).parent / "players.json"
 
-# Rugby fantasy scoring — mirrors draftrugby.com's published system. The
-# JS copy in index.html (SCORING) must stay identical. Point values follow
-# Draft Rugby's documented model; confirm the exact numbers against
-# draftrugby.com once the host is reachable (TODO: verify vs source).
+# Rugby fantasy scoring — the Draft Rugby (United Rugby C...) system. Many
+# values depend on the player's granular role (8 roles below), so SCORING
+# keys those by role. The JS copy in index.html (SCORING + scoringRow) must
+# stay identical; both test suites assert they agree.
+#
+# Roles: PR prop, HK hooker, LK lock, LF loose forward, SH scrum-half,
+# FH fly-half, CE centre, OB outside back.
 SCORING = {
-    "try": 10,
-    "try_assist": 4,
-    "conversion": 2,
-    "penalty_goal": 3,
-    "drop_goal": 3,
-    "tackle": 1,
-    "missed_tackle": -1,
+    # minutes: 1-59 -> 1 pt, 60+ -> 2 pts
+    "minutes_short": 1, "minutes_long": 2,
+    "try": {"PR": 15, "HK": 12, "LK": 15, "LF": 12, "SH": 12, "FH": 12, "CE": 10, "OB": 10},
+    "metres_div": {"PR": 5},          # metres per point; default 10
+    "run": {"PR": 2},                 # default 1
+    "passes_div": {"SH": 5},          # passes per point; default 10
+    "try_assist": {"PR": 7, "LK": 7}, # default 5
+    "tackle": {"PR": 2},              # default 1
+    "penalty_conceded": {"PR": -3},   # default -4
+    "scrum_won": {"PR": 1.5, "HK": 1, "LK": 1, "LF": 0.5},   # default 0
+    "scrum_lost": {"PR": -3, "HK": -2, "LK": -2, "LF": -1},  # default 0
+    # flat (role-independent)
     "defender_beaten": 2,
-    "clean_break": 2,
-    "offload": 1,
-    "turnover_won": 5,
-    "turnover_conceded": -2,
-    "penalty_conceded": -2,
-    "yellow_card": -3,
-    "red_card": -8,
-    "motm": 5,
-    # Metres made: points per metre vary by position group (Draft Rugby
-    # rewards forwards more per metre than backs). Value = metres needed
-    # for one point (integer floor division, kept in sync with the JS).
-    "metres_div": {"FR": 4, "SR": 2, "BR": 8, "HB": 10, "CE": 10, "B3": 10},
-    # Performance bonuses (Draft Rugby thresholds), awarded once per match.
-    "bonus_metres_100": 3,
-    "bonus_tackles_15": 2,
-    "bonus_turnovers_3": 2,
+    "clean_break": 5,
+    "offload": 3,
+    # The sheet lists "Turnovers Conceded = 3 points" unsigned; a conceded
+    # turnover is a negative event (every other concession is negative), so
+    # it is scored -3. Confirm the intended sign with the source.
+    "turnover_conceded": -3,
+    "turnover_won": 3,
+    "missed_tackle": -2,
+    "conversion": 2,
+    "conversion_missed": -2,
+    "penalty": 3,
+    "penalty_missed": -3,
+    "drop_goal": 3,
+    "drop_goal_missed": -3,
+    "lineout_throw_won": 1,
+    "lineout_taken": 2,
+    "lineout_steal": 4,
+    "red_card": -20,
+    "yellow_card": -10,
+    "lineout_lost": -2,
 }
 
-# Position groups (rugby). The provider's position string maps to one of
-# the six XV groups: Front Row, Second Row, Back Row, Half Backs, Centres,
-# Back Three. Same six groups drive the draft quota in index.html.
+# Granular role -> draft group (the 6 groups used by the draft/lineup).
+ROLE_GROUP = {"PR": "FR", "HK": "FR", "LK": "SR", "LF": "BR",
+              "SH": "HB", "FH": "HB", "CE": "CE", "OB": "B3"}
+
+# Provider position string -> granular scoring role.
 POSITION_MAP = {
-    # front row
-    "Prop": "FR", "Loosehead Prop": "FR", "Tighthead Prop": "FR",
-    "Hooker": "FR", "FR": "FR",
-    # second row
-    "Lock": "SR", "Second Row": "SR", "SR": "SR",
-    # back row
-    "Flanker": "BR", "Openside Flanker": "BR", "Blindside Flanker": "BR",
-    "Number 8": "BR", "No. 8": "BR", "No.8": "BR", "Back Row": "BR", "BR": "BR",
-    # half backs
-    "Scrum-half": "HB", "Scrum Half": "HB", "Fly-half": "HB",
-    "Fly Half": "HB", "Half Back": "HB", "HB": "HB",
-    # centres
+    "Prop": "PR", "Loosehead Prop": "PR", "Tighthead Prop": "PR", "PR": "PR",
+    "Hooker": "HK", "HK": "HK",
+    "Lock": "LK", "Second Row": "LK", "LK": "LK",
+    "Flanker": "LF", "Openside Flanker": "LF", "Blindside Flanker": "LF",
+    "Number 8": "LF", "No. 8": "LF", "No.8": "LF", "Back Row": "LF",
+    "Loose Forward": "LF", "LF": "LF",
+    "Scrum-half": "SH", "Scrum Half": "SH", "SH": "SH",
+    "Fly-half": "FH", "Fly Half": "FH", "FH": "FH",
     "Centre": "CE", "Inside Centre": "CE", "Outside Centre": "CE", "CE": "CE",
-    # back three
-    "Wing": "B3", "Winger": "B3", "Fullback": "B3", "Full-back": "B3",
-    "Back Three": "B3", "B3": "B3",
+    "Wing": "OB", "Winger": "OB", "Fullback": "OB", "Full-back": "OB",
+    "Outside Back": "OB", "Back Three": "OB", "OB": "OB",
 }
 
 # The provider may name some unions differently from the squad lists
@@ -214,9 +223,7 @@ def load_players() -> list:
     return json.loads(PLAYERS_JSON.read_text(encoding="utf-8"))
 
 
-COMPLETED_STATUSES = {"FT", "AET", "PEN"}
-
-MOTM_MIN_RATING = 7.5
+COMPLETED_STATUSES = {"FT", "AET"}
 
 
 def require_env(name: str, why: str) -> str:
@@ -292,10 +299,12 @@ def to_float(value):
 # for a blank minute. True non-participants (no minutes, no stats) are
 # still excluded.
 STAT_FIELDS = (
-    "tries", "try_assists", "conversions", "penalty_goals", "drop_goals",
-    "tackles", "missed_tackles", "metres", "defenders_beaten", "clean_breaks",
-    "offloads", "turnovers_won", "turnovers_conceded", "penalties_conceded",
-    "yellow_cards", "red_cards",
+    "tries", "metres", "runs", "defenders_beaten", "clean_breaks", "passes",
+    "offloads", "turnovers_conceded", "try_assists", "tackles", "missed_tackles",
+    "turnovers_won", "conversions", "conversions_missed", "penalties",
+    "penalties_missed", "drop_goals", "drop_goals_missed", "lineout_throws_won",
+    "lineouts_taken", "lineout_steals", "penalties_conceded", "red_cards",
+    "yellow_cards", "scrums_won", "scrums_lost", "lineouts_lost",
 )
 
 # Counting stats carried straight through from the provider's per-player
@@ -335,7 +344,7 @@ def extract_player_rows(fixture: dict, teams_data: list, matcher: PlayerMatcher)
             games = stats.get("games", {}) or {}
 
             minutes = to_int(games.get("minutes"))
-            position = POSITION_MAP.get(games.get("position"), "B3")
+            role = POSITION_MAP.get(games.get("position"), "OB")
 
             api_name = player.get("name", "Unknown")
             shirt = to_int(games.get("number")) or None
@@ -348,69 +357,61 @@ def extract_player_rows(fixture: dict, teams_data: list, matcher: PlayerMatcher)
                 "api_name": api_name,
                 "team": fix_team_name(team_name),
                 "match_note": match_note,
-                # the app scores by the squad-list position, so prefer it
-                "position": matched["position"] if matched else position,
+                # the app scores by the squad-list role, so prefer it
+                "role": matched.get("role") if matched else role,
+                "position": matched["position"] if matched else ROLE_GROUP.get(role, "B3"),
                 "match_label": match_label,
                 "minutes": minutes,
-                "rating": to_float(games.get("rating")),
                 "home_score": to_int(goals.get("home")),
                 "away_score": to_int(goals.get("away")),
-                "motm": False,  # assigned per fixture below
             }
             for key in COUNTING_STATS:
                 row[key] = to_int(stats.get(key))
             rows.append(row)
 
-    assign_motm(rows)
     return rows
 
 
-def assign_motm(rows: list) -> None:
-    """MOTM heuristic: highest-rated player in the fixture, rating >= 7.5."""
-    rated = [r for r in rows if r["rating"] is not None and r["minutes"] > 0]
-    if not rated:
-        return
-    best = max(rated, key=lambda r: r["rating"])
-    if best["rating"] >= MOTM_MIN_RATING:
-        best["motm"] = True
-
-
-def calculate_points(row: dict) -> int:
+def calculate_points(row: dict):
     """Rugby fantasy points for one match row. Mirrors scoringRow() in
-    index.html — keep the two in exact step (integer floor division)."""
-    if row["minutes"] == 0:
+    index.html — keep the two in exact step. Many values depend on the
+    player's granular role; totals can be fractional (scrum points)."""
+    minutes = to_int(row.get("minutes"))
+    if minutes == 0:
         return 0
 
-    pos = row["position"]
+    role = row.get("role") or "OB"
     g = lambda k: to_int(row.get(k))
+    rv = lambda table, default: SCORING[table].get(role, default)
     points = 0
-    points += g("tries") * SCORING["try"]
-    points += g("try_assists") * SCORING["try_assist"]
-    points += g("conversions") * SCORING["conversion"]
-    points += g("penalty_goals") * SCORING["penalty_goal"]
-    points += g("drop_goals") * SCORING["drop_goal"]
-    points += g("tackles") * SCORING["tackle"]
-    points += g("missed_tackles") * SCORING["missed_tackle"]
+    points += SCORING["minutes_long"] if minutes >= 60 else SCORING["minutes_short"]
+    points += g("tries") * rv("try", 10)
+    points += g("metres") // rv("metres_div", 10)
+    points += g("runs") * rv("run", 1)
     points += g("defenders_beaten") * SCORING["defender_beaten"]
     points += g("clean_breaks") * SCORING["clean_break"]
+    points += g("passes") // rv("passes_div", 10)
     points += g("offloads") * SCORING["offload"]
-    points += g("turnovers_won") * SCORING["turnover_won"]
     points += g("turnovers_conceded") * SCORING["turnover_conceded"]
-    points += g("penalties_conceded") * SCORING["penalty_conceded"]
-    points += g("yellow_cards") * SCORING["yellow_card"]
+    points += g("try_assists") * rv("try_assist", 5)
+    points += g("tackles") * rv("tackle", 1)
+    points += g("missed_tackles") * SCORING["missed_tackle"]
+    points += g("turnovers_won") * SCORING["turnover_won"]
+    points += g("conversions") * SCORING["conversion"]
+    points += g("conversions_missed") * SCORING["conversion_missed"]
+    points += g("penalties") * SCORING["penalty"]
+    points += g("penalties_missed") * SCORING["penalty_missed"]
+    points += g("drop_goals") * SCORING["drop_goal"]
+    points += g("drop_goals_missed") * SCORING["drop_goal_missed"]
+    points += g("lineout_throws_won") * SCORING["lineout_throw_won"]
+    points += g("lineouts_taken") * SCORING["lineout_taken"]
+    points += g("lineout_steals") * SCORING["lineout_steal"]
+    points += g("penalties_conceded") * rv("penalty_conceded", -4)
     points += g("red_cards") * SCORING["red_card"]
-    # metres made, points per metre by position group
-    div = SCORING["metres_div"].get(pos, 10)
-    points += g("metres") // div
-    if row["motm"]:
-        points += SCORING["motm"]
-    # performance bonuses (Draft Rugby thresholds)
-    if g("metres") >= 100:
-        points += SCORING["bonus_metres_100"]
-    if g("tackles") >= 15:
-        points += SCORING["bonus_tackles_15"]
-    if g("turnovers_won") >= 3:
-        points += SCORING["bonus_turnovers_3"]
+    points += g("yellow_cards") * SCORING["yellow_card"]
+    points += g("scrums_won") * rv("scrum_won", 0)
+    points += g("scrums_lost") * rv("scrum_lost", 0)
+    points += g("lineouts_lost") * SCORING["lineout_lost"]
     return points
 
 
@@ -434,7 +435,6 @@ def build_stats_payload(rows: list, league_ids) -> list:
             "player_id": row["player_id"],
             "match_label": row["match_label"],
             "appeared": True,
-            "motm": row["motm"],
             "home_score": row.get("home_score"),
             "away_score": row.get("away_score"),
             "minutes": row.get("minutes"),

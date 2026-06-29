@@ -271,27 +271,40 @@
       </div>
       <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-3">
         <h3 class="font-semibold text-sm">Stats</h3>
+        <p class="text-xs text-slate-500">Scoring depends on the player's role (props, hookers, locks,
+          loose forwards, scrum-halves, fly-halves, centres, outside backs) — set it on the player.</p>
         <div class="grid grid-cols-3 gap-2 text-sm">
+          <label class="text-xs text-slate-400">Minutes<input id="adm-minutes" type="number" value="0" min="0" max="120" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Tries<input id="adm-tries" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Try assists<input id="adm-tassist" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Conversions<input id="adm-conv" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
-          <label class="text-xs text-slate-400">Penalty goals<input id="adm-pg" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Conv. missed<input id="adm-convmiss" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Penalties<input id="adm-pen" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Pen. missed<input id="adm-penmiss" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Drop goals<input id="adm-dg" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Drop missed<input id="adm-dgmiss" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Metres<input id="adm-metres" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
-          <label class="text-xs text-slate-400">Tackles<input id="adm-tackles" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
-          <label class="text-xs text-slate-400">Missed tackles<input id="adm-mtackles" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Runs<input id="adm-runs" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Passes<input id="adm-passes" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Defenders beaten<input id="adm-db" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Clean breaks<input id="adm-cb" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Offloads<input id="adm-offloads" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Tackles<input id="adm-tackles" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Missed tackles<input id="adm-mtackles" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Turnovers won<input id="adm-tw" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Turnovers conceded<input id="adm-tc" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Penalties conceded<input id="adm-pc" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Lineout throws won<input id="adm-ltw" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Lineouts taken<input id="adm-lt" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Lineout steals<input id="adm-ls" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Lineouts lost<input id="adm-ll" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Scrums won<input id="adm-sw" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
+          <label class="text-xs text-slate-400">Scrums lost<input id="adm-sl" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Yellows<input id="adm-yc" type="number" value="0" min="0" max="2" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Reds<input id="adm-rc" type="number" value="0" min="0" max="1" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
         </div>
         <div class="flex flex-wrap gap-4 text-sm">
           <label class="flex items-center gap-1.5"><input id="adm-appeared" type="checkbox" checked> appeared</label>
-          <label class="flex items-center gap-1.5"><input id="adm-motm" type="checkbox"> MOTM</label>
         </div>
         <button id="adm-save" class="w-full bg-wcred hover:bg-wcred-hov rounded-lg py-2 font-semibold">Save stats row</button>
       </div>
@@ -447,34 +460,52 @@ const SLOT_RANK = { FR:0, SR:1, BR:2, HB:3, CE:4, B3:5, TEAM:6,
 const POS_LABEL = { FR:"Front Row", SR:"Second Row", BR:"Back Row",
                     HB:"Half Backs", CE:"Centres", B3:"Back Three", TEAM:"Team" };
 
-// Rugby fantasy scoring — mirrors SCORING (and calculate_points) in
-// daily_pull.py. Keep the two in exact sync (integer floor division).
-// Point values follow draftrugby.com's published model; confirm exact
-// numbers against the source once reachable (TODO: verify vs source).
+// Rugby fantasy scoring — the Draft Rugby system. Mirrors SCORING (and
+// calculate_points) in daily_pull.py; both test suites assert they agree.
+// Many values depend on the player's granular role (8 roles), so those are
+// keyed by role with a default. Roles: PR prop, HK hooker, LK lock,
+// LF loose forward, SH scrum-half, FH fly-half, CE centre, OB outside back.
 const SCORING = {
-  try:           10,
-  try_assist:    4,
-  conversion:    2,
-  penalty_goal:  3,
-  drop_goal:     3,
-  tackle:        1,
-  missed_tackle: -1,
+  minutes_short: 1, minutes_long: 2,        // 1-59 -> 1, 60+ -> 2
+  try:        { PR: 15, HK: 12, LK: 15, LF: 12, SH: 12, FH: 12, CE: 10, OB: 10 },
+  metres_div: { PR: 5 },                     // metres per point; default 10
+  run:        { PR: 2 },                      // default 1
+  passes_div: { SH: 5 },                      // passes per point; default 10
+  try_assist: { PR: 7, LK: 7 },              // default 5
+  tackle:     { PR: 2 },                      // default 1
+  penalty_conceded: { PR: -3 },              // default -4
+  scrum_won:  { PR: 1.5, HK: 1, LK: 1, LF: 0.5 },   // default 0
+  scrum_lost: { PR: -3, HK: -2, LK: -2, LF: -1 },   // default 0
+  // flat (role-independent)
   defender_beaten: 2,
-  clean_break:   2,
-  offload:       1,
-  turnover_won:  5,
-  turnover_conceded: -2,
-  penalty_conceded:  -2,
-  yellow_card:   -3,
-  red_card:      -8,
-  motm:          5,
-  // metres made: metres needed per point, by position group
-  metres_div:    { FR: 4, SR: 2, BR: 8, HB: 10, CE: 10, B3: 10 },
-  // performance bonuses (once per match)
-  bonus_metres_100: 3,
-  bonus_tackles_15: 2,
-  bonus_turnovers_3: 2,
+  clean_break: 5,
+  offload: 3,
+  turnover_conceded: -3,   // sheet shows "3 points" unsigned; scored negative — confirm
+  turnover_won: 3,
+  missed_tackle: -2,
+  conversion: 2,
+  conversion_missed: -2,
+  penalty: 3,
+  penalty_missed: -3,
+  drop_goal: 3,
+  drop_goal_missed: -3,
+  lineout_throw_won: 1,
+  lineout_taken: 2,
+  lineout_steal: 4,
+  red_card: -20,
+  yellow_card: -10,
+  lineout_lost: -2,
 };
+
+// Granular role -> draft group, and a default role per group (used when a
+// stat row's player isn't in players.json, e.g. in tests).
+const ROLE_GROUP = { PR:"FR", HK:"FR", LK:"SR", LF:"BR", SH:"HB", FH:"HB", CE:"CE", OB:"B3" };
+const ROLE_CODES = new Set(Object.keys(ROLE_GROUP));
+const DEFAULT_ROLE_FOR_GROUP = { FR:"PR", SR:"LK", BR:"LF", HB:"FH", CE:"CE", B3:"OB" };
+const ROLE_LABEL = { PR:"Prop", HK:"Hooker", LK:"Lock", LF:"Loose Forward",
+                     SH:"Scrum-half", FH:"Fly-half", CE:"Centre", OB:"Outside Back" };
+// Granular role for a player id (from players.json), null if unknown.
+const roleOf = (pid) => S.playerById?.[pid]?.role || null;
 
 // TEAM pick stage bonuses, awarded once per stage reached (cumulative).
 // Nations Championship: pool rounds -> finals-weekend final -> champion.
@@ -1357,33 +1388,52 @@ function renderDraft() {
 
 /* ---------- scoring & leaderboard ---------- */
 
-// Mirrors calculate_points() in daily_pull.py — keep in exact step
-// (integer floor division for metres and bonuses).
-function calcPlayerPoints(r, pos) {
+// Resolve the granular scoring role: the player's own role if known, else
+// the supplied hint (a role code or a draft group), else outside back.
+function resolveRole(pid, hint) {
+  return roleOf(pid)
+    || (ROLE_CODES.has(hint) ? hint : DEFAULT_ROLE_FOR_GROUP[hint])
+    || "OB";
+}
+
+// Mirrors calculate_points() in daily_pull.py — keep in exact step. Many
+// values depend on the role; totals can be fractional (scrum points).
+function calcPlayerPoints(r, hint) {
   if (!r.appeared) return 0;
+  const m = +r.minutes || 0;
+  if (!m) return 0;
+  const role = resolveRole(r.player_id, hint);
   const n = (k) => r[k] || 0;
+  const rv = (t, d) => (SCORING[t][role] !== undefined ? SCORING[t][role] : d);
   let p = 0;
-  p += n("tries") * SCORING.try;
-  p += n("try_assists") * SCORING.try_assist;
-  p += n("conversions") * SCORING.conversion;
-  p += n("penalty_goals") * SCORING.penalty_goal;
-  p += n("drop_goals") * SCORING.drop_goal;
-  p += n("tackles") * SCORING.tackle;
-  p += n("missed_tackles") * SCORING.missed_tackle;
+  p += m >= 60 ? SCORING.minutes_long : SCORING.minutes_short;
+  p += n("tries") * rv("try", 10);
+  p += Math.floor(n("metres") / rv("metres_div", 10));
+  p += n("runs") * rv("run", 1);
   p += n("defenders_beaten") * SCORING.defender_beaten;
   p += n("clean_breaks") * SCORING.clean_break;
+  p += Math.floor(n("passes") / rv("passes_div", 10));
   p += n("offloads") * SCORING.offload;
-  p += n("turnovers_won") * SCORING.turnover_won;
   p += n("turnovers_conceded") * SCORING.turnover_conceded;
-  p += n("penalties_conceded") * SCORING.penalty_conceded;
-  p += n("yellow_cards") * SCORING.yellow_card;
+  p += n("try_assists") * rv("try_assist", 5);
+  p += n("tackles") * rv("tackle", 1);
+  p += n("missed_tackles") * SCORING.missed_tackle;
+  p += n("turnovers_won") * SCORING.turnover_won;
+  p += n("conversions") * SCORING.conversion;
+  p += n("conversions_missed") * SCORING.conversion_missed;
+  p += n("penalties") * SCORING.penalty;
+  p += n("penalties_missed") * SCORING.penalty_missed;
+  p += n("drop_goals") * SCORING.drop_goal;
+  p += n("drop_goals_missed") * SCORING.drop_goal_missed;
+  p += n("lineout_throws_won") * SCORING.lineout_throw_won;
+  p += n("lineouts_taken") * SCORING.lineout_taken;
+  p += n("lineout_steals") * SCORING.lineout_steal;
+  p += n("penalties_conceded") * rv("penalty_conceded", -4);
   p += n("red_cards") * SCORING.red_card;
-  const div = SCORING.metres_div[pos] || 10;
-  p += Math.floor(n("metres") / div);
-  if (r.motm) p += SCORING.motm;
-  if (n("metres") >= 100) p += SCORING.bonus_metres_100;
-  if (n("tackles") >= 15) p += SCORING.bonus_tackles_15;
-  if (n("turnovers_won") >= 3) p += SCORING.bonus_turnovers_3;
+  p += n("yellow_cards") * SCORING.yellow_card;
+  p += n("scrums_won") * rv("scrum_won", 0);
+  p += n("scrums_lost") * rv("scrum_lost", 0);
+  p += n("lineouts_lost") * SCORING.lineout_lost;
   return p;
 }
 
@@ -1763,29 +1813,32 @@ function managerHistory(mgrId) {
 // Shared rules content: scoring per position + stage bonuses + sub rule.
 // Built from the SCORING/STAGE_BONUS constants so it can't drift.
 function scoringHtml() {
-  const metres = GROUPS.slice(0, 6)
-    .map((g) => `${g} 1/${SCORING.metres_div[g]}m`).join(" · ");
   const rows = [
-    ["Try", `+${SCORING.try}`],
-    ["Try assist", `+${SCORING.try_assist}`],
-    ["Conversion", `+${SCORING.conversion}`],
-    ["Penalty goal", `+${SCORING.penalty_goal}`],
-    ["Drop goal", `+${SCORING.drop_goal}`],
-    ["Tackle", `+${SCORING.tackle}`],
-    ["Missed tackle", SCORING.missed_tackle],
-    ["Defender beaten", `+${SCORING.defender_beaten}`],
-    ["Clean break", `+${SCORING.clean_break}`],
-    ["Offload", `+${SCORING.offload}`],
-    ["Turnover won", `+${SCORING.turnover_won}`],
-    ["Turnover conceded", SCORING.turnover_conceded],
-    ["Penalty conceded", SCORING.penalty_conceded],
+    ["Minutes played", "1-59m +1 · 60m+ +2"],
+    ["Try", "Backs/Centres +10 · FH/SH/Loosies/Hookers +12 · Props/Locks +15"],
+    ["Metres carried", "+1 per 10m (Props +1 per 5m)"],
+    ["Runs", "+1 (Props +2)"],
+    ["Defenders beaten", `+${SCORING.defender_beaten}`],
+    ["Clean breaks", `+${SCORING.clean_break}`],
+    ["Passes", "+1 per 10 (Scrum-halves +1 per 5)"],
+    ["Offloads", `+${SCORING.offload}`],
+    ["Turnovers conceded", SCORING.turnover_conceded],
+    ["Try assists", "+5 (Props/Locks +7)"],
+    ["Tackles", "+1 (Props +2)"],
+    ["Missed tackles", SCORING.missed_tackle],
+    ["Turnovers won", `+${SCORING.turnover_won}`],
+    ["Conversions", `+${SCORING.conversion} (${SCORING.conversion_missed} missed)`],
+    ["Penalties", `+${SCORING.penalty} (${SCORING.penalty_missed} missed)`],
+    ["Drop goals", `+${SCORING.drop_goal} (${SCORING.drop_goal_missed} missed)`],
+    ["Lineout throws won", `+${SCORING.lineout_throw_won}`],
+    ["Lineouts taken", `+${SCORING.lineout_taken}`],
+    ["Lineout steals", `+${SCORING.lineout_steal}`],
+    ["Lineouts lost", SCORING.lineout_lost],
+    ["Penalties conceded", "-4 (Props -3)"],
     ["Yellow card", SCORING.yellow_card],
     ["Red card", SCORING.red_card],
-    ["Metres made (1 pt per X m, by position)", metres],
-    ["Bonus: 100+ metres", `+${SCORING.bonus_metres_100}`],
-    ["Bonus: 15+ tackles", `+${SCORING.bonus_tackles_15}`],
-    ["Bonus: 3+ turnovers won", `+${SCORING.bonus_turnovers_3}`],
-    ["Top-rated player (per match)", `+${SCORING.motm}`],
+    ["Scrums won", "Props +1.5 · Hookers/Locks +1 · Loosies +0.5"],
+    ["Scrums lost", "Props -3 · Hookers/Locks -2 · Loosies -1"],
     ["Champion pick (final phase only)", `+${FINAL_PICK_BONUS}`],
   ];
   const stages = STAGE_ORDER.slice(1).map((s) =>
@@ -1797,15 +1850,13 @@ function scoringHtml() {
         <td class="py-1.5 text-right font-mono">${v}</td>
       </tr>`).join("")}</tbody>
     </table>
+    <p class="text-xs"><b>Scoring varies by position</b> (Prop, Hooker, Lock, Loose forward,
+      Scrum-half, Fly-half, Centre, Outside back) — each player is scored on their role.</p>
     <p class="text-xs"><b>National TEAM pick:</b> cumulative bonus per stage reached —
       ${stages} (a champion banks ${calcTeamPoints("winner")} in total).</p>
     <p class="text-xs"><b>Subs:</b> a sub only scores in a round where a starter in their position
       played that round but didn't feature (so the sub covers a no-show starter, even if they
       play on different days). Players who don't appear score 0.</p>
-    <p class="text-xs"><b>Top-rated player (+${SCORING.motm}):</b> awarded automatically to the
-      single highest-rated player in each match (by the provider's match rating, and only if it's
-      ≥ 7.5). It's a data-driven "best performer" bonus — a close proxy for, but not always the
-      same as, the official Player of the Match award.</p>
     <p class="text-xs"><b>Redrafts:</b> as the tournament field narrows the admin runs redrafts
       with smaller squads — managers may keep up to an admin-set number of players (keepers fill
       squad slots and each costs your earliest draft round), TEAM picks always carry, the rest
@@ -2092,7 +2143,7 @@ function matchScore(label) {
   if (row) return [row.home_score, row.away_score];
   const [home, away] = labelTeams(label);
   const realPts = (r) => (r.tries || 0) * 5 + (r.conversions || 0) * 2
-    + (r.penalty_goals || 0) * 3 + (r.drop_goals || 0) * 3;
+    + (r.penalties || 0) * 3 + (r.drop_goals || 0) * 3;
   let h = 0, a = 0;
   for (const r of S.stats) {
     if (r.match_label !== label) continue;
@@ -2367,58 +2418,63 @@ S.plannerShortlistOnly = false; // choice picker: show only shortlisted
 // columns (no schema change — works on the running league immediately).
 const STAT_SORTS = [
   ["points", "Points"], ["tries", "Tries"], ["try_assists", "Try assists"],
-  ["metres", "Metres"], ["tackles", "Tackles"], ["turnovers_won", "Turnovers won"],
-  ["defenders_beaten", "Defenders beaten"], ["clean_breaks", "Clean breaks"],
-  ["offloads", "Offloads"], ["conversions", "Conversions"],
-  ["penalty_goals", "Penalty goals"], ["drop_goals", "Drop goals"],
-  ["motm", "MOTM"], ["yellow_cards", "Yellow cards"], ["red_cards", "Red cards"],
+  ["metres", "Metres"], ["runs", "Runs"], ["clean_breaks", "Clean breaks"],
+  ["defenders_beaten", "Defenders beaten"], ["offloads", "Offloads"],
+  ["passes", "Passes"], ["tackles", "Tackles"], ["missed_tackles", "Missed tackles"],
+  ["turnovers_won", "Turnovers won"], ["turnovers_conceded", "Turnovers conceded"],
+  ["conversions", "Conversions"], ["penalties", "Penalties"], ["drop_goals", "Drop goals"],
+  ["lineout_steals", "Lineout steals"], ["penalties_conceded", "Penalties conceded"],
+  ["yellow_cards", "Yellow cards"], ["red_cards", "Red cards"],
 ];
 
 const statRowsFor = (pid) =>
   (S.stats || []).filter((r) => r.player_id === pid);
 
-// Flat (count x value) scoring categories, key -> SCORING key. Metres,
-// MOTM and the performance bonuses are handled separately below.
-const FLAT_SCORE = {
-  tries: "try", try_assists: "try_assist", conversions: "conversion",
-  penalty_goals: "penalty_goal", drop_goals: "drop_goal", tackles: "tackle",
-  missed_tackles: "missed_tackle", defenders_beaten: "defender_beaten",
-  clean_breaks: "clean_break", offloads: "offload",
-  turnovers_won: "turnover_won", turnovers_conceded: "turnover_conceded",
-  penalties_conceded: "penalty_conceded", yellow_cards: "yellow_card",
-  red_cards: "red_card",
-};
-
-// Per-category breakdown for one player; the pts sum equals
-// playerPoints() because metres + bonuses floor per match.
-function playerBreakdown(pid, pos) {
+// Per-category breakdown for one player; the pts sum equals playerPoints()
+// because it mirrors calcPlayerPoints() term-by-term (role-aware, metres /
+// passes floor per match).
+function playerBreakdown(pid, hint) {
+  const role = resolveRole(pid, hint);
+  const rv = (t, d) => (SCORING[t][role] !== undefined ? SCORING[t][role] : d);
+  // [key, label, perRow count, perRow points]
   const cats = [
-    ["tries", "Tries"], ["try_assists", "Try assists"],
-    ["conversions", "Conversions"], ["penalty_goals", "Penalty goals"],
-    ["drop_goals", "Drop goals"], ["metres", "Metres made"],
-    ["tackles", "Tackles"], ["missed_tackles", "Missed tackles"],
-    ["defenders_beaten", "Defenders beaten"], ["clean_breaks", "Clean breaks"],
-    ["offloads", "Offloads"], ["turnovers_won", "Turnovers won"],
-    ["turnovers_conceded", "Turnovers conceded"],
-    ["penalties_conceded", "Penalties conceded"],
-    ["yellow_cards", "Yellow cards"], ["red_cards", "Red cards"],
-    ["motm", "Top-rated player"], ["bonus", "Bonuses"],
+    ["minutes", "Minutes", (r) => +r.minutes || 0, (r) => (+r.minutes >= 60 ? SCORING.minutes_long : SCORING.minutes_short)],
+    ["tries", "Tries", null, (r, c) => c * rv("try", 10)],
+    ["metres", "Metres made", null, (r) => Math.floor((r.metres || 0) / rv("metres_div", 10))],
+    ["runs", "Runs", null, (r, c) => c * rv("run", 1)],
+    ["defenders_beaten", "Defenders beaten", null, (r, c) => c * SCORING.defender_beaten],
+    ["clean_breaks", "Clean breaks", null, (r, c) => c * SCORING.clean_break],
+    ["passes", "Passes", null, (r) => Math.floor((r.passes || 0) / rv("passes_div", 10))],
+    ["offloads", "Offloads", null, (r, c) => c * SCORING.offload],
+    ["turnovers_conceded", "Turnovers conceded", null, (r, c) => c * SCORING.turnover_conceded],
+    ["try_assists", "Try assists", null, (r, c) => c * rv("try_assist", 5)],
+    ["tackles", "Tackles", null, (r, c) => c * rv("tackle", 1)],
+    ["missed_tackles", "Missed tackles", null, (r, c) => c * SCORING.missed_tackle],
+    ["turnovers_won", "Turnovers won", null, (r, c) => c * SCORING.turnover_won],
+    ["conversions", "Conversions", null, (r, c) => c * SCORING.conversion],
+    ["conversions_missed", "Missed conversions", null, (r, c) => c * SCORING.conversion_missed],
+    ["penalties", "Penalties", null, (r, c) => c * SCORING.penalty],
+    ["penalties_missed", "Missed penalties", null, (r, c) => c * SCORING.penalty_missed],
+    ["drop_goals", "Drop goals", null, (r, c) => c * SCORING.drop_goal],
+    ["drop_goals_missed", "Missed drop goals", null, (r, c) => c * SCORING.drop_goal_missed],
+    ["lineout_throws_won", "Lineout throws won", null, (r, c) => c * SCORING.lineout_throw_won],
+    ["lineouts_taken", "Lineouts taken", null, (r, c) => c * SCORING.lineout_taken],
+    ["lineout_steals", "Lineout steals", null, (r, c) => c * SCORING.lineout_steal],
+    ["penalties_conceded", "Penalties conceded", null, (r, c) => c * rv("penalty_conceded", -4)],
+    ["red_cards", "Red cards", null, (r, c) => c * SCORING.red_card],
+    ["yellow_cards", "Yellow cards", null, (r, c) => c * SCORING.yellow_card],
+    ["scrums_won", "Scrums won", null, (r, c) => c * rv("scrum_won", 0)],
+    ["scrums_lost", "Scrums lost", null, (r, c) => c * rv("scrum_lost", 0)],
+    ["lineouts_lost", "Lineouts lost", null, (r, c) => c * SCORING.lineout_lost],
   ];
   const n = Object.fromEntries(cats.map(([k]) => [k, 0]));
   const p = Object.fromEntries(cats.map(([k]) => [k, 0]));
-  const div = SCORING.metres_div[pos] || 10;
   for (const r of statRowsFor(pid)) {
-    if (!r.appeared) continue;
-    for (const [k, key] of Object.entries(FLAT_SCORE)) {
-      n[k] += r[k] || 0;  p[k] += (r[k] || 0) * SCORING[key];
+    if (!r.appeared || !(+r.minutes)) continue;
+    for (const [k, , countFn, ptsFn] of cats) {
+      const c = countFn ? countFn(r) : (r[k] || 0);
+      n[k] += c;  p[k] += ptsFn(r, c);
     }
-    n.metres += r.metres || 0;  p.metres += Math.floor((r.metres || 0) / div);
-    if (r.motm) { n.motm++; p.motm += SCORING.motm; }
-    let b = 0;
-    if ((r.metres || 0) >= 100) b += SCORING.bonus_metres_100;
-    if ((r.tackles || 0) >= 15) b += SCORING.bonus_tackles_15;
-    if ((r.turnovers_won || 0) >= 3) b += SCORING.bonus_turnovers_3;
-    if (b) { n.bonus++; p.bonus += b; }
   }
   return cats.filter(([k]) => n[k])
     .map(([k, label]) => ({ label, count: n[k], pts: p[k] }));
@@ -2430,17 +2486,18 @@ function statBits(r) {
   if (r.tries) bits.push(r.tries + "T");
   if (r.try_assists) bits.push(r.try_assists + "TA");
   if (r.conversions) bits.push(r.conversions + "C");
-  if (r.penalty_goals) bits.push(r.penalty_goals + "PG");
+  if (r.penalties) bits.push(r.penalties + "PG");
   if (r.drop_goals) bits.push(r.drop_goals + "DG");
   if (r.metres) bits.push(r.metres + "m");
+  if (r.runs) bits.push(r.runs + "r");
   if (r.tackles) bits.push(r.tackles + "tkl");
   if (r.turnovers_won) bits.push(r.turnovers_won + "TO");
-  if (r.defenders_beaten) bits.push(r.defenders_beaten + "db");
   if (r.clean_breaks) bits.push(r.clean_breaks + "cb");
+  if (r.defenders_beaten) bits.push(r.defenders_beaten + "db");
   if (r.offloads) bits.push(r.offloads + "off");
+  if (r.lineout_steals) bits.push(r.lineout_steals + "ls");
   if (r.yellow_cards) bits.push(r.yellow_cards + "Y");
   if (r.red_cards) bits.push("R");
-  if (r.motm) bits.push("MOTM");
   return bits.join(" ");
 }
 
@@ -2513,8 +2570,7 @@ function playerStatTotal(pid, key) {
   let n = 0;
   for (const r of statRowsFor(pid)) {
     if (!r.appeared) continue;
-    if (key === "motm") n += r[key] ? 1 : 0;
-    else n += r[key] || 0;
+    n += r[key] || 0;
   }
   return n;
 }
@@ -2589,7 +2645,9 @@ function playerDetailHtml(p, opts = {}) {
         <div class="text-[10px] text-slate-500 mt-0.5">${
           owner ? "👤 drafted by " + esc(owner) : "free agent"}</div>
       </div>
-      <span class="pos-${p.position} rounded px-1.5 py-0.5 text-xs font-semibold shrink-0">${p.position}</span>
+      <span class="pos-${p.position} rounded px-1.5 py-0.5 text-xs font-semibold shrink-0"
+        title="${p.role ? esc(ROLE_LABEL[p.role] || p.role) + " (scoring role)" : ""}">${
+        p.role ? esc(ROLE_LABEL[p.role] || p.role) : p.position}</span>
       <span class="text-xl font-bold text-wcgold shrink-0">${total}</span>
       ${starHtml(p.player_id)}
       ${opts.closeId ? `<button id="${opts.closeId}" class="text-slate-400 px-1 -mt-1 shrink-0">✕</button>` : ""}
@@ -3662,13 +3720,19 @@ function admRenderSelected() {
 
 // Admin stat-entry fields: input id -> match_stats column.
 const ADM_FIELDS = [
-  ["adm-tries", "tries"], ["adm-tassist", "try_assists"],
-  ["adm-conv", "conversions"], ["adm-pg", "penalty_goals"],
-  ["adm-dg", "drop_goals"], ["adm-metres", "metres"],
-  ["adm-tackles", "tackles"], ["adm-mtackles", "missed_tackles"],
+  ["adm-minutes", "minutes"], ["adm-tries", "tries"],
+  ["adm-tassist", "try_assists"], ["adm-conv", "conversions"],
+  ["adm-convmiss", "conversions_missed"], ["adm-pen", "penalties"],
+  ["adm-penmiss", "penalties_missed"], ["adm-dg", "drop_goals"],
+  ["adm-dgmiss", "drop_goals_missed"], ["adm-metres", "metres"],
+  ["adm-runs", "runs"], ["adm-passes", "passes"],
   ["adm-db", "defenders_beaten"], ["adm-cb", "clean_breaks"],
-  ["adm-offloads", "offloads"], ["adm-tw", "turnovers_won"],
+  ["adm-offloads", "offloads"], ["adm-tackles", "tackles"],
+  ["adm-mtackles", "missed_tackles"], ["adm-tw", "turnovers_won"],
   ["adm-tc", "turnovers_conceded"], ["adm-pc", "penalties_conceded"],
+  ["adm-ltw", "lineout_throws_won"], ["adm-lt", "lineouts_taken"],
+  ["adm-ls", "lineout_steals"], ["adm-ll", "lineouts_lost"],
+  ["adm-sw", "scrums_won"], ["adm-sl", "scrums_lost"],
   ["adm-yc", "yellow_cards"], ["adm-rc", "red_cards"],
 ];
 
@@ -3682,7 +3746,6 @@ async function admSave() {
     player_id: S.admPlayer.player_id,
     match_label: label,
     appeared: $("adm-appeared").checked,
-    motm: $("adm-motm").checked,
   };
   for (const [id, col] of ADM_FIELDS) row[col] = num(id);
   const { error } = await S.sb.from("match_stats")
@@ -3692,7 +3755,7 @@ async function admSave() {
   S.admPlayer = null;
   admRenderSelected();
   ADM_FIELDS.forEach(([id]) => $(id).value = 0);
-  $("adm-motm").checked = false; $("adm-appeared").checked = true;
+  $("adm-appeared").checked = true;
   scheduleRefetch();
 }
 
@@ -3708,7 +3771,6 @@ function admLoadRow(r) {
     || { player_id: r.player_id, name: r.player_id, position: "?", team: "?" };
   admRenderSelected();
   for (const [id, col] of ADM_FIELDS) $(id).value = r[col] || 0;
-  $("adm-motm").checked = r.motm;
   $("adm-appeared").checked = r.appeared;
   $("adm-label-preview").textContent = admLabel();
   window.scrollTo(0, 0);
@@ -3856,10 +3918,12 @@ async function pullStatsNow() {
     }
     // Counting stats carried straight through from the provider's per-player
     // block. TODO: confirm the DS-API field names against the source.
-    const COUNTING = ["tries","try_assists","conversions","penalty_goals",
-      "drop_goals","tackles","missed_tackles","metres","defenders_beaten",
-      "clean_breaks","offloads","turnovers_won","turnovers_conceded",
-      "penalties_conceded","yellow_cards","red_cards"];
+    const COUNTING = ["tries","metres","runs","defenders_beaten","clean_breaks",
+      "passes","offloads","turnovers_conceded","try_assists","tackles",
+      "missed_tackles","turnovers_won","conversions","conversions_missed",
+      "penalties","penalties_missed","drop_goals","drop_goals_missed",
+      "lineout_throws_won","lineouts_taken","lineout_steals","penalties_conceded",
+      "red_cards","yellow_cards","scrums_won","scrums_lost","lineouts_lost"];
     const skipped = [];
     let total = 0;
     for (const f of fixtures) {
@@ -3868,7 +3932,6 @@ async function pullStatsNow() {
       const label = `${home} vs ${away} (${f.fixture.date.slice(0, 10)})`;
       log(`Pulling ${label}…`);
       const rows = [];
-      let best = null;
       for (const tb of await providerGet(key, "fixtures/players",
                                          { fixture: f.fixture.id })) {
         const team = TEAM_NAME_FIX[tb.team.name] || tb.team.name;
@@ -3885,18 +3948,14 @@ async function pullStatsNow() {
           if (!pid) { skipped.push(`${e.player.name} (${team})`); continue; }
           const row = {
             league_id: S.league.id, player_id: pid, match_label: label,
-            appeared: true, motm: false,
+            appeared: true,
             home_score: +f.goals.home || 0, away_score: +f.goals.away || 0,
             minutes,
           };
           for (const k of COUNTING) row[k] = +st[k] || 0;
-          const rating = parseFloat(games.rating);
-          if (!isNaN(rating) && (!best || rating > best.rating))
-            best = { row, rating };
           rows.push(row);
         }
       }
-      if (best && best.rating >= 7.5) best.row.motm = true; // MOTM heuristic
       await resilientWrite("match_stats", rows,
         { upsert: true, onConflict: "league_id,player_id,match_label" });
       total += rows.length;

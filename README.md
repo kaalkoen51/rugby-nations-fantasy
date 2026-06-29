@@ -40,10 +40,11 @@ that isn't available yet and are clearly marked in the code:
 Until then you can still run a full **test draft** and manual scoring (the
 admin **Match stats** form), and all logic/tests run offline.
 
-**Scoring values** mirror Draft Rugby's published system; the exact point
-numbers are flagged `TODO: confirm vs source` in `SCORING`
-(`daily_pull.py` + `index.html`) — verify them against draftrugby.com and
-adjust the one table.
+**Scoring** is the Draft Rugby system from the league's sheet (see the
+Scoring section below). One sheet entry is ambiguous: "Turnovers Conceded =
+3 points" is written without a sign; since every other concession is
+negative it's scored **−3** — confirm the intended sign. It's a single
+value in `SCORING` (`daily_pull.py` + `index.html`).
 
 ---
 
@@ -70,48 +71,58 @@ two stay in step.
 
 ---
 
-## Positions
+## Positions & roles
 
-Six groups map to the starting XV (plus a `TEAM` pick for stage bonuses):
+The draft uses **six groups** (the lineup is a starting XV). Scoring uses a
+finer **8 roles**, because Draft Rugby scores props differently from
+hookers, scrum-halves from fly-halves, etc. Each player carries both a
+`role` and its draft `position` group (in `players.json`).
 
-| Code | Group | Jerseys |
+| Group | Roles | Jerseys |
 | --- | --- | --- |
-| `FR` | Front Row | 1, 2, 3 |
-| `SR` | Second Row | 4, 5 |
-| `BR` | Back Row | 6, 7, 8 |
-| `HB` | Half Backs | 9, 10 |
-| `CE` | Centres | 12, 13 |
-| `B3` | Back Three | 11, 14, 15 |
+| `FR` Front Row | Prop, Hooker | 1, 2, 3 |
+| `SR` Second Row | Lock | 4, 5 |
+| `BR` Back Row | Loose forward | 6, 7, 8 |
+| `HB` Half Backs | Scrum-half, Fly-half | 9, 10 |
+| `CE` Centres | Centre | 12, 13 |
+| `B3` Back Three | Outside back | 11, 14, 15 |
 
-**Draft squad (phase 1):** 22 picks — a starting XV plus a 6-man bench plus
-one nation:
+Plus a `TEAM` pick (a nation, for stage bonuses).
+
+**Draft squad (phase 1):** 22 picks — a starting XV + a 6-man bench + one nation:
 
 - Quota: `FR 4 · SR 3 · BR 4 · HB 3 · CE 3 · B3 4 · TEAM 1`
 - Starters (the XV): `FR 3 · SR 2 · BR 3 · HB 2 · CE 2 · B3 3`; the rest are subs.
 
-A sub only scores in a round where its starter didn't feature. Quotas are
-easy to tune in `PHASE1_QUOTA` / `PHASE1_STARTERS` (`index.html`).
+A sub only scores in a round where its starter didn't feature. Quotas tune
+in `PHASE1_QUOTA` / `PHASE1_STARTERS` (`index.html`).
 
 ## Scoring
 
-Mirrors Draft Rugby's model (one `SCORING` table, flagged for final
-confirmation against the source):
+The Draft Rugby system (one `SCORING` table in `daily_pull.py` + `index.html`;
+many values are by role — abbreviations: P prop, H hooker, L lock,
+Loosie = flanker/No.8, SH scrum-half, FH fly-half):
 
 | Action | Points |
 | --- | --- |
-| Try | +10 |
-| Try assist | +4 |
-| Conversion | +2 |
-| Penalty goal / drop goal | +3 |
-| Tackle | +1 · Missed tackle −1 |
-| Defender beaten / clean break | +2 |
-| Offload | +1 |
-| Turnover won | +5 · Turnover conceded −2 |
-| Penalty conceded | −2 |
-| Yellow card −3 · Red card −8 | |
-| Metres made | 1 pt per X metres, by position (FR 4 · SR 2 · BR 8 · backs 10) |
-| Bonuses | 100+ m **+3** · 15+ tackles **+2** · 3+ turnovers won **+2** |
-| Top-rated player (per match) | +5 |
+| Minutes | 1–59 +1 · 60+ +2 |
+| Try | Backs/Centres +10 · FH/SH/Loosies/Hookers +12 · Props/Locks +15 |
+| Metres carried | +1 per 10 m (Props +1 per 5 m) |
+| Runs | +1 (Props +2) |
+| Passes | +1 per 10 (SHs +1 per 5) |
+| Defenders beaten +2 · Clean breaks +5 · Offloads +3 | |
+| Tackles | +1 (Props +2) · Missed tackles −2 |
+| Turnovers won +3 · Turnovers conceded −3¹ | |
+| Try assists | +5 (Props/Locks +7) |
+| Conversions +2 (−2 missed) · Penalties +3 (−3 missed) · Drop goals +3 (−3 missed) | |
+| Lineout throws won +1 · Lineouts taken +2 · Lineout steals +4 · Lineouts lost −2 | |
+| Scrums won | Props +1.5 · Hookers/Locks +1 · Loosies +0.5 |
+| Scrums lost | Props −3 · Hookers/Locks −2 · Loosies −1 |
+| Penalties conceded | −4 (Props −3) |
+| Yellow card −10 · Red card −20 | |
+
+¹ The sheet shows "Turnovers Conceded = 3 points" unsigned; scored −3 (a
+concession) — confirm with the source.
 
 **TEAM pick** earns cumulative stage bonuses: reaching the **final +15**,
 winning the **title +20**. In the final phase, surviving managers predict

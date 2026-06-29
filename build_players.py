@@ -52,31 +52,45 @@ TEAMS = [
     ("Fiji",         "FIJ", "Rest of World"),
 ]
 
-# Position groups (six) and how many of each a placeholder squad carries.
-# Sums to 33 — a realistic tournament squad (matchday 23 = 15 + 8 bench).
-POSITION_GROUPS = ["FR", "SR", "BR", "HB", "CE", "B3"]
-GROUP_LABEL = {
-    "FR": "Front Row", "SR": "Second Row", "BR": "Back Row",
-    "HB": "Half Back", "CE": "Centre", "B3": "Back Three",
+# Scoring roles (eight) — the granularity the Draft Rugby scoring system
+# distinguishes (props score differently from hookers, scrum-halves from
+# fly-halves, etc.). Each role maps to one of the six draft groups, which
+# is what the draft quota / lineup / trades use.
+ROLE_GROUP = {
+    "PR": "FR",  # prop -> front row
+    "HK": "FR",  # hooker -> front row
+    "LK": "SR",  # lock -> second row
+    "LF": "BR",  # loose forward -> back row
+    "SH": "HB",  # scrum-half -> half backs
+    "FH": "HB",  # fly-half -> half backs
+    "CE": "CE",  # centre
+    "OB": "B3",  # outside back -> back three
 }
-SQUAD_COMPOSITION = {"FR": 6, "SR": 4, "BR": 6, "HB": 5, "CE": 5, "B3": 7}
+ROLE_LABEL = {
+    "PR": "Prop", "HK": "Hooker", "LK": "Lock", "LF": "Loose Forward",
+    "SH": "Scrum-half", "FH": "Fly-half", "CE": "Centre", "OB": "Outside Back",
+}
+# How many of each role a placeholder squad carries. Sums to 33.
+ROLE_COMPOSITION = {"PR": 5, "HK": 2, "LK": 4, "LF": 6,
+                    "SH": 3, "FH": 2, "CE": 4, "OB": 7}
 
 
 def build_placeholder() -> list:
     """A full, structurally-correct pool with placeholder names. Names are
-    obvious stand-ins ("England Front Row 1") to be replaced by the real
-    rosters via the DS-API once available."""
+    obvious stand-ins ("England Prop 1") to be replaced by the real rosters
+    via the DS-API once available."""
     players = []
     for name, code, _pool in TEAMS:
         number = 0
-        for group in POSITION_GROUPS:
-            for i in range(1, SQUAD_COMPOSITION[group] + 1):
+        for role in ROLE_COMPOSITION:
+            for i in range(1, ROLE_COMPOSITION[role] + 1):
                 number += 1
                 players.append(
                     {
                         "player_id": f"{code.lower()}_{number}",
-                        "name": f"{name} {GROUP_LABEL[group]} {i}",
-                        "position": group,
+                        "name": f"{name} {ROLE_LABEL[role]} {i}",
+                        "position": ROLE_GROUP[role],
+                        "role": role,
                         "team": name,
                         "team_code": code,
                     }

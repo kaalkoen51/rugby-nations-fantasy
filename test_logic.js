@@ -62,25 +62,56 @@ check("3rd SR is sub (2 starters)", [draftOne("SR"), draftOne("SR")], ["SR", "SU
 check("TEAM slot is TEAM", draftOne("TEAM"), "TEAM");
 check("B3 quota untouched", quotaLeft(roster, "B3"), 4);
 
-/* ---------- scoring (mirrors calculate_points in daily_pull.py) ---------- */
+/* ---------- scoring (mirrors calculate_points in daily_pull.py) ----------
+   Many values depend on the granular role; the 2nd arg to calcPlayerPoints
+   is a role code (PR/HK/LK/LF/SH/FH/CE/OB) when the player isn't in
+   S.players. minutes also score: 1-59 -> 1, 60+ -> 2. */
 const row = (o) => ({
-  appeared: true, tries: 0, try_assists: 0, conversions: 0, penalty_goals: 0,
-  drop_goals: 0, tackles: 0, missed_tackles: 0, metres: 0, defenders_beaten: 0,
-  clean_breaks: 0, offloads: 0, turnovers_won: 0, turnovers_conceded: 0,
-  penalties_conceded: 0, yellow_cards: 0, red_cards: 0, motm: false, ...o });
+  appeared: true, minutes: 80, tries: 0, metres: 0, runs: 0, defenders_beaten: 0,
+  clean_breaks: 0, passes: 0, offloads: 0, turnovers_conceded: 0, try_assists: 0,
+  tackles: 0, missed_tackles: 0, turnovers_won: 0, conversions: 0,
+  conversions_missed: 0, penalties: 0, penalties_missed: 0, drop_goals: 0,
+  drop_goals_missed: 0, lineout_throws_won: 0, lineouts_taken: 0, lineout_steals: 0,
+  penalties_conceded: 0, red_cards: 0, yellow_cards: 0, scrums_won: 0,
+  scrums_lost: 0, lineouts_lost: 0, ...o });
+const cp = (o, role) => calcPlayerPoints(row(o), role);  // includes +2 minutes
 
-check("try + conversion", calcPlayerPoints(row({ tries: 1, conversions: 1 }), "B3"), 10 + 2);
-check("kicker: 3 pens + 1 drop", calcPlayerPoints(row({ penalty_goals: 3, drop_goals: 1 }), "HB"), 9 + 3);
-check("B3 metres floor per match (25 -> 2)", calcPlayerPoints(row({ metres: 25 }), "B3"), 2);
-check("SR metres weighted (10 -> 5)", calcPlayerPoints(row({ metres: 10 }), "SR"), 5);
-check("FR metres weighted (12 -> 3)", calcPlayerPoints(row({ metres: 12 }), "FR"), 3);
-check("tackles + missed tackle", calcPlayerPoints(row({ tackles: 4, missed_tackles: 1 }), "BR"), 4 - 1);
-check("turnover bonus (3 won = 15 + 2)", calcPlayerPoints(row({ turnovers_won: 3 }), "BR"), 15 + 2);
-check("metres bonus (100m: 10 + 3)", calcPlayerPoints(row({ metres: 100 }), "B3"), 10 + 3);
-check("tackle bonus (15 tackles: 15 + 2)", calcPlayerPoints(row({ tackles: 15 }), "BR"), 15 + 2);
-check("red card", calcPlayerPoints(row({ red_cards: 1 }), "FR"), -8);
-check("motm + try assist", calcPlayerPoints(row({ motm: true, try_assists: 1 }), "CE"), 5 + 4);
-check("DNP scores 0", calcPlayerPoints(row({ appeared: false, tries: 3 }), "B3"), 0);
+check("minutes 1-59 = 1", cp({ minutes: 40 }, "OB"), 1);
+check("minutes 60+ = 2", cp({ minutes: 80 }, "OB"), 2);
+check("0 minutes scores 0", cp({ minutes: 0, tries: 3 }, "OB"), 0);
+check("DNP scores 0", cp({ appeared: false, tries: 3 }, "OB"), 0);
+check("prop try = 15", cp({ tries: 1 }, "PR"), 2 + 15);
+check("hooker try = 12", cp({ tries: 1 }, "HK"), 2 + 12);
+check("centre try = 10", cp({ tries: 1 }, "CE"), 2 + 10);
+check("prop metres 1/5m", cp({ metres: 5 }, "PR"), 2 + 1);
+check("back metres 1/10m", cp({ metres: 25 }, "OB"), 2 + 2);
+check("prop run x2", cp({ runs: 2 }, "PR"), 2 + 4);
+check("back run x1", cp({ runs: 2 }, "OB"), 2 + 2);
+check("scrum-half passes 1/5", cp({ passes: 10 }, "SH"), 2 + 2);
+check("other passes 1/10", cp({ passes: 10 }, "FH"), 2 + 1);
+check("prop try assist = 7", cp({ try_assists: 1 }, "PR"), 2 + 7);
+check("back try assist = 5", cp({ try_assists: 1 }, "OB"), 2 + 5);
+check("prop tackle x2", cp({ tackles: 3 }, "PR"), 2 + 6);
+check("back tackle x1", cp({ tackles: 3 }, "OB"), 2 + 3);
+check("clean break = 5", cp({ clean_breaks: 1 }, "OB"), 2 + 5);
+check("defenders beaten = 2", cp({ defenders_beaten: 2 }, "OB"), 2 + 4);
+check("offload = 3", cp({ offloads: 1 }, "OB"), 2 + 3);
+check("turnover won = 3", cp({ turnovers_won: 1 }, "LF"), 2 + 3);
+check("turnover conceded = -3", cp({ turnovers_conceded: 1 }, "OB"), 2 - 3);
+check("conversions + missed", cp({ conversions: 2, conversions_missed: 1 }, "FH"), 2 + 4 - 2);
+check("penalties + missed", cp({ penalties: 1, penalties_missed: 1 }, "FH"), 2 + 3 - 3);
+check("drop goal", cp({ drop_goals: 1 }, "FH"), 2 + 3);
+check("lineout steal = 4", cp({ lineout_steals: 1 }, "LK"), 2 + 4);
+check("lineout throws won", cp({ lineout_throws_won: 2 }, "HK"), 2 + 2);
+check("lineouts taken", cp({ lineouts_taken: 3 }, "LK"), 2 + 6);
+check("lineouts lost = -2", cp({ lineouts_lost: 1 }, "LK"), 2 - 2);
+check("prop penalty conceded = -3", cp({ penalties_conceded: 1 }, "PR"), 2 - 3);
+check("back penalty conceded = -4", cp({ penalties_conceded: 1 }, "OB"), 2 - 4);
+check("yellow card = -10", cp({ yellow_cards: 1 }, "OB"), 2 - 10);
+check("red card = -20", cp({ red_cards: 1 }, "PR"), 2 - 20);
+check("prop scrums won 1.5", cp({ scrums_won: 2 }, "PR"), 2 + 3);
+check("loosie scrums won 0.5", cp({ scrums_won: 2 }, "LF"), 2 + 1);
+check("prop scrums lost -3", cp({ scrums_lost: 1 }, "PR"), 2 - 3);
 
 /* ---------- per-category breakdown sums to the player total ---------- */
 S.stats = [
@@ -88,14 +119,14 @@ S.stats = [
   row({ player_id: "eng_9", match_label: "England vs Japan (2026-07-04)", metres: 25 }),
   row({ player_id: "eng_9", match_label: "England vs NZ (2026-07-11)", metres: 33 }),
 ];
-check("breakdown sums to playerPoints (FR)",
-  playerBreakdown("eng_5", "FR").reduce((s, r) => s + r.pts, 0),
-  playerPoints("eng_5", "FR"));
-check("FR breakdown categories", playerBreakdown("eng_5", "FR")
+check("breakdown sums to playerPoints (prop)",
+  playerBreakdown("eng_5", "PR").reduce((s, r) => s + r.pts, 0),
+  playerPoints("eng_5", "PR"));
+check("prop breakdown categories", playerBreakdown("eng_5", "PR")
   .map((r) => [r.label, r.count, r.pts]),
-  [["Tries", 1, 10], ["Tackles", 3, 3], ["Yellow cards", 1, -3]]);
+  [["Minutes", 80, 2], ["Tries", 1, 15], ["Tackles", 3, 6], ["Yellow cards", 1, -10]]);
 check("metres floor per match (2 + 3, not 5.8 -> 5)",
-  playerBreakdown("eng_9", "B3").find((r) => r.label === "Metres made").pts, 5);
+  playerBreakdown("eng_9", "OB").find((r) => r.label === "Metres made").pts, 5);
 check("season stat total counts raw metres", playerStatTotal("eng_9", "metres"), 58);
 
 /* ---------- sub activation: covers a no-show starter, by round ---------- */
@@ -114,12 +145,13 @@ S.stats = [
   row({ player_id: "fra_5", match_label: "France vs South Africa (2026-07-11)", appeared: true, tackles: 3 }),
   row({ player_id: "arg_3", match_label: "Argentina vs Wales (2026-07-11)", appeared: true, tries: 1 }),
 ];
+// FR group defaults to the prop role (no S.players here): minutes 2 + ...
 const sc = computeScores()[0];
 const subItem = sc.items.find((i) => i.pick.is_sub);
 const startItem = sc.items.find((i) => !i.pick.is_sub);
-check("starter FR tackles pts", startItem.pts, 3);
-check("sub active only R1 (try 10)", [subItem.pts, subItem.note], [10, "sub"]);
-check("manager total", sc.total, 13);
+check("starter R2 (2 min + 3 tackles x2)", startItem.pts, 2 + 6);
+check("sub active only R1 (2 min + try 15)", [subItem.pts, subItem.note], [2 + 15, "sub"]);
+check("manager total", sc.total, 8 + 17);
 
 /* ---------- team stage bonuses (pool -> final -> winner) ---------- */
 check("stage pool = 0", calcTeamPoints("pool"), 0);

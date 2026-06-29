@@ -26,21 +26,23 @@ from daily_pull import (
 # A fully-populated match_stats source row for upsert tests.
 daily_pull_ROW = {
     "player_id": "fra_9", "match_label": "France vs South Africa (2026-07-04)",
-    "minutes": 80, "tries": 1, "try_assists": 0, "conversions": 0,
-    "penalty_goals": 0, "drop_goals": 0, "tackles": 6, "missed_tackles": 0,
-    "metres": 40, "defenders_beaten": 2, "clean_breaks": 1, "offloads": 1,
-    "turnovers_won": 1, "turnovers_conceded": 0, "penalties_conceded": 0,
-    "yellow_cards": 0, "red_cards": 0, "motm": True,
-    "home_score": 27, "away_score": 24,
+    "role": "SH", "minutes": 80, "tries": 1, "metres": 40, "runs": 5,
+    "defenders_beaten": 2, "clean_breaks": 1, "passes": 60, "offloads": 1,
+    "turnovers_conceded": 0, "try_assists": 1, "tackles": 6, "missed_tackles": 0,
+    "turnovers_won": 1, "conversions": 0, "conversions_missed": 0, "penalties": 0,
+    "penalties_missed": 0, "drop_goals": 0, "drop_goals_missed": 0,
+    "lineout_throws_won": 0, "lineouts_taken": 0, "lineout_steals": 0,
+    "penalties_conceded": 0, "red_cards": 0, "yellow_cards": 0, "scrums_won": 0,
+    "scrums_lost": 0, "lineouts_lost": 0, "home_score": 27, "away_score": 24,
 }
 
 ROSTER = [
-    {"player_id": "eng_1", "name": "Ellis Genge", "position": "FR", "team": "England", "team_code": "ENG"},
-    {"player_id": "eng_8", "name": "Ben Earl", "position": "BR", "team": "England", "team_code": "ENG"},
-    {"player_id": "eng_10", "name": "Marcus Smith", "position": "HB", "team": "England", "team_code": "ENG"},
-    {"player_id": "eng_22", "name": "Fin Smith", "position": "HB", "team": "England", "team_code": "ENG"},
-    {"player_id": "fra_9", "name": "Antoine Dupont", "position": "HB", "team": "France", "team_code": "FRA"},
-    {"player_id": "rsa_10", "name": "Handré Pollard", "position": "HB", "team": "South Africa", "team_code": "RSA"},
+    {"player_id": "eng_1", "name": "Ellis Genge", "position": "FR", "role": "PR", "team": "England", "team_code": "ENG"},
+    {"player_id": "eng_8", "name": "Ben Earl", "position": "BR", "role": "LF", "team": "England", "team_code": "ENG"},
+    {"player_id": "eng_10", "name": "Marcus Smith", "position": "HB", "role": "FH", "team": "England", "team_code": "ENG"},
+    {"player_id": "eng_22", "name": "Fin Smith", "position": "HB", "role": "FH", "team": "England", "team_code": "ENG"},
+    {"player_id": "fra_9", "name": "Antoine Dupont", "position": "HB", "role": "SH", "team": "France", "team_code": "FRA"},
+    {"player_id": "rsa_10", "name": "Handré Pollard", "position": "HB", "role": "FH", "team": "South Africa", "team_code": "RSA"},
 ]
 
 
@@ -73,30 +75,47 @@ class TestFeatured(unittest.TestCase):
 
 
 class TestScoring(unittest.TestCase):
-    """Rugby scoring — must match scoringRow() in index.html."""
+    """Rugby scoring — role-dependent; must match scoringRow() in
+    index.html. Every scored row includes the minutes points (60+ -> 2)."""
 
     def base(self, **o):
-        row = {"minutes": 80, "position": "B3", "motm": False}
+        row = {"minutes": 80, "role": "OB"}
         row.update(o)
         return row
 
-    def test_try_and_conversion(self):
-        self.assertEqual(calculate_points(self.base(tries=1, conversions=1)), 12)
-
-    def test_metres_weighted_by_position(self):
-        self.assertEqual(calculate_points(self.base(position="B3", metres=25)), 2)
-        self.assertEqual(calculate_points(self.base(position="SR", metres=10)), 5)
-        self.assertEqual(calculate_points(self.base(position="FR", metres=12)), 3)
-
-    def test_bonuses(self):
-        # 100 metres: floor(100/10)=10 + 3 bonus
-        self.assertEqual(calculate_points(self.base(metres=100)), 13)
-        # 3 turnovers won: 15 + 2 bonus
-        self.assertEqual(calculate_points(self.base(position="BR", turnovers_won=3)), 17)
-
-    def test_cards_and_dnp(self):
-        self.assertEqual(calculate_points(self.base(position="FR", red_cards=1)), -8)
+    def test_minutes(self):
+        self.assertEqual(calculate_points(self.base(minutes=40)), 1)
+        self.assertEqual(calculate_points(self.base(minutes=80)), 2)
         self.assertEqual(calculate_points(self.base(minutes=0, tries=3)), 0)
+
+    def test_try_by_role(self):
+        self.assertEqual(calculate_points(self.base(role="PR", tries=1)), 2 + 15)
+        self.assertEqual(calculate_points(self.base(role="HK", tries=1)), 2 + 12)
+        self.assertEqual(calculate_points(self.base(role="CE", tries=1)), 2 + 10)
+
+    def test_metres_and_runs_by_role(self):
+        self.assertEqual(calculate_points(self.base(role="PR", metres=5)), 2 + 1)
+        self.assertEqual(calculate_points(self.base(role="OB", metres=25)), 2 + 2)
+        self.assertEqual(calculate_points(self.base(role="PR", runs=2)), 2 + 4)
+
+    def test_passes_and_tackles_by_role(self):
+        self.assertEqual(calculate_points(self.base(role="SH", passes=10)), 2 + 2)
+        self.assertEqual(calculate_points(self.base(role="FH", passes=10)), 2 + 1)
+        self.assertEqual(calculate_points(self.base(role="PR", tackles=3)), 2 + 6)
+        self.assertEqual(calculate_points(self.base(role="OB", tackles=3)), 2 + 3)
+
+    def test_kicking_and_lineouts(self):
+        self.assertEqual(calculate_points(
+            self.base(role="FH", conversions=2, conversions_missed=1)), 2 + 4 - 2)
+        self.assertEqual(calculate_points(self.base(role="LK", lineout_steals=1)), 2 + 4)
+        self.assertEqual(calculate_points(self.base(role="LK", lineouts_taken=3)), 2 + 6)
+
+    def test_negatives_and_scrums_by_role(self):
+        self.assertEqual(calculate_points(self.base(role="PR", penalties_conceded=1)), 2 - 3)
+        self.assertEqual(calculate_points(self.base(role="OB", penalties_conceded=1)), 2 - 4)
+        self.assertEqual(calculate_points(self.base(role="PR", red_cards=1)), 2 - 20)
+        self.assertEqual(calculate_points(self.base(role="PR", scrums_won=2)), 2 + 3)
+        self.assertEqual(calculate_points(self.base(role="LF", scrums_won=2)), 2 + 1)
 
 
 class TestPlayerMatcher(unittest.TestCase):
@@ -191,8 +210,10 @@ class TestExtractPlayerRows(unittest.TestCase):
         self.assertEqual(by_api["154"]["player_id"], "fra_9")
         self.assertEqual(by_api["154"]["player_name"], "Antoine Dupont")
         self.assertEqual(by_api["154"]["tries"], 1)
+        # squad-list role + group win over the provider's position string
+        self.assertEqual(by_api["154"]["role"], "SH")
         self.assertEqual(by_api["284"]["player_id"], "eng_8")
-        # squad-list position wins over the provider one
+        self.assertEqual(by_api["284"]["role"], "LF")
         self.assertEqual(by_api["284"]["position"], "BR")
         self.assertEqual(by_api["284"]["tackles"], 12)
 
@@ -228,6 +249,7 @@ class TestMultiLeague(unittest.TestCase):
             if p["player_id"] == "fra_9":
                 self.assertEqual(p["tries"], 1)
                 self.assertEqual(p["tackles"], 6)
+                self.assertNotIn("motm", p)
 
     def test_single_league_string_still_works(self):
         payload = build_stats_payload([daily_pull_ROW], "league-a")
