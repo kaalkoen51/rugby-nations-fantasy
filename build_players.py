@@ -21,8 +21,11 @@ the README).
 """
 
 import argparse
+import email
+import html
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -98,6 +101,75 @@ def build_placeholder() -> list:
     return players
 
 
+# The official squad list (Google Sheet) labels each player with one of these
+# eight positions; map to the granular scoring role.
+POS_TO_ROLE = {
+    "Prop": "PR", "Hooker": "HK", "Lock": "LK", "Loose Forward": "LF",
+    "Scrumhalf": "SH", "Flyhalf": "FH", "Centre": "CE", "Outside Back": "OB",
+}
+# A few hyphenated-surname players come through with "#N/A" (the sheet's
+# position lookup misses them); set their roles by hand.
+NA_OVERRIDE = {
+    "Jamison Gibson-Park": "SH", "Luke Cowan-Dickie": "HK",
+    "Asher Opoku-Fordjour": "PR", "Immanuel Feyi-Waboso": "OB",
+    "Gabriel Hamer-Webb": "OB", "Reuben Morgan-Williams": "SH",
+    "Louis Rees-Zammit": "OB",
+}
+NAME_TO_CODE = {name: code for name, code, _pool in TEAMS}
+
+
+def parse_mht(path: Path):
+    """Pull (name, team, position) rows from a Google Sheets .mht export
+    (the '2026 Nations Championship Player List' — columns Name/Team/Position
+    on Sheet1)."""
+    msg = email.message_from_binary_file(open(path, "rb"))
+    grid = None
+    for part in msg.walk():
+        if part.get_content_type() == "text/html":
+            txt = part.get_payload(decode=True).decode("utf-8", "replace")
+            if "Loose Forward" in txt or txt.count("<td") > 500:
+                grid = txt
+                break
+    if grid is None:
+        sys.exit("Could not find the player grid in the .mht file.")
+    rows = []
+    for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", grid, re.S):
+        cells = [html.unescape(re.sub(r"<[^>]+>", "", c)).strip()
+                 for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S)]
+        if len(cells) < 4 or not cells[0].isdigit():
+            continue
+        name, team, pos = cells[1], cells[2], cells[3]
+        if name and name != "Name" and team:
+            rows.append((name, team, pos))
+    return rows
+
+
+def build_from_mht(path: Path) -> list:
+    players, counters, problems = [], {}, []
+    for name, team, pos in parse_mht(path):
+        role = POS_TO_ROLE.get(pos) or NA_OVERRIDE.get(name)
+        code = NAME_TO_CODE.get(team)
+        if not code:
+            problems.append(f"unknown team {team!r} for {name!r}")
+            continue
+        if not role:
+            problems.append(f"unknown position {pos!r} for {name!r}")
+            continue
+        n = counters[code] = counters.get(code, 0) + 1
+        players.append({
+            "player_id": f"{code.lower()}_{n}",
+            "name": name,
+            "position": ROLE_GROUP[role],
+            "role": role,
+            "team": team,
+            "team_code": code,
+        })
+    if problems:
+        print("\n".join(problems), file=sys.stderr)
+        sys.exit("Resolve the unmapped rows above (add to NA_OVERRIDE / TEAMS).")
+    return players
+
+
 def fetch_from_ds_api() -> list:
     """Pull the real rosters from the Draft Sport API.
 
@@ -125,9 +197,19 @@ def main() -> None:
         "--placeholder", action="store_true",
         help="Generate an offline placeholder pool (no network/DS-API).",
     )
+    parser.add_argument(
+        "--from-mht", metavar="PATH",
+        help="Build from the official Google Sheets .mht squad-list export "
+        "(columns Name/Team/Position).",
+    )
     args = parser.parse_args()
 
-    players = build_placeholder() if args.placeholder else fetch_from_ds_api()
+    if args.from_mht:
+        players = build_from_mht(Path(args.from_mht))
+    elif args.placeholder:
+        players = build_placeholder()
+    else:
+        players = fetch_from_ds_api()
 
     teams = sorted({p["team_code"] for p in players})
     print(f"{len(players)} players across {len(teams)} teams")

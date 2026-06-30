@@ -1,1855 +1,7 @@
 [
   {
-    "player_id": "eng_1",
-    "name": "England Prop 1",
-    "position": "FR",
-    "role": "PR",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_2",
-    "name": "England Prop 2",
-    "position": "FR",
-    "role": "PR",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_3",
-    "name": "England Prop 3",
-    "position": "FR",
-    "role": "PR",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_4",
-    "name": "England Prop 4",
-    "position": "FR",
-    "role": "PR",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_5",
-    "name": "England Prop 5",
-    "position": "FR",
-    "role": "PR",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_6",
-    "name": "England Hooker 1",
-    "position": "FR",
-    "role": "HK",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_7",
-    "name": "England Hooker 2",
-    "position": "FR",
-    "role": "HK",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_8",
-    "name": "England Lock 1",
-    "position": "SR",
-    "role": "LK",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_9",
-    "name": "England Lock 2",
-    "position": "SR",
-    "role": "LK",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_10",
-    "name": "England Lock 3",
-    "position": "SR",
-    "role": "LK",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_11",
-    "name": "England Lock 4",
-    "position": "SR",
-    "role": "LK",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_12",
-    "name": "England Loose Forward 1",
-    "position": "BR",
-    "role": "LF",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_13",
-    "name": "England Loose Forward 2",
-    "position": "BR",
-    "role": "LF",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_14",
-    "name": "England Loose Forward 3",
-    "position": "BR",
-    "role": "LF",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_15",
-    "name": "England Loose Forward 4",
-    "position": "BR",
-    "role": "LF",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_16",
-    "name": "England Loose Forward 5",
-    "position": "BR",
-    "role": "LF",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_17",
-    "name": "England Loose Forward 6",
-    "position": "BR",
-    "role": "LF",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_18",
-    "name": "England Scrum-half 1",
-    "position": "HB",
-    "role": "SH",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_19",
-    "name": "England Scrum-half 2",
-    "position": "HB",
-    "role": "SH",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_20",
-    "name": "England Scrum-half 3",
-    "position": "HB",
-    "role": "SH",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_21",
-    "name": "England Fly-half 1",
-    "position": "HB",
-    "role": "FH",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_22",
-    "name": "England Fly-half 2",
-    "position": "HB",
-    "role": "FH",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_23",
-    "name": "England Centre 1",
-    "position": "CE",
-    "role": "CE",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_24",
-    "name": "England Centre 2",
-    "position": "CE",
-    "role": "CE",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_25",
-    "name": "England Centre 3",
-    "position": "CE",
-    "role": "CE",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_26",
-    "name": "England Centre 4",
-    "position": "CE",
-    "role": "CE",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_27",
-    "name": "England Outside Back 1",
-    "position": "B3",
-    "role": "OB",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_28",
-    "name": "England Outside Back 2",
-    "position": "B3",
-    "role": "OB",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_29",
-    "name": "England Outside Back 3",
-    "position": "B3",
-    "role": "OB",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_30",
-    "name": "England Outside Back 4",
-    "position": "B3",
-    "role": "OB",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_31",
-    "name": "England Outside Back 5",
-    "position": "B3",
-    "role": "OB",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_32",
-    "name": "England Outside Back 6",
-    "position": "B3",
-    "role": "OB",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "eng_33",
-    "name": "England Outside Back 7",
-    "position": "B3",
-    "role": "OB",
-    "team": "England",
-    "team_code": "ENG"
-  },
-  {
-    "player_id": "fra_1",
-    "name": "France Prop 1",
-    "position": "FR",
-    "role": "PR",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_2",
-    "name": "France Prop 2",
-    "position": "FR",
-    "role": "PR",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_3",
-    "name": "France Prop 3",
-    "position": "FR",
-    "role": "PR",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_4",
-    "name": "France Prop 4",
-    "position": "FR",
-    "role": "PR",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_5",
-    "name": "France Prop 5",
-    "position": "FR",
-    "role": "PR",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_6",
-    "name": "France Hooker 1",
-    "position": "FR",
-    "role": "HK",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_7",
-    "name": "France Hooker 2",
-    "position": "FR",
-    "role": "HK",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_8",
-    "name": "France Lock 1",
-    "position": "SR",
-    "role": "LK",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_9",
-    "name": "France Lock 2",
-    "position": "SR",
-    "role": "LK",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_10",
-    "name": "France Lock 3",
-    "position": "SR",
-    "role": "LK",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_11",
-    "name": "France Lock 4",
-    "position": "SR",
-    "role": "LK",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_12",
-    "name": "France Loose Forward 1",
-    "position": "BR",
-    "role": "LF",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_13",
-    "name": "France Loose Forward 2",
-    "position": "BR",
-    "role": "LF",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_14",
-    "name": "France Loose Forward 3",
-    "position": "BR",
-    "role": "LF",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_15",
-    "name": "France Loose Forward 4",
-    "position": "BR",
-    "role": "LF",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_16",
-    "name": "France Loose Forward 5",
-    "position": "BR",
-    "role": "LF",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_17",
-    "name": "France Loose Forward 6",
-    "position": "BR",
-    "role": "LF",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_18",
-    "name": "France Scrum-half 1",
-    "position": "HB",
-    "role": "SH",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_19",
-    "name": "France Scrum-half 2",
-    "position": "HB",
-    "role": "SH",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_20",
-    "name": "France Scrum-half 3",
-    "position": "HB",
-    "role": "SH",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_21",
-    "name": "France Fly-half 1",
-    "position": "HB",
-    "role": "FH",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_22",
-    "name": "France Fly-half 2",
-    "position": "HB",
-    "role": "FH",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_23",
-    "name": "France Centre 1",
-    "position": "CE",
-    "role": "CE",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_24",
-    "name": "France Centre 2",
-    "position": "CE",
-    "role": "CE",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_25",
-    "name": "France Centre 3",
-    "position": "CE",
-    "role": "CE",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_26",
-    "name": "France Centre 4",
-    "position": "CE",
-    "role": "CE",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_27",
-    "name": "France Outside Back 1",
-    "position": "B3",
-    "role": "OB",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_28",
-    "name": "France Outside Back 2",
-    "position": "B3",
-    "role": "OB",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_29",
-    "name": "France Outside Back 3",
-    "position": "B3",
-    "role": "OB",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_30",
-    "name": "France Outside Back 4",
-    "position": "B3",
-    "role": "OB",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_31",
-    "name": "France Outside Back 5",
-    "position": "B3",
-    "role": "OB",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_32",
-    "name": "France Outside Back 6",
-    "position": "B3",
-    "role": "OB",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "fra_33",
-    "name": "France Outside Back 7",
-    "position": "B3",
-    "role": "OB",
-    "team": "France",
-    "team_code": "FRA"
-  },
-  {
-    "player_id": "ire_1",
-    "name": "Ireland Prop 1",
-    "position": "FR",
-    "role": "PR",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_2",
-    "name": "Ireland Prop 2",
-    "position": "FR",
-    "role": "PR",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_3",
-    "name": "Ireland Prop 3",
-    "position": "FR",
-    "role": "PR",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_4",
-    "name": "Ireland Prop 4",
-    "position": "FR",
-    "role": "PR",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_5",
-    "name": "Ireland Prop 5",
-    "position": "FR",
-    "role": "PR",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_6",
-    "name": "Ireland Hooker 1",
-    "position": "FR",
-    "role": "HK",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_7",
-    "name": "Ireland Hooker 2",
-    "position": "FR",
-    "role": "HK",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_8",
-    "name": "Ireland Lock 1",
-    "position": "SR",
-    "role": "LK",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_9",
-    "name": "Ireland Lock 2",
-    "position": "SR",
-    "role": "LK",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_10",
-    "name": "Ireland Lock 3",
-    "position": "SR",
-    "role": "LK",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_11",
-    "name": "Ireland Lock 4",
-    "position": "SR",
-    "role": "LK",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_12",
-    "name": "Ireland Loose Forward 1",
-    "position": "BR",
-    "role": "LF",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_13",
-    "name": "Ireland Loose Forward 2",
-    "position": "BR",
-    "role": "LF",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_14",
-    "name": "Ireland Loose Forward 3",
-    "position": "BR",
-    "role": "LF",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_15",
-    "name": "Ireland Loose Forward 4",
-    "position": "BR",
-    "role": "LF",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_16",
-    "name": "Ireland Loose Forward 5",
-    "position": "BR",
-    "role": "LF",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_17",
-    "name": "Ireland Loose Forward 6",
-    "position": "BR",
-    "role": "LF",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_18",
-    "name": "Ireland Scrum-half 1",
-    "position": "HB",
-    "role": "SH",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_19",
-    "name": "Ireland Scrum-half 2",
-    "position": "HB",
-    "role": "SH",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_20",
-    "name": "Ireland Scrum-half 3",
-    "position": "HB",
-    "role": "SH",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_21",
-    "name": "Ireland Fly-half 1",
-    "position": "HB",
-    "role": "FH",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_22",
-    "name": "Ireland Fly-half 2",
-    "position": "HB",
-    "role": "FH",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_23",
-    "name": "Ireland Centre 1",
-    "position": "CE",
-    "role": "CE",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_24",
-    "name": "Ireland Centre 2",
-    "position": "CE",
-    "role": "CE",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_25",
-    "name": "Ireland Centre 3",
-    "position": "CE",
-    "role": "CE",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_26",
-    "name": "Ireland Centre 4",
-    "position": "CE",
-    "role": "CE",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_27",
-    "name": "Ireland Outside Back 1",
-    "position": "B3",
-    "role": "OB",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_28",
-    "name": "Ireland Outside Back 2",
-    "position": "B3",
-    "role": "OB",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_29",
-    "name": "Ireland Outside Back 3",
-    "position": "B3",
-    "role": "OB",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_30",
-    "name": "Ireland Outside Back 4",
-    "position": "B3",
-    "role": "OB",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_31",
-    "name": "Ireland Outside Back 5",
-    "position": "B3",
-    "role": "OB",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_32",
-    "name": "Ireland Outside Back 6",
-    "position": "B3",
-    "role": "OB",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "ire_33",
-    "name": "Ireland Outside Back 7",
-    "position": "B3",
-    "role": "OB",
-    "team": "Ireland",
-    "team_code": "IRE"
-  },
-  {
-    "player_id": "sco_1",
-    "name": "Scotland Prop 1",
-    "position": "FR",
-    "role": "PR",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_2",
-    "name": "Scotland Prop 2",
-    "position": "FR",
-    "role": "PR",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_3",
-    "name": "Scotland Prop 3",
-    "position": "FR",
-    "role": "PR",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_4",
-    "name": "Scotland Prop 4",
-    "position": "FR",
-    "role": "PR",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_5",
-    "name": "Scotland Prop 5",
-    "position": "FR",
-    "role": "PR",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_6",
-    "name": "Scotland Hooker 1",
-    "position": "FR",
-    "role": "HK",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_7",
-    "name": "Scotland Hooker 2",
-    "position": "FR",
-    "role": "HK",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_8",
-    "name": "Scotland Lock 1",
-    "position": "SR",
-    "role": "LK",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_9",
-    "name": "Scotland Lock 2",
-    "position": "SR",
-    "role": "LK",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_10",
-    "name": "Scotland Lock 3",
-    "position": "SR",
-    "role": "LK",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_11",
-    "name": "Scotland Lock 4",
-    "position": "SR",
-    "role": "LK",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_12",
-    "name": "Scotland Loose Forward 1",
-    "position": "BR",
-    "role": "LF",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_13",
-    "name": "Scotland Loose Forward 2",
-    "position": "BR",
-    "role": "LF",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_14",
-    "name": "Scotland Loose Forward 3",
-    "position": "BR",
-    "role": "LF",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_15",
-    "name": "Scotland Loose Forward 4",
-    "position": "BR",
-    "role": "LF",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_16",
-    "name": "Scotland Loose Forward 5",
-    "position": "BR",
-    "role": "LF",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_17",
-    "name": "Scotland Loose Forward 6",
-    "position": "BR",
-    "role": "LF",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_18",
-    "name": "Scotland Scrum-half 1",
-    "position": "HB",
-    "role": "SH",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_19",
-    "name": "Scotland Scrum-half 2",
-    "position": "HB",
-    "role": "SH",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_20",
-    "name": "Scotland Scrum-half 3",
-    "position": "HB",
-    "role": "SH",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_21",
-    "name": "Scotland Fly-half 1",
-    "position": "HB",
-    "role": "FH",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_22",
-    "name": "Scotland Fly-half 2",
-    "position": "HB",
-    "role": "FH",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_23",
-    "name": "Scotland Centre 1",
-    "position": "CE",
-    "role": "CE",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_24",
-    "name": "Scotland Centre 2",
-    "position": "CE",
-    "role": "CE",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_25",
-    "name": "Scotland Centre 3",
-    "position": "CE",
-    "role": "CE",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_26",
-    "name": "Scotland Centre 4",
-    "position": "CE",
-    "role": "CE",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_27",
-    "name": "Scotland Outside Back 1",
-    "position": "B3",
-    "role": "OB",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_28",
-    "name": "Scotland Outside Back 2",
-    "position": "B3",
-    "role": "OB",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_29",
-    "name": "Scotland Outside Back 3",
-    "position": "B3",
-    "role": "OB",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_30",
-    "name": "Scotland Outside Back 4",
-    "position": "B3",
-    "role": "OB",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_31",
-    "name": "Scotland Outside Back 5",
-    "position": "B3",
-    "role": "OB",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_32",
-    "name": "Scotland Outside Back 6",
-    "position": "B3",
-    "role": "OB",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "sco_33",
-    "name": "Scotland Outside Back 7",
-    "position": "B3",
-    "role": "OB",
-    "team": "Scotland",
-    "team_code": "SCO"
-  },
-  {
-    "player_id": "wal_1",
-    "name": "Wales Prop 1",
-    "position": "FR",
-    "role": "PR",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_2",
-    "name": "Wales Prop 2",
-    "position": "FR",
-    "role": "PR",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_3",
-    "name": "Wales Prop 3",
-    "position": "FR",
-    "role": "PR",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_4",
-    "name": "Wales Prop 4",
-    "position": "FR",
-    "role": "PR",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_5",
-    "name": "Wales Prop 5",
-    "position": "FR",
-    "role": "PR",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_6",
-    "name": "Wales Hooker 1",
-    "position": "FR",
-    "role": "HK",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_7",
-    "name": "Wales Hooker 2",
-    "position": "FR",
-    "role": "HK",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_8",
-    "name": "Wales Lock 1",
-    "position": "SR",
-    "role": "LK",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_9",
-    "name": "Wales Lock 2",
-    "position": "SR",
-    "role": "LK",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_10",
-    "name": "Wales Lock 3",
-    "position": "SR",
-    "role": "LK",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_11",
-    "name": "Wales Lock 4",
-    "position": "SR",
-    "role": "LK",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_12",
-    "name": "Wales Loose Forward 1",
-    "position": "BR",
-    "role": "LF",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_13",
-    "name": "Wales Loose Forward 2",
-    "position": "BR",
-    "role": "LF",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_14",
-    "name": "Wales Loose Forward 3",
-    "position": "BR",
-    "role": "LF",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_15",
-    "name": "Wales Loose Forward 4",
-    "position": "BR",
-    "role": "LF",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_16",
-    "name": "Wales Loose Forward 5",
-    "position": "BR",
-    "role": "LF",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_17",
-    "name": "Wales Loose Forward 6",
-    "position": "BR",
-    "role": "LF",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_18",
-    "name": "Wales Scrum-half 1",
-    "position": "HB",
-    "role": "SH",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_19",
-    "name": "Wales Scrum-half 2",
-    "position": "HB",
-    "role": "SH",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_20",
-    "name": "Wales Scrum-half 3",
-    "position": "HB",
-    "role": "SH",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_21",
-    "name": "Wales Fly-half 1",
-    "position": "HB",
-    "role": "FH",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_22",
-    "name": "Wales Fly-half 2",
-    "position": "HB",
-    "role": "FH",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_23",
-    "name": "Wales Centre 1",
-    "position": "CE",
-    "role": "CE",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_24",
-    "name": "Wales Centre 2",
-    "position": "CE",
-    "role": "CE",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_25",
-    "name": "Wales Centre 3",
-    "position": "CE",
-    "role": "CE",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_26",
-    "name": "Wales Centre 4",
-    "position": "CE",
-    "role": "CE",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_27",
-    "name": "Wales Outside Back 1",
-    "position": "B3",
-    "role": "OB",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_28",
-    "name": "Wales Outside Back 2",
-    "position": "B3",
-    "role": "OB",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_29",
-    "name": "Wales Outside Back 3",
-    "position": "B3",
-    "role": "OB",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_30",
-    "name": "Wales Outside Back 4",
-    "position": "B3",
-    "role": "OB",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_31",
-    "name": "Wales Outside Back 5",
-    "position": "B3",
-    "role": "OB",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_32",
-    "name": "Wales Outside Back 6",
-    "position": "B3",
-    "role": "OB",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "wal_33",
-    "name": "Wales Outside Back 7",
-    "position": "B3",
-    "role": "OB",
-    "team": "Wales",
-    "team_code": "WAL"
-  },
-  {
-    "player_id": "ita_1",
-    "name": "Italy Prop 1",
-    "position": "FR",
-    "role": "PR",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_2",
-    "name": "Italy Prop 2",
-    "position": "FR",
-    "role": "PR",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_3",
-    "name": "Italy Prop 3",
-    "position": "FR",
-    "role": "PR",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_4",
-    "name": "Italy Prop 4",
-    "position": "FR",
-    "role": "PR",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_5",
-    "name": "Italy Prop 5",
-    "position": "FR",
-    "role": "PR",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_6",
-    "name": "Italy Hooker 1",
-    "position": "FR",
-    "role": "HK",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_7",
-    "name": "Italy Hooker 2",
-    "position": "FR",
-    "role": "HK",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_8",
-    "name": "Italy Lock 1",
-    "position": "SR",
-    "role": "LK",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_9",
-    "name": "Italy Lock 2",
-    "position": "SR",
-    "role": "LK",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_10",
-    "name": "Italy Lock 3",
-    "position": "SR",
-    "role": "LK",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_11",
-    "name": "Italy Lock 4",
-    "position": "SR",
-    "role": "LK",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_12",
-    "name": "Italy Loose Forward 1",
-    "position": "BR",
-    "role": "LF",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_13",
-    "name": "Italy Loose Forward 2",
-    "position": "BR",
-    "role": "LF",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_14",
-    "name": "Italy Loose Forward 3",
-    "position": "BR",
-    "role": "LF",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_15",
-    "name": "Italy Loose Forward 4",
-    "position": "BR",
-    "role": "LF",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_16",
-    "name": "Italy Loose Forward 5",
-    "position": "BR",
-    "role": "LF",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_17",
-    "name": "Italy Loose Forward 6",
-    "position": "BR",
-    "role": "LF",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_18",
-    "name": "Italy Scrum-half 1",
-    "position": "HB",
-    "role": "SH",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_19",
-    "name": "Italy Scrum-half 2",
-    "position": "HB",
-    "role": "SH",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_20",
-    "name": "Italy Scrum-half 3",
-    "position": "HB",
-    "role": "SH",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_21",
-    "name": "Italy Fly-half 1",
-    "position": "HB",
-    "role": "FH",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_22",
-    "name": "Italy Fly-half 2",
-    "position": "HB",
-    "role": "FH",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_23",
-    "name": "Italy Centre 1",
-    "position": "CE",
-    "role": "CE",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_24",
-    "name": "Italy Centre 2",
-    "position": "CE",
-    "role": "CE",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_25",
-    "name": "Italy Centre 3",
-    "position": "CE",
-    "role": "CE",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_26",
-    "name": "Italy Centre 4",
-    "position": "CE",
-    "role": "CE",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_27",
-    "name": "Italy Outside Back 1",
-    "position": "B3",
-    "role": "OB",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_28",
-    "name": "Italy Outside Back 2",
-    "position": "B3",
-    "role": "OB",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_29",
-    "name": "Italy Outside Back 3",
-    "position": "B3",
-    "role": "OB",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_30",
-    "name": "Italy Outside Back 4",
-    "position": "B3",
-    "role": "OB",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_31",
-    "name": "Italy Outside Back 5",
-    "position": "B3",
-    "role": "OB",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_32",
-    "name": "Italy Outside Back 6",
-    "position": "B3",
-    "role": "OB",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "ita_33",
-    "name": "Italy Outside Back 7",
-    "position": "B3",
-    "role": "OB",
-    "team": "Italy",
-    "team_code": "ITA"
-  },
-  {
-    "player_id": "nzl_1",
-    "name": "New Zealand Prop 1",
-    "position": "FR",
-    "role": "PR",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_2",
-    "name": "New Zealand Prop 2",
-    "position": "FR",
-    "role": "PR",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_3",
-    "name": "New Zealand Prop 3",
-    "position": "FR",
-    "role": "PR",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_4",
-    "name": "New Zealand Prop 4",
-    "position": "FR",
-    "role": "PR",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_5",
-    "name": "New Zealand Prop 5",
-    "position": "FR",
-    "role": "PR",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_6",
-    "name": "New Zealand Hooker 1",
-    "position": "FR",
-    "role": "HK",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_7",
-    "name": "New Zealand Hooker 2",
-    "position": "FR",
-    "role": "HK",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_8",
-    "name": "New Zealand Lock 1",
-    "position": "SR",
-    "role": "LK",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_9",
-    "name": "New Zealand Lock 2",
-    "position": "SR",
-    "role": "LK",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_10",
-    "name": "New Zealand Lock 3",
-    "position": "SR",
-    "role": "LK",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_11",
-    "name": "New Zealand Lock 4",
-    "position": "SR",
-    "role": "LK",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_12",
-    "name": "New Zealand Loose Forward 1",
-    "position": "BR",
-    "role": "LF",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_13",
-    "name": "New Zealand Loose Forward 2",
-    "position": "BR",
-    "role": "LF",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_14",
-    "name": "New Zealand Loose Forward 3",
-    "position": "BR",
-    "role": "LF",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_15",
-    "name": "New Zealand Loose Forward 4",
-    "position": "BR",
-    "role": "LF",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_16",
-    "name": "New Zealand Loose Forward 5",
-    "position": "BR",
-    "role": "LF",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_17",
-    "name": "New Zealand Loose Forward 6",
-    "position": "BR",
-    "role": "LF",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_18",
-    "name": "New Zealand Scrum-half 1",
-    "position": "HB",
-    "role": "SH",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_19",
-    "name": "New Zealand Scrum-half 2",
-    "position": "HB",
-    "role": "SH",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_20",
-    "name": "New Zealand Scrum-half 3",
-    "position": "HB",
-    "role": "SH",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_21",
-    "name": "New Zealand Fly-half 1",
-    "position": "HB",
-    "role": "FH",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_22",
-    "name": "New Zealand Fly-half 2",
-    "position": "HB",
-    "role": "FH",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_23",
-    "name": "New Zealand Centre 1",
-    "position": "CE",
-    "role": "CE",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_24",
-    "name": "New Zealand Centre 2",
-    "position": "CE",
-    "role": "CE",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_25",
-    "name": "New Zealand Centre 3",
-    "position": "CE",
-    "role": "CE",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_26",
-    "name": "New Zealand Centre 4",
-    "position": "CE",
-    "role": "CE",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_27",
-    "name": "New Zealand Outside Back 1",
-    "position": "B3",
-    "role": "OB",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_28",
-    "name": "New Zealand Outside Back 2",
-    "position": "B3",
-    "role": "OB",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_29",
-    "name": "New Zealand Outside Back 3",
-    "position": "B3",
-    "role": "OB",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_30",
-    "name": "New Zealand Outside Back 4",
-    "position": "B3",
-    "role": "OB",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_31",
-    "name": "New Zealand Outside Back 5",
-    "position": "B3",
-    "role": "OB",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_32",
-    "name": "New Zealand Outside Back 6",
-    "position": "B3",
-    "role": "OB",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
-    "player_id": "nzl_33",
-    "name": "New Zealand Outside Back 7",
-    "position": "B3",
-    "role": "OB",
-    "team": "New Zealand",
-    "team_code": "NZL"
-  },
-  {
     "player_id": "rsa_1",
-    "name": "South Africa Prop 1",
+    "name": "Thomas du Toit",
     "position": "FR",
     "role": "PR",
     "team": "South Africa",
@@ -1857,7 +9,7 @@
   },
   {
     "player_id": "rsa_2",
-    "name": "South Africa Prop 2",
+    "name": "Wilco Louw",
     "position": "FR",
     "role": "PR",
     "team": "South Africa",
@@ -1865,7 +17,7 @@
   },
   {
     "player_id": "rsa_3",
-    "name": "South Africa Prop 3",
+    "name": "Ntuthuko Mchunu",
     "position": "FR",
     "role": "PR",
     "team": "South Africa",
@@ -1873,7 +25,7 @@
   },
   {
     "player_id": "rsa_4",
-    "name": "South Africa Prop 4",
+    "name": "Ox Nche",
     "position": "FR",
     "role": "PR",
     "team": "South Africa",
@@ -1881,7 +33,7 @@
   },
   {
     "player_id": "rsa_5",
-    "name": "South Africa Prop 5",
+    "name": "Zachary Porthen",
     "position": "FR",
     "role": "PR",
     "team": "South Africa",
@@ -1889,87 +41,87 @@
   },
   {
     "player_id": "rsa_6",
-    "name": "South Africa Hooker 1",
+    "name": "Carlu Sadie",
     "position": "FR",
-    "role": "HK",
+    "role": "PR",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
     "player_id": "rsa_7",
-    "name": "South Africa Hooker 2",
+    "name": "Gerhard Steenekamp",
+    "position": "FR",
+    "role": "PR",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_8",
+    "name": "Boan Venter",
+    "position": "FR",
+    "role": "PR",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_9",
+    "name": "Johan Grobbelaar",
     "position": "FR",
     "role": "HK",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
-    "player_id": "rsa_8",
-    "name": "South Africa Lock 1",
-    "position": "SR",
-    "role": "LK",
-    "team": "South Africa",
-    "team_code": "RSA"
-  },
-  {
-    "player_id": "rsa_9",
-    "name": "South Africa Lock 2",
-    "position": "SR",
-    "role": "LK",
-    "team": "South Africa",
-    "team_code": "RSA"
-  },
-  {
     "player_id": "rsa_10",
-    "name": "South Africa Lock 3",
-    "position": "SR",
-    "role": "LK",
+    "name": "Malcolm Marx",
+    "position": "FR",
+    "role": "HK",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
     "player_id": "rsa_11",
-    "name": "South Africa Lock 4",
+    "name": "Andre-Hugo Venter",
+    "position": "FR",
+    "role": "HK",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_12",
+    "name": "Lood de Jager",
     "position": "SR",
     "role": "LK",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
-    "player_id": "rsa_12",
-    "name": "South Africa Loose Forward 1",
-    "position": "BR",
-    "role": "LF",
-    "team": "South Africa",
-    "team_code": "RSA"
-  },
-  {
     "player_id": "rsa_13",
-    "name": "South Africa Loose Forward 2",
-    "position": "BR",
-    "role": "LF",
+    "name": "Eben Etzebeth",
+    "position": "SR",
+    "role": "LK",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
     "player_id": "rsa_14",
-    "name": "South Africa Loose Forward 3",
-    "position": "BR",
-    "role": "LF",
+    "name": "Ruan Nortje",
+    "position": "SR",
+    "role": "LK",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
     "player_id": "rsa_15",
-    "name": "South Africa Loose Forward 4",
-    "position": "BR",
-    "role": "LF",
+    "name": "Ruben van Heerden",
+    "position": "SR",
+    "role": "LK",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
     "player_id": "rsa_16",
-    "name": "South Africa Loose Forward 5",
+    "name": "Paul de Villiers",
     "position": "BR",
     "role": "LF",
     "team": "South Africa",
@@ -1977,7 +129,7 @@
   },
   {
     "player_id": "rsa_17",
-    "name": "South Africa Loose Forward 6",
+    "name": "Ben-Jason Dixon",
     "position": "BR",
     "role": "LF",
     "team": "South Africa",
@@ -1985,135 +137,511 @@
   },
   {
     "player_id": "rsa_18",
-    "name": "South Africa Scrum-half 1",
-    "position": "HB",
-    "role": "SH",
+    "name": "Cameron Hanekom",
+    "position": "BR",
+    "role": "LF",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
     "player_id": "rsa_19",
-    "name": "South Africa Scrum-half 2",
-    "position": "HB",
-    "role": "SH",
+    "name": "Siya Kolisi",
+    "position": "BR",
+    "role": "LF",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
     "player_id": "rsa_20",
-    "name": "South Africa Scrum-half 3",
+    "name": "Evan Roos",
+    "position": "BR",
+    "role": "LF",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_21",
+    "name": "Vincent Tshituka",
+    "position": "BR",
+    "role": "LF",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_22",
+    "name": "Jasper Wiese",
+    "position": "BR",
+    "role": "LF",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_23",
+    "name": "Pieter-Steph du Toit",
+    "position": "BR",
+    "role": "LF",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_24",
+    "name": "Franco Mostert",
+    "position": "SR",
+    "role": "LK",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_25",
+    "name": "Riley Norton",
+    "position": "SR",
+    "role": "LK",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_26",
+    "name": "Marco van Staden",
+    "position": "BR",
+    "role": "LF",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_27",
+    "name": "Jan-Hendrik Wessels",
+    "position": "FR",
+    "role": "PR",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_28",
+    "name": "Cobus Wiese",
+    "position": "SR",
+    "role": "LK",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_29",
+    "name": "Embrose Papier",
     "position": "HB",
     "role": "SH",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
-    "player_id": "rsa_21",
-    "name": "South Africa Fly-half 1",
-    "position": "HB",
-    "role": "FH",
-    "team": "South Africa",
-    "team_code": "RSA"
-  },
-  {
-    "player_id": "rsa_22",
-    "name": "South Africa Fly-half 2",
-    "position": "HB",
-    "role": "FH",
-    "team": "South Africa",
-    "team_code": "RSA"
-  },
-  {
-    "player_id": "rsa_23",
-    "name": "South Africa Centre 1",
-    "position": "CE",
-    "role": "CE",
-    "team": "South Africa",
-    "team_code": "RSA"
-  },
-  {
-    "player_id": "rsa_24",
-    "name": "South Africa Centre 2",
-    "position": "CE",
-    "role": "CE",
-    "team": "South Africa",
-    "team_code": "RSA"
-  },
-  {
-    "player_id": "rsa_25",
-    "name": "South Africa Centre 3",
-    "position": "CE",
-    "role": "CE",
-    "team": "South Africa",
-    "team_code": "RSA"
-  },
-  {
-    "player_id": "rsa_26",
-    "name": "South Africa Centre 4",
-    "position": "CE",
-    "role": "CE",
-    "team": "South Africa",
-    "team_code": "RSA"
-  },
-  {
-    "player_id": "rsa_27",
-    "name": "South Africa Outside Back 1",
-    "position": "B3",
-    "role": "OB",
-    "team": "South Africa",
-    "team_code": "RSA"
-  },
-  {
-    "player_id": "rsa_28",
-    "name": "South Africa Outside Back 2",
-    "position": "B3",
-    "role": "OB",
-    "team": "South Africa",
-    "team_code": "RSA"
-  },
-  {
-    "player_id": "rsa_29",
-    "name": "South Africa Outside Back 3",
-    "position": "B3",
-    "role": "OB",
-    "team": "South Africa",
-    "team_code": "RSA"
-  },
-  {
     "player_id": "rsa_30",
-    "name": "South Africa Outside Back 4",
-    "position": "B3",
-    "role": "OB",
+    "name": "Herschel Jantjies",
+    "position": "HB",
+    "role": "SH",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
     "player_id": "rsa_31",
-    "name": "South Africa Outside Back 5",
-    "position": "B3",
-    "role": "OB",
+    "name": "Cobus Reinach",
+    "position": "HB",
+    "role": "SH",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
     "player_id": "rsa_32",
-    "name": "South Africa Outside Back 6",
-    "position": "B3",
-    "role": "OB",
+    "name": "Grant Williams",
+    "position": "HB",
+    "role": "SH",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
     "player_id": "rsa_33",
-    "name": "South Africa Outside Back 7",
+    "name": "Manie Libbok",
+    "position": "HB",
+    "role": "FH",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_34",
+    "name": "Vusi Moyo",
+    "position": "HB",
+    "role": "FH",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_35",
+    "name": "Handre Pollard",
+    "position": "HB",
+    "role": "FH",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_36",
+    "name": "Damian de Allende",
+    "position": "CE",
+    "role": "CE",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_37",
+    "name": "Andre Esterhuizen",
+    "position": "CE",
+    "role": "CE",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_38",
+    "name": "Jesse Kriel",
+    "position": "CE",
+    "role": "CE",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_39",
+    "name": "Kurt-Lee Arendse",
     "position": "B3",
     "role": "OB",
     "team": "South Africa",
     "team_code": "RSA"
   },
   {
+    "player_id": "rsa_40",
+    "name": "Aphelele Fassi",
+    "position": "B3",
+    "role": "OB",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_41",
+    "name": "Quan Horn",
+    "position": "B3",
+    "role": "OB",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_42",
+    "name": "Cheslin Kolbe",
+    "position": "B3",
+    "role": "OB",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_43",
+    "name": "Canan Moodie",
+    "position": "B3",
+    "role": "OB",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_44",
+    "name": "Edwill van der Merwe",
+    "position": "B3",
+    "role": "OB",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_45",
+    "name": "Jaco Williams",
+    "position": "B3",
+    "role": "OB",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_46",
+    "name": "Damian Willemse",
+    "position": "B3",
+    "role": "OB",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "nzl_1",
+    "name": "Asafo Aumua",
+    "position": "FR",
+    "role": "HK",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_2",
+    "name": "Codie Taylor",
+    "position": "FR",
+    "role": "HK",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_3",
+    "name": "Samisoni Taukei’aho",
+    "position": "FR",
+    "role": "HK",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_4",
+    "name": "Ethan De Groot",
+    "position": "FR",
+    "role": "PR",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_5",
+    "name": "George Bower",
+    "position": "FR",
+    "role": "PR",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_6",
+    "name": "Xavier Numia",
+    "position": "FR",
+    "role": "PR",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_7",
+    "name": "Tyrel Lomax",
+    "position": "FR",
+    "role": "PR",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_8",
+    "name": "Fletcher Newell",
+    "position": "FR",
+    "role": "PR",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_9",
+    "name": "Pasilio Tosi",
+    "position": "FR",
+    "role": "PR",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_10",
+    "name": "Tupou Vaa’i",
+    "position": "SR",
+    "role": "LK",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_11",
+    "name": "Patrick Tuipulotu",
+    "position": "SR",
+    "role": "LK",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_12",
+    "name": "Josh Lord",
+    "position": "SR",
+    "role": "LK",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_13",
+    "name": "Sam Darry",
+    "position": "SR",
+    "role": "LK",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_14",
+    "name": "Peter Lakai",
+    "position": "BR",
+    "role": "LF",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_15",
+    "name": "Simon Parker",
+    "position": "BR",
+    "role": "LF",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_16",
+    "name": "Ardie Savea",
+    "position": "BR",
+    "role": "LF",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_17",
+    "name": "Wallace Sititi",
+    "position": "BR",
+    "role": "LF",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_18",
+    "name": "Luke Jacobson",
+    "position": "BR",
+    "role": "LF",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_19",
+    "name": "Anton Segner",
+    "position": "BR",
+    "role": "LF",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_20",
+    "name": "Cameron Roigard",
+    "position": "HB",
+    "role": "SH",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_21",
+    "name": "Cortez Ratima",
+    "position": "HB",
+    "role": "SH",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_22",
+    "name": "Kyle Preston",
+    "position": "HB",
+    "role": "SH",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_23",
+    "name": "Ruben Love",
+    "position": "HB",
+    "role": "FH",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_24",
+    "name": "Beauden Barrett",
+    "position": "HB",
+    "role": "FH",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_25",
+    "name": "Damian McKenzie",
+    "position": "HB",
+    "role": "FH",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_26",
+    "name": "Jordie Barrett",
+    "position": "CE",
+    "role": "CE",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_27",
+    "name": "Quinn Tupaea",
+    "position": "CE",
+    "role": "CE",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_28",
+    "name": "Billy Proctor",
+    "position": "CE",
+    "role": "CE",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_29",
+    "name": "Anton Lienert-Brown",
+    "position": "CE",
+    "role": "CE",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_30",
+    "name": "Caleb Clarke",
+    "position": "B3",
+    "role": "OB",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_31",
+    "name": "Fehi Fineanganofo",
+    "position": "B3",
+    "role": "OB",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_32",
+    "name": "Leroy Carter",
+    "position": "B3",
+    "role": "OB",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_33",
+    "name": "Josh Moorby",
+    "position": "B3",
+    "role": "OB",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "nzl_34",
+    "name": "Will Jordan",
+    "position": "B3",
+    "role": "OB",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
     "player_id": "aus_1",
-    "name": "Australia Prop 1",
+    "name": "Allan Alaalatoa",
     "position": "FR",
     "role": "PR",
     "team": "Australia",
@@ -2121,15 +649,15 @@
   },
   {
     "player_id": "aus_2",
-    "name": "Australia Prop 2",
-    "position": "FR",
-    "role": "PR",
+    "name": "Miles Amatosero",
+    "position": "SR",
+    "role": "LK",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_3",
-    "name": "Australia Prop 3",
+    "name": "Angus Bell",
     "position": "FR",
     "role": "PR",
     "team": "Australia",
@@ -2137,103 +665,103 @@
   },
   {
     "player_id": "aus_4",
-    "name": "Australia Prop 4",
-    "position": "FR",
-    "role": "PR",
+    "name": "Charlie Cale",
+    "position": "BR",
+    "role": "LF",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_5",
-    "name": "Australia Prop 5",
+    "name": "Josh Canham",
+    "position": "SR",
+    "role": "LK",
+    "team": "Australia",
+    "team_code": "AUS"
+  },
+  {
+    "player_id": "aus_6",
+    "name": "Nick Champion de Crespigny",
+    "position": "BR",
+    "role": "LF",
+    "team": "Australia",
+    "team_code": "AUS"
+  },
+  {
+    "player_id": "aus_7",
+    "name": "Tom Hooper",
+    "position": "BR",
+    "role": "LF",
+    "team": "Australia",
+    "team_code": "AUS"
+  },
+  {
+    "player_id": "aus_8",
+    "name": "Fraser McReight",
+    "position": "BR",
+    "role": "LF",
+    "team": "Australia",
+    "team_code": "AUS"
+  },
+  {
+    "player_id": "aus_9",
+    "name": "Josh Nasser",
+    "position": "FR",
+    "role": "HK",
+    "team": "Australia",
+    "team_code": "AUS"
+  },
+  {
+    "player_id": "aus_10",
+    "name": "Zane Nonggorr",
     "position": "FR",
     "role": "PR",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
-    "player_id": "aus_6",
-    "name": "Australia Hooker 1",
-    "position": "FR",
-    "role": "HK",
-    "team": "Australia",
-    "team_code": "AUS"
-  },
-  {
-    "player_id": "aus_7",
-    "name": "Australia Hooker 2",
-    "position": "FR",
-    "role": "HK",
-    "team": "Australia",
-    "team_code": "AUS"
-  },
-  {
-    "player_id": "aus_8",
-    "name": "Australia Lock 1",
-    "position": "SR",
-    "role": "LK",
-    "team": "Australia",
-    "team_code": "AUS"
-  },
-  {
-    "player_id": "aus_9",
-    "name": "Australia Lock 2",
-    "position": "SR",
-    "role": "LK",
-    "team": "Australia",
-    "team_code": "AUS"
-  },
-  {
-    "player_id": "aus_10",
-    "name": "Australia Lock 3",
-    "position": "SR",
-    "role": "LK",
-    "team": "Australia",
-    "team_code": "AUS"
-  },
-  {
     "player_id": "aus_11",
-    "name": "Australia Lock 4",
-    "position": "SR",
-    "role": "LK",
+    "name": "Brandon Paenga-Amosa",
+    "position": "FR",
+    "role": "HK",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_12",
-    "name": "Australia Loose Forward 1",
-    "position": "BR",
-    "role": "LF",
+    "name": "Billy Pollard",
+    "position": "FR",
+    "role": "HK",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_13",
-    "name": "Australia Loose Forward 2",
-    "position": "BR",
-    "role": "LF",
+    "name": "Aidan Ross",
+    "position": "FR",
+    "role": "PR",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_14",
-    "name": "Australia Loose Forward 3",
-    "position": "BR",
-    "role": "LF",
+    "name": "Lachlan Shaw",
+    "position": "SR",
+    "role": "LK",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_15",
-    "name": "Australia Loose Forward 4",
-    "position": "BR",
-    "role": "LF",
+    "name": "James Slipper",
+    "position": "FR",
+    "role": "PR",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_16",
-    "name": "Australia Loose Forward 5",
+    "name": "Carlo Tizzano",
     "position": "BR",
     "role": "LF",
     "team": "Australia",
@@ -2241,63 +769,63 @@
   },
   {
     "player_id": "aus_17",
-    "name": "Australia Loose Forward 6",
+    "name": "Taniela Tupou",
+    "position": "FR",
+    "role": "PR",
+    "team": "Australia",
+    "team_code": "AUS"
+  },
+  {
+    "player_id": "aus_18",
+    "name": "Rob Valetini",
     "position": "BR",
     "role": "LF",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
-    "player_id": "aus_18",
-    "name": "Australia Scrum-half 1",
-    "position": "HB",
-    "role": "SH",
-    "team": "Australia",
-    "team_code": "AUS"
-  },
-  {
     "player_id": "aus_19",
-    "name": "Australia Scrum-half 2",
-    "position": "HB",
-    "role": "SH",
+    "name": "Jeremy Williams",
+    "position": "SR",
+    "role": "LK",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_20",
-    "name": "Australia Scrum-half 3",
-    "position": "HB",
-    "role": "SH",
+    "name": "Harry Wilson",
+    "position": "BR",
+    "role": "LF",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_21",
-    "name": "Australia Fly-half 1",
-    "position": "HB",
-    "role": "FH",
+    "name": "Jock Campbell",
+    "position": "B3",
+    "role": "OB",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_22",
-    "name": "Australia Fly-half 2",
+    "name": "Filipo Daugunu",
+    "position": "B3",
+    "role": "OB",
+    "team": "Australia",
+    "team_code": "AUS"
+  },
+  {
+    "player_id": "aus_23",
+    "name": "Ben Donaldson",
     "position": "HB",
     "role": "FH",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
-    "player_id": "aus_23",
-    "name": "Australia Centre 1",
-    "position": "CE",
-    "role": "CE",
-    "team": "Australia",
-    "team_code": "AUS"
-  },
-  {
     "player_id": "aus_24",
-    "name": "Australia Centre 2",
+    "name": "Josh Flook",
     "position": "CE",
     "role": "CE",
     "team": "Australia",
@@ -2305,15 +833,15 @@
   },
   {
     "player_id": "aus_25",
-    "name": "Australia Centre 3",
-    "position": "CE",
-    "role": "CE",
+    "name": "Carter Gordon",
+    "position": "HB",
+    "role": "FH",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_26",
-    "name": "Australia Centre 4",
+    "name": "Len Ikitau",
     "position": "CE",
     "role": "CE",
     "team": "Australia",
@@ -2321,7 +849,7 @@
   },
   {
     "player_id": "aus_27",
-    "name": "Australia Outside Back 1",
+    "name": "Max Jorgensen",
     "position": "B3",
     "role": "OB",
     "team": "Australia",
@@ -2329,39 +857,39 @@
   },
   {
     "player_id": "aus_28",
-    "name": "Australia Outside Back 2",
-    "position": "B3",
-    "role": "OB",
+    "name": "Ryan Lonergan",
+    "position": "HB",
+    "role": "SH",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_29",
-    "name": "Australia Outside Back 3",
-    "position": "B3",
-    "role": "OB",
+    "name": "Tate McDermott",
+    "position": "HB",
+    "role": "SH",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_30",
-    "name": "Australia Outside Back 4",
-    "position": "B3",
-    "role": "OB",
+    "name": "Declan Meredith",
+    "position": "HB",
+    "role": "FH",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_31",
-    "name": "Australia Outside Back 5",
-    "position": "B3",
-    "role": "OB",
+    "name": "Hunter Paisami",
+    "position": "CE",
+    "role": "CE",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
     "player_id": "aus_32",
-    "name": "Australia Outside Back 6",
+    "name": "Dylan Pietsch",
     "position": "B3",
     "role": "OB",
     "team": "Australia",
@@ -2369,543 +897,47 @@
   },
   {
     "player_id": "aus_33",
-    "name": "Australia Outside Back 7",
+    "name": "Harry Potter",
     "position": "B3",
     "role": "OB",
     "team": "Australia",
     "team_code": "AUS"
   },
   {
-    "player_id": "arg_1",
-    "name": "Argentina Prop 1",
-    "position": "FR",
-    "role": "PR",
-    "team": "Argentina",
-    "team_code": "ARG"
+    "player_id": "aus_34",
+    "name": "Joseph-Aukuso Suaalii",
+    "position": "CE",
+    "role": "CE",
+    "team": "Australia",
+    "team_code": "AUS"
   },
   {
-    "player_id": "arg_2",
-    "name": "Argentina Prop 2",
-    "position": "FR",
-    "role": "PR",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_3",
-    "name": "Argentina Prop 3",
-    "position": "FR",
-    "role": "PR",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_4",
-    "name": "Argentina Prop 4",
-    "position": "FR",
-    "role": "PR",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_5",
-    "name": "Argentina Prop 5",
-    "position": "FR",
-    "role": "PR",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_6",
-    "name": "Argentina Hooker 1",
-    "position": "FR",
-    "role": "HK",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_7",
-    "name": "Argentina Hooker 2",
-    "position": "FR",
-    "role": "HK",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_8",
-    "name": "Argentina Lock 1",
-    "position": "SR",
-    "role": "LK",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_9",
-    "name": "Argentina Lock 2",
-    "position": "SR",
-    "role": "LK",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_10",
-    "name": "Argentina Lock 3",
-    "position": "SR",
-    "role": "LK",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_11",
-    "name": "Argentina Lock 4",
-    "position": "SR",
-    "role": "LK",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_12",
-    "name": "Argentina Loose Forward 1",
-    "position": "BR",
-    "role": "LF",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_13",
-    "name": "Argentina Loose Forward 2",
-    "position": "BR",
-    "role": "LF",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_14",
-    "name": "Argentina Loose Forward 3",
-    "position": "BR",
-    "role": "LF",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_15",
-    "name": "Argentina Loose Forward 4",
-    "position": "BR",
-    "role": "LF",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_16",
-    "name": "Argentina Loose Forward 5",
-    "position": "BR",
-    "role": "LF",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_17",
-    "name": "Argentina Loose Forward 6",
-    "position": "BR",
-    "role": "LF",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_18",
-    "name": "Argentina Scrum-half 1",
+    "player_id": "aus_35",
+    "name": "Kalani Thomas",
     "position": "HB",
     "role": "SH",
-    "team": "Argentina",
-    "team_code": "ARG"
+    "team": "Australia",
+    "team_code": "AUS"
   },
   {
-    "player_id": "arg_19",
-    "name": "Argentina Scrum-half 2",
-    "position": "HB",
-    "role": "SH",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_20",
-    "name": "Argentina Scrum-half 3",
-    "position": "HB",
-    "role": "SH",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_21",
-    "name": "Argentina Fly-half 1",
-    "position": "HB",
-    "role": "FH",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_22",
-    "name": "Argentina Fly-half 2",
-    "position": "HB",
-    "role": "FH",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_23",
-    "name": "Argentina Centre 1",
-    "position": "CE",
-    "role": "CE",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_24",
-    "name": "Argentina Centre 2",
-    "position": "CE",
-    "role": "CE",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_25",
-    "name": "Argentina Centre 3",
-    "position": "CE",
-    "role": "CE",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_26",
-    "name": "Argentina Centre 4",
-    "position": "CE",
-    "role": "CE",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_27",
-    "name": "Argentina Outside Back 1",
+    "player_id": "aus_36",
+    "name": "Corey Toole",
     "position": "B3",
     "role": "OB",
-    "team": "Argentina",
-    "team_code": "ARG"
+    "team": "Australia",
+    "team_code": "AUS"
   },
   {
-    "player_id": "arg_28",
-    "name": "Argentina Outside Back 2",
+    "player_id": "aus_37",
+    "name": "Tom Wright",
     "position": "B3",
     "role": "OB",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_29",
-    "name": "Argentina Outside Back 3",
-    "position": "B3",
-    "role": "OB",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_30",
-    "name": "Argentina Outside Back 4",
-    "position": "B3",
-    "role": "OB",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_31",
-    "name": "Argentina Outside Back 5",
-    "position": "B3",
-    "role": "OB",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_32",
-    "name": "Argentina Outside Back 6",
-    "position": "B3",
-    "role": "OB",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "arg_33",
-    "name": "Argentina Outside Back 7",
-    "position": "B3",
-    "role": "OB",
-    "team": "Argentina",
-    "team_code": "ARG"
-  },
-  {
-    "player_id": "jpn_1",
-    "name": "Japan Prop 1",
-    "position": "FR",
-    "role": "PR",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_2",
-    "name": "Japan Prop 2",
-    "position": "FR",
-    "role": "PR",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_3",
-    "name": "Japan Prop 3",
-    "position": "FR",
-    "role": "PR",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_4",
-    "name": "Japan Prop 4",
-    "position": "FR",
-    "role": "PR",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_5",
-    "name": "Japan Prop 5",
-    "position": "FR",
-    "role": "PR",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_6",
-    "name": "Japan Hooker 1",
-    "position": "FR",
-    "role": "HK",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_7",
-    "name": "Japan Hooker 2",
-    "position": "FR",
-    "role": "HK",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_8",
-    "name": "Japan Lock 1",
-    "position": "SR",
-    "role": "LK",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_9",
-    "name": "Japan Lock 2",
-    "position": "SR",
-    "role": "LK",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_10",
-    "name": "Japan Lock 3",
-    "position": "SR",
-    "role": "LK",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_11",
-    "name": "Japan Lock 4",
-    "position": "SR",
-    "role": "LK",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_12",
-    "name": "Japan Loose Forward 1",
-    "position": "BR",
-    "role": "LF",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_13",
-    "name": "Japan Loose Forward 2",
-    "position": "BR",
-    "role": "LF",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_14",
-    "name": "Japan Loose Forward 3",
-    "position": "BR",
-    "role": "LF",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_15",
-    "name": "Japan Loose Forward 4",
-    "position": "BR",
-    "role": "LF",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_16",
-    "name": "Japan Loose Forward 5",
-    "position": "BR",
-    "role": "LF",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_17",
-    "name": "Japan Loose Forward 6",
-    "position": "BR",
-    "role": "LF",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_18",
-    "name": "Japan Scrum-half 1",
-    "position": "HB",
-    "role": "SH",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_19",
-    "name": "Japan Scrum-half 2",
-    "position": "HB",
-    "role": "SH",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_20",
-    "name": "Japan Scrum-half 3",
-    "position": "HB",
-    "role": "SH",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_21",
-    "name": "Japan Fly-half 1",
-    "position": "HB",
-    "role": "FH",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_22",
-    "name": "Japan Fly-half 2",
-    "position": "HB",
-    "role": "FH",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_23",
-    "name": "Japan Centre 1",
-    "position": "CE",
-    "role": "CE",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_24",
-    "name": "Japan Centre 2",
-    "position": "CE",
-    "role": "CE",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_25",
-    "name": "Japan Centre 3",
-    "position": "CE",
-    "role": "CE",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_26",
-    "name": "Japan Centre 4",
-    "position": "CE",
-    "role": "CE",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_27",
-    "name": "Japan Outside Back 1",
-    "position": "B3",
-    "role": "OB",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_28",
-    "name": "Japan Outside Back 2",
-    "position": "B3",
-    "role": "OB",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_29",
-    "name": "Japan Outside Back 3",
-    "position": "B3",
-    "role": "OB",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_30",
-    "name": "Japan Outside Back 4",
-    "position": "B3",
-    "role": "OB",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_31",
-    "name": "Japan Outside Back 5",
-    "position": "B3",
-    "role": "OB",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_32",
-    "name": "Japan Outside Back 6",
-    "position": "B3",
-    "role": "OB",
-    "team": "Japan",
-    "team_code": "JPN"
-  },
-  {
-    "player_id": "jpn_33",
-    "name": "Japan Outside Back 7",
-    "position": "B3",
-    "role": "OB",
-    "team": "Japan",
-    "team_code": "JPN"
+    "team": "Australia",
+    "team_code": "AUS"
   },
   {
     "player_id": "fij_1",
-    "name": "Fiji Prop 1",
+    "name": "Eroni Mawi",
     "position": "FR",
     "role": "PR",
     "team": "Fiji",
@@ -2913,7 +945,7 @@
   },
   {
     "player_id": "fij_2",
-    "name": "Fiji Prop 2",
+    "name": "Atunaisa Sokobale",
     "position": "FR",
     "role": "PR",
     "team": "Fiji",
@@ -2921,7 +953,7 @@
   },
   {
     "player_id": "fij_3",
-    "name": "Fiji Prop 3",
+    "name": "Peni Ravai",
     "position": "FR",
     "role": "PR",
     "team": "Fiji",
@@ -2929,7 +961,7 @@
   },
   {
     "player_id": "fij_4",
-    "name": "Fiji Prop 4",
+    "name": "Luke Tagi",
     "position": "FR",
     "role": "PR",
     "team": "Fiji",
@@ -2937,7 +969,7 @@
   },
   {
     "player_id": "fij_5",
-    "name": "Fiji Prop 5",
+    "name": "Tim Hoyt",
     "position": "FR",
     "role": "PR",
     "team": "Fiji",
@@ -2945,7 +977,7 @@
   },
   {
     "player_id": "fij_6",
-    "name": "Fiji Hooker 1",
+    "name": "Tevita Ikanivere",
     "position": "FR",
     "role": "HK",
     "team": "Fiji",
@@ -2953,7 +985,7 @@
   },
   {
     "player_id": "fij_7",
-    "name": "Fiji Hooker 2",
+    "name": "Sam Matavesi",
     "position": "FR",
     "role": "HK",
     "team": "Fiji",
@@ -2961,15 +993,15 @@
   },
   {
     "player_id": "fij_8",
-    "name": "Fiji Lock 1",
-    "position": "SR",
-    "role": "LK",
+    "name": "Zuriel Togiatama",
+    "position": "FR",
+    "role": "HK",
     "team": "Fiji",
     "team_code": "FIJ"
   },
   {
     "player_id": "fij_9",
-    "name": "Fiji Lock 2",
+    "name": "Isoa Nasilasila",
     "position": "SR",
     "role": "LK",
     "team": "Fiji",
@@ -2977,7 +1009,7 @@
   },
   {
     "player_id": "fij_10",
-    "name": "Fiji Lock 3",
+    "name": "Mesake Vocevoce",
     "position": "SR",
     "role": "LK",
     "team": "Fiji",
@@ -2985,7 +1017,7 @@
   },
   {
     "player_id": "fij_11",
-    "name": "Fiji Lock 4",
+    "name": "Temo Mayanavanua",
     "position": "SR",
     "role": "LK",
     "team": "Fiji",
@@ -2993,15 +1025,15 @@
   },
   {
     "player_id": "fij_12",
-    "name": "Fiji Loose Forward 1",
-    "position": "BR",
-    "role": "LF",
+    "name": "Tevita Ratuva",
+    "position": "SR",
+    "role": "LK",
     "team": "Fiji",
     "team_code": "FIJ"
   },
   {
     "player_id": "fij_13",
-    "name": "Fiji Loose Forward 2",
+    "name": "Lekima Tagitagivalu",
     "position": "BR",
     "role": "LF",
     "team": "Fiji",
@@ -3009,7 +1041,7 @@
   },
   {
     "player_id": "fij_14",
-    "name": "Fiji Loose Forward 3",
+    "name": "Kitione Salawa",
     "position": "BR",
     "role": "LF",
     "team": "Fiji",
@@ -3017,7 +1049,7 @@
   },
   {
     "player_id": "fij_15",
-    "name": "Fiji Loose Forward 4",
+    "name": "Elia Canakaivata",
     "position": "BR",
     "role": "LF",
     "team": "Fiji",
@@ -3025,7 +1057,7 @@
   },
   {
     "player_id": "fij_16",
-    "name": "Fiji Loose Forward 5",
+    "name": "Levani Botia",
     "position": "BR",
     "role": "LF",
     "team": "Fiji",
@@ -3033,7 +1065,7 @@
   },
   {
     "player_id": "fij_17",
-    "name": "Fiji Loose Forward 6",
+    "name": "Pita-Gus Sowakula",
     "position": "BR",
     "role": "LF",
     "team": "Fiji",
@@ -3041,15 +1073,15 @@
   },
   {
     "player_id": "fij_18",
-    "name": "Fiji Scrum-half 1",
-    "position": "HB",
-    "role": "SH",
+    "name": "Peceli Yato",
+    "position": "BR",
+    "role": "LF",
     "team": "Fiji",
     "team_code": "FIJ"
   },
   {
     "player_id": "fij_19",
-    "name": "Fiji Scrum-half 2",
+    "name": "Frank Lomani",
     "position": "HB",
     "role": "SH",
     "team": "Fiji",
@@ -3057,7 +1089,7 @@
   },
   {
     "player_id": "fij_20",
-    "name": "Fiji Scrum-half 3",
+    "name": "Simione Kuruvoli",
     "position": "HB",
     "role": "SH",
     "team": "Fiji",
@@ -3065,15 +1097,15 @@
   },
   {
     "player_id": "fij_21",
-    "name": "Fiji Fly-half 1",
+    "name": "Sam Wye",
     "position": "HB",
-    "role": "FH",
+    "role": "SH",
     "team": "Fiji",
     "team_code": "FIJ"
   },
   {
     "player_id": "fij_22",
-    "name": "Fiji Fly-half 2",
+    "name": "Caleb Muntz",
     "position": "HB",
     "role": "FH",
     "team": "Fiji",
@@ -3081,15 +1113,15 @@
   },
   {
     "player_id": "fij_23",
-    "name": "Fiji Centre 1",
-    "position": "CE",
-    "role": "CE",
+    "name": "Isaiah Armstrong-Ravula",
+    "position": "HB",
+    "role": "FH",
     "team": "Fiji",
     "team_code": "FIJ"
   },
   {
     "player_id": "fij_24",
-    "name": "Fiji Centre 2",
+    "name": "Josua Tuisova",
     "position": "CE",
     "role": "CE",
     "team": "Fiji",
@@ -3097,7 +1129,7 @@
   },
   {
     "player_id": "fij_25",
-    "name": "Fiji Centre 3",
+    "name": "Filimoni Botitu",
     "position": "CE",
     "role": "CE",
     "team": "Fiji",
@@ -3105,7 +1137,7 @@
   },
   {
     "player_id": "fij_26",
-    "name": "Fiji Centre 4",
+    "name": "Selestino Ravutaumada",
     "position": "CE",
     "role": "CE",
     "team": "Fiji",
@@ -3113,15 +1145,15 @@
   },
   {
     "player_id": "fij_27",
-    "name": "Fiji Outside Back 1",
-    "position": "B3",
-    "role": "OB",
+    "name": "Semi Radradra",
+    "position": "CE",
+    "role": "CE",
     "team": "Fiji",
     "team_code": "FIJ"
   },
   {
     "player_id": "fij_28",
-    "name": "Fiji Outside Back 2",
+    "name": "Jiuta Wainiqolo",
     "position": "B3",
     "role": "OB",
     "team": "Fiji",
@@ -3129,7 +1161,7 @@
   },
   {
     "player_id": "fij_29",
-    "name": "Fiji Outside Back 3",
+    "name": "Kalaveti Ravouvou",
     "position": "B3",
     "role": "OB",
     "team": "Fiji",
@@ -3137,7 +1169,7 @@
   },
   {
     "player_id": "fij_30",
-    "name": "Fiji Outside Back 4",
+    "name": "Vinaya Habosi",
     "position": "B3",
     "role": "OB",
     "team": "Fiji",
@@ -3145,7 +1177,7 @@
   },
   {
     "player_id": "fij_31",
-    "name": "Fiji Outside Back 5",
+    "name": "Salesi Rayasi",
     "position": "B3",
     "role": "OB",
     "team": "Fiji",
@@ -3153,18 +1185,2330 @@
   },
   {
     "player_id": "fij_32",
-    "name": "Fiji Outside Back 6",
+    "name": "Vuate Karawalevu",
     "position": "B3",
     "role": "OB",
     "team": "Fiji",
     "team_code": "FIJ"
   },
   {
-    "player_id": "fij_33",
-    "name": "Fiji Outside Back 7",
+    "player_id": "arg_1",
+    "name": "Matías Alemanno",
+    "position": "FR",
+    "role": "HK",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_2",
+    "name": "Luciano Asevedo",
+    "position": "FR",
+    "role": "PR",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_3",
+    "name": "Francisco Coria Machetti",
+    "position": "FR",
+    "role": "HK",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_4",
+    "name": "Pedro Delgado",
+    "position": "FR",
+    "role": "PR",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_5",
+    "name": "Santi Grondona",
+    "position": "SR",
+    "role": "LK",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_6",
+    "name": "Marcos Kremer",
+    "position": "SR",
+    "role": "LK",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_7",
+    "name": "Pablo Matera",
+    "position": "BR",
+    "role": "LF",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_8",
+    "name": "Franco Molina",
     "position": "B3",
     "role": "OB",
-    "team": "Fiji",
-    "team_code": "FIJ"
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_9",
+    "name": "Julián Montoya",
+    "position": "FR",
+    "role": "HK",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_10",
+    "name": "Joaquín Moro",
+    "position": "FR",
+    "role": "PR",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_11",
+    "name": "Joaquín Oviedo",
+    "position": "BR",
+    "role": "LF",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_12",
+    "name": "Leonel Oviedo",
+    "position": "BR",
+    "role": "LF",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_13",
+    "name": "Juan Penoucos",
+    "position": "SR",
+    "role": "LK",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_14",
+    "name": "Guido Petti",
+    "position": "SR",
+    "role": "LK",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_15",
+    "name": "Tomás Rapetti",
+    "position": "FR",
+    "role": "PR",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_16",
+    "name": "Ignacio Ruiz",
+    "position": "FR",
+    "role": "HK",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_17",
+    "name": "Mayco Vivas",
+    "position": "FR",
+    "role": "PR",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_18",
+    "name": "Boris Wenger",
+    "position": "BR",
+    "role": "LF",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_19",
+    "name": "Tomás Albornoz",
+    "position": "HB",
+    "role": "FH",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_20",
+    "name": "Simón Benítez Cruz",
+    "position": "HB",
+    "role": "SH",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_21",
+    "name": "Mateo Carreras",
+    "position": "B3",
+    "role": "OB",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_22",
+    "name": "Santi Carreras",
+    "position": "B3",
+    "role": "OB",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_23",
+    "name": "Lucio Cintu",
+    "position": "CE",
+    "role": "CE",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_24",
+    "name": "Bautista Delguy",
+    "position": "B3",
+    "role": "OB",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_25",
+    "name": "Agustín Fraga",
+    "position": "CE",
+    "role": "CE",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_26",
+    "name": "Gonzalo García",
+    "position": "HB",
+    "role": "SH",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_27",
+    "name": "Rodrigo Isgro",
+    "position": "B3",
+    "role": "OB",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_28",
+    "name": "Ignacio Mendy",
+    "position": "B3",
+    "role": "OB",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_29",
+    "name": "Matías Moroni",
+    "position": "CE",
+    "role": "CE",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_30",
+    "name": "Agustín Moyano",
+    "position": "HB",
+    "role": "SH",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_31",
+    "name": "Gerónimo Prisciantelli",
+    "position": "CE",
+    "role": "CE",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_32",
+    "name": "Nicholas Roger",
+    "position": "HB",
+    "role": "FH",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_33",
+    "name": "Faustino Sánchez Valarolo",
+    "position": "CE",
+    "role": "CE",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_34",
+    "name": "Mateo Soler",
+    "position": "B3",
+    "role": "OB",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "jpn_1",
+    "name": "Sojiro Otsuka",
+    "position": "SR",
+    "role": "LK",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_2",
+    "name": "Takato Okabe",
+    "position": "FR",
+    "role": "PR",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_3",
+    "name": "Yota Kamimori",
+    "position": "FR",
+    "role": "HK",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_4",
+    "name": "Hayate Era",
+    "position": "BR",
+    "role": "LF",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_5",
+    "name": "Kenji Sato",
+    "position": "FR",
+    "role": "PR",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_6",
+    "name": "Mamoru Harada",
+    "position": "SR",
+    "role": "LK",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_7",
+    "name": "Izi Sword",
+    "position": "BR",
+    "role": "LF",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_8",
+    "name": "Shuhei Takeuchi",
+    "position": "FR",
+    "role": "HK",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_9",
+    "name": "Keijiro Tamefusa",
+    "position": "FR",
+    "role": "PR",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_10",
+    "name": "Jack Cornelsen",
+    "position": "BR",
+    "role": "LF",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_11",
+    "name": "Michael Stolberg",
+    "position": "BR",
+    "role": "LF",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_12",
+    "name": "Warner Dears",
+    "position": "FR",
+    "role": "PR",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_13",
+    "name": "Harry Hockings",
+    "position": "SR",
+    "role": "LK",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_14",
+    "name": "Ben Gunter",
+    "position": "BR",
+    "role": "LF",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_15",
+    "name": "Tiennan Costley",
+    "position": "BR",
+    "role": "LF",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_16",
+    "name": "Kanji Shimokawa",
+    "position": "BR",
+    "role": "LF",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_17",
+    "name": "Waisake Raratubua",
+    "position": "FR",
+    "role": "PR",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_18",
+    "name": "Esei Haangana",
+    "position": "FR",
+    "role": "PR",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_19",
+    "name": "Michael Leitch",
+    "position": "BR",
+    "role": "LF",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_20",
+    "name": "Itsuki Kamimura",
+    "position": "HB",
+    "role": "SH",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_21",
+    "name": "Naoto Saito",
+    "position": "HB",
+    "role": "SH",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_22",
+    "name": "Takuro Hojo",
+    "position": "B3",
+    "role": "OB",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_23",
+    "name": "Haruto Watanabe",
+    "position": "CE",
+    "role": "CE",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_24",
+    "name": "Ryunosuke Ito",
+    "position": "HB",
+    "role": "FH",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_25",
+    "name": "Shinya Komura",
+    "position": "CE",
+    "role": "CE",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_26",
+    "name": "Samisoni Tua",
+    "position": "B3",
+    "role": "OB",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_27",
+    "name": "Shogo Nakano",
+    "position": "CE",
+    "role": "CE",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_28",
+    "name": "Yuya Hirose",
+    "position": "CE",
+    "role": "CE",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_29",
+    "name": "Dylan Riley",
+    "position": "CE",
+    "role": "CE",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_30",
+    "name": "Kippei Ishida",
+    "position": "HB",
+    "role": "SH",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_31",
+    "name": "Kazuma Ueda",
+    "position": "CE",
+    "role": "CE",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_32",
+    "name": "Haruto Kida",
+    "position": "HB",
+    "role": "FH",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_33",
+    "name": "Inoke Burua",
+    "position": "FR",
+    "role": "PR",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_34",
+    "name": "Shunsuke Uenobo",
+    "position": "FR",
+    "role": "HK",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "jpn_35",
+    "name": "Takuro Matsunaga",
+    "position": "SR",
+    "role": "LK",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "ire_1",
+    "name": "Tadhg Beirne",
+    "position": "SR",
+    "role": "LK",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_2",
+    "name": "Billy Bohan",
+    "position": "FR",
+    "role": "PR",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_3",
+    "name": "Thomas Clarkson",
+    "position": "FR",
+    "role": "PR",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_4",
+    "name": "Jack Conan",
+    "position": "BR",
+    "role": "LF",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_5",
+    "name": "Caelan Doris",
+    "position": "BR",
+    "role": "LF",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_6",
+    "name": "Tadhg Furlong",
+    "position": "FR",
+    "role": "PR",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_7",
+    "name": "Sam Illo",
+    "position": "FR",
+    "role": "PR",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_8",
+    "name": "Cormac Izuchukwu",
+    "position": "SR",
+    "role": "LK",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_9",
+    "name": "Sean Jansen",
+    "position": "SR",
+    "role": "LK",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_10",
+    "name": "Rónan Kelleher",
+    "position": "FR",
+    "role": "HK",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_11",
+    "name": "Jeremy Loughman",
+    "position": "FR",
+    "role": "PR",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_12",
+    "name": "Joe McCarthy",
+    "position": "SR",
+    "role": "LK",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_13",
+    "name": "Darragh Murray",
+    "position": "FR",
+    "role": "HK",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_14",
+    "name": "Tom O’Toole",
+    "position": "FR",
+    "role": "PR",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_15",
+    "name": "Cian Prendergast",
+    "position": "BR",
+    "role": "LF",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_16",
+    "name": "James Ryan",
+    "position": "SR",
+    "role": "LK",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_17",
+    "name": "Dan Sheehan",
+    "position": "FR",
+    "role": "HK",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_18",
+    "name": "Tom Stewart",
+    "position": "FR",
+    "role": "HK",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_19",
+    "name": "Nick Timoney",
+    "position": "BR",
+    "role": "LF",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_20",
+    "name": "Josh van der Flier",
+    "position": "BR",
+    "role": "LF",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_21",
+    "name": "Bundee Aki",
+    "position": "CE",
+    "role": "CE",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_22",
+    "name": "Rob Baloucoune",
+    "position": "B3",
+    "role": "OB",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_23",
+    "name": "Harry Byrne",
+    "position": "HB",
+    "role": "FH",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_24",
+    "name": "Craig Casey",
+    "position": "HB",
+    "role": "SH",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_25",
+    "name": "Nathan Doak",
+    "position": "HB",
+    "role": "SH",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_26",
+    "name": "Ciaran Frawley",
+    "position": "B3",
+    "role": "OB",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_27",
+    "name": "Jamison Gibson-Park",
+    "position": "HB",
+    "role": "SH",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_28",
+    "name": "Robbie Henshaw",
+    "position": "CE",
+    "role": "CE",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_29",
+    "name": "Hugo Keenan",
+    "position": "B3",
+    "role": "OB",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_30",
+    "name": "Stuart McCloskey",
+    "position": "CE",
+    "role": "CE",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_31",
+    "name": "Jimmy O’Brien",
+    "position": "B3",
+    "role": "OB",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_32",
+    "name": "Tommy O’Brien",
+    "position": "B3",
+    "role": "OB",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_33",
+    "name": "Jamie Osborne",
+    "position": "B3",
+    "role": "OB",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_34",
+    "name": "Sam Prendergast",
+    "position": "HB",
+    "role": "SH",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_35",
+    "name": "Garry Ringrose",
+    "position": "CE",
+    "role": "CE",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "ire_36",
+    "name": "Jacob Stockdale",
+    "position": "B3",
+    "role": "OB",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "eng_1",
+    "name": "Ollie Chessum",
+    "position": "SR",
+    "role": "LK",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_2",
+    "name": "Arthur Clark",
+    "position": "SR",
+    "role": "LK",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_3",
+    "name": "Alex Coles",
+    "position": "SR",
+    "role": "LK",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_4",
+    "name": "Luke Cowan-Dickie",
+    "position": "FR",
+    "role": "HK",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_5",
+    "name": "Tom Curry",
+    "position": "BR",
+    "role": "LF",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_6",
+    "name": "Theo Dan",
+    "position": "FR",
+    "role": "HK",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_7",
+    "name": "Ben Earl",
+    "position": "BR",
+    "role": "LF",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_8",
+    "name": "Charlie Ewels",
+    "position": "SR",
+    "role": "LK",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_9",
+    "name": "Greg Fisilau",
+    "position": "FR",
+    "role": "PR",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_10",
+    "name": "Ellis Genge",
+    "position": "FR",
+    "role": "PR",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_11",
+    "name": "Jamie George",
+    "position": "FR",
+    "role": "HK",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_12",
+    "name": "Joe Heyes",
+    "position": "FR",
+    "role": "PR",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_13",
+    "name": "Ted Hill",
+    "position": "BR",
+    "role": "LF",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_14",
+    "name": "George Kloska",
+    "position": "FR",
+    "role": "PR",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_15",
+    "name": "George Martin",
+    "position": "SR",
+    "role": "LK",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_16",
+    "name": "Beno Obano",
+    "position": "FR",
+    "role": "PR",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_17",
+    "name": "Asher Opoku-Fordjour",
+    "position": "FR",
+    "role": "PR",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_18",
+    "name": "Guy Pepper",
+    "position": "FR",
+    "role": "HK",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_19",
+    "name": "Henry Pollock",
+    "position": "SR",
+    "role": "LK",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_20",
+    "name": "Vilikesa Sela",
+    "position": "FR",
+    "role": "PR",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_21",
+    "name": "Seb Atkinson",
+    "position": "CE",
+    "role": "CE",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_22",
+    "name": "Noah Caluori",
+    "position": "B3",
+    "role": "OB",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_23",
+    "name": "Immanuel Feyi-Waboso",
+    "position": "B3",
+    "role": "OB",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_24",
+    "name": "George Ford",
+    "position": "HB",
+    "role": "FH",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_25",
+    "name": "Tommy Freeman",
+    "position": "B3",
+    "role": "OB",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_26",
+    "name": "George Furbank",
+    "position": "B3",
+    "role": "OB",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_27",
+    "name": "Benhard Janse van Rensburg",
+    "position": "CE",
+    "role": "CE",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_28",
+    "name": "Alex Mitchell",
+    "position": "HB",
+    "role": "SH",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_29",
+    "name": "Cadan Murley",
+    "position": "B3",
+    "role": "OB",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_30",
+    "name": "Max Ojomoh",
+    "position": "CE",
+    "role": "CE",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_31",
+    "name": "Henry Slade",
+    "position": "CE",
+    "role": "CE",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_32",
+    "name": "Fin Smith",
+    "position": "HB",
+    "role": "FH",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_33",
+    "name": "Marcus Smith",
+    "position": "HB",
+    "role": "FH",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_34",
+    "name": "Ben Spencer",
+    "position": "HB",
+    "role": "SH",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_35",
+    "name": "Freddie Steward",
+    "position": "B3",
+    "role": "OB",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_36",
+    "name": "Jack van Poortvliet",
+    "position": "HB",
+    "role": "SH",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "sco_1",
+    "name": "Ewan Ashman",
+    "position": "FR",
+    "role": "HK",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_2",
+    "name": "Josh Bayliss",
+    "position": "BR",
+    "role": "LF",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_3",
+    "name": "Magnus Bradbury",
+    "position": "BR",
+    "role": "LF",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_4",
+    "name": "Gregor Brown",
+    "position": "SR",
+    "role": "LK",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_5",
+    "name": "Scott Cummings",
+    "position": "SR",
+    "role": "LK",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_6",
+    "name": "Rory Darge",
+    "position": "BR",
+    "role": "LF",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_7",
+    "name": "Jack Dempsey",
+    "position": "BR",
+    "role": "LF",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_8",
+    "name": "Freddy Douglas",
+    "position": "FR",
+    "role": "PR",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_9",
+    "name": "Matt Fagerson",
+    "position": "BR",
+    "role": "LF",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_10",
+    "name": "Zander Fagerson",
+    "position": "FR",
+    "role": "PR",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_11",
+    "name": "Jonny Gray",
+    "position": "SR",
+    "role": "LK",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_12",
+    "name": "Gregor Hiddleston",
+    "position": "FR",
+    "role": "HK",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_13",
+    "name": "Will Hurd",
+    "position": "FR",
+    "role": "PR",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_14",
+    "name": "Nathan McBeth",
+    "position": "FR",
+    "role": "PR",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_15",
+    "name": "Liam McConnell",
+    "position": "BR",
+    "role": "LF",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_16",
+    "name": "Elliot Millar Mills",
+    "position": "SR",
+    "role": "LK",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_17",
+    "name": "D’arcy Rae",
+    "position": "FR",
+    "role": "PR",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_18",
+    "name": "Alex Samuel",
+    "position": "BR",
+    "role": "LF",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_19",
+    "name": "Pierre Schoeman",
+    "position": "FR",
+    "role": "PR",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_20",
+    "name": "Seb Stephen",
+    "position": "FR",
+    "role": "HK",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_21",
+    "name": "Rory Sutherland",
+    "position": "FR",
+    "role": "PR",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_22",
+    "name": "Max Williamson",
+    "position": "SR",
+    "role": "LK",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_23",
+    "name": "Fergus Burke",
+    "position": "HB",
+    "role": "FH",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_24",
+    "name": "Jamie Dobie",
+    "position": "HB",
+    "role": "SH",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_25",
+    "name": "Darcy Graham",
+    "position": "B3",
+    "role": "OB",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_26",
+    "name": "George Horne",
+    "position": "HB",
+    "role": "SH",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_27",
+    "name": "Rory Hutchinson",
+    "position": "CE",
+    "role": "CE",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_28",
+    "name": "Tom Jordan",
+    "position": "B3",
+    "role": "OB",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_29",
+    "name": "Stafford McDowall",
+    "position": "CE",
+    "role": "CE",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_30",
+    "name": "Kyle Rowe",
+    "position": "B3",
+    "role": "OB",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_31",
+    "name": "Finn Russell",
+    "position": "HB",
+    "role": "FH",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_32",
+    "name": "Ollie Smith",
+    "position": "B3",
+    "role": "OB",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_33",
+    "name": "Kyle Steyn",
+    "position": "B3",
+    "role": "OB",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_34",
+    "name": "Sione Tuipulotu",
+    "position": "CE",
+    "role": "CE",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_35",
+    "name": "Duhan van der Merwe",
+    "position": "B3",
+    "role": "OB",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "sco_36",
+    "name": "Ben White",
+    "position": "HB",
+    "role": "SH",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "wal_1",
+    "name": "Keiron Assiratti",
+    "position": "FR",
+    "role": "PR",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_2",
+    "name": "Rhys Barratt",
+    "position": "FR",
+    "role": "PR",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_3",
+    "name": "Adam Beard",
+    "position": "SR",
+    "role": "LK",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_4",
+    "name": "Liam Belcher",
+    "position": "FR",
+    "role": "HK",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_5",
+    "name": "James Botham",
+    "position": "BR",
+    "role": "LF",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_6",
+    "name": "Rhys Carre",
+    "position": "FR",
+    "role": "PR",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_7",
+    "name": "Ben Carter",
+    "position": "SR",
+    "role": "LK",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_8",
+    "name": "Olly Cracknell",
+    "position": "BR",
+    "role": "LF",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_9",
+    "name": "Ryan Elias",
+    "position": "FR",
+    "role": "HK",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_10",
+    "name": "Kane James",
+    "position": "FR",
+    "role": "PR",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_11",
+    "name": "Dafydd Jenkins",
+    "position": "SR",
+    "role": "LK",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_12",
+    "name": "Harrison Keddie",
+    "position": "BR",
+    "role": "LF",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_13",
+    "name": "Dewi Lake",
+    "position": "FR",
+    "role": "HK",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_14",
+    "name": "Dillon Lewis",
+    "position": "FR",
+    "role": "PR",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_15",
+    "name": "Evan Lloyd",
+    "position": "B3",
+    "role": "OB",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_16",
+    "name": "Alex Mann",
+    "position": "SR",
+    "role": "LK",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_17",
+    "name": "Jac Morgan",
+    "position": "BR",
+    "role": "LF",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_18",
+    "name": "Taine Plumtree",
+    "position": "BR",
+    "role": "LF",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_19",
+    "name": "Tommy Reffell",
+    "position": "BR",
+    "role": "LF",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_20",
+    "name": "Nicky Smith",
+    "position": "FR",
+    "role": "HK",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_21",
+    "name": "Gareth Thomas",
+    "position": "SR",
+    "role": "LK",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_22",
+    "name": "Freddie Thomas",
+    "position": "SR",
+    "role": "LK",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_23",
+    "name": "Aaron Wainwright",
+    "position": "BR",
+    "role": "LF",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_24",
+    "name": "Sam Wainwright",
+    "position": "FR",
+    "role": "PR",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_25",
+    "name": "Ben Warren",
+    "position": "FR",
+    "role": "PR",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_26",
+    "name": "Teddy Williams",
+    "position": "SR",
+    "role": "LK",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_27",
+    "name": "Ryan Woodman",
+    "position": "FR",
+    "role": "PR",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_28",
+    "name": "Josh Adams",
+    "position": "B3",
+    "role": "OB",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_29",
+    "name": "Ellis Bevan",
+    "position": "HB",
+    "role": "SH",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_30",
+    "name": "Bryn Bradley",
+    "position": "B3",
+    "role": "OB",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_31",
+    "name": "Sam Costelow",
+    "position": "HB",
+    "role": "FH",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_32",
+    "name": "Dan Edwards",
+    "position": "HB",
+    "role": "FH",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_33",
+    "name": "Jarrod Evans",
+    "position": "HB",
+    "role": "FH",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_34",
+    "name": "Mason Grady",
+    "position": "CE",
+    "role": "CE",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_35",
+    "name": "Kieran Hardy",
+    "position": "HB",
+    "role": "SH",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_36",
+    "name": "Gabriel Hamer-Webb",
+    "position": "B3",
+    "role": "OB",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_37",
+    "name": "Joe Hawkins",
+    "position": "CE",
+    "role": "CE",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_38",
+    "name": "Louie Hennessey",
+    "position": "B3",
+    "role": "OB",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_39",
+    "name": "Eddie James",
+    "position": "CE",
+    "role": "CE",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_40",
+    "name": "Max Llewellyn",
+    "position": "CE",
+    "role": "CE",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_41",
+    "name": "Ellis Mee",
+    "position": "B3",
+    "role": "OB",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_42",
+    "name": "Reuben Morgan-Williams",
+    "position": "HB",
+    "role": "SH",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_43",
+    "name": "Blair Murray",
+    "position": "B3",
+    "role": "OB",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_44",
+    "name": "Louis Rees-Zammit",
+    "position": "B3",
+    "role": "OB",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_45",
+    "name": "Joe Roberts",
+    "position": "CE",
+    "role": "CE",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_46",
+    "name": "Tom Rogers",
+    "position": "B3",
+    "role": "OB",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_47",
+    "name": "Ben Thomas",
+    "position": "CE",
+    "role": "CE",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "wal_48",
+    "name": "Tomos Williams",
+    "position": "HB",
+    "role": "SH",
+    "team": "Wales",
+    "team_code": "WAL"
+  },
+  {
+    "player_id": "ita_1",
+    "name": "Danilo Fischetti",
+    "position": "FR",
+    "role": "PR",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_2",
+    "name": "Marco Spagnolo",
+    "position": "FR",
+    "role": "PR",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_3",
+    "name": "Muhamed Hasa",
+    "position": "FR",
+    "role": "PR",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_4",
+    "name": "Ion Neculai",
+    "position": "FR",
+    "role": "PR",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_5",
+    "name": "Marco Riccioni",
+    "position": "FR",
+    "role": "PR",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_6",
+    "name": "Tommaso Di Bartolomeo",
+    "position": "FR",
+    "role": "HK",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_7",
+    "name": "Pablo Dimcheff",
+    "position": "FR",
+    "role": "HK",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_8",
+    "name": "Gianmarco Lucchesi",
+    "position": "FR",
+    "role": "HK",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_9",
+    "name": "Niccolò Cannone",
+    "position": "SR",
+    "role": "LK",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_10",
+    "name": "Giulio Marini",
+    "position": "SR",
+    "role": "LK",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_11",
+    "name": "Federico Ruzza",
+    "position": "SR",
+    "role": "LK",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_12",
+    "name": "Andrea Zambonin",
+    "position": "SR",
+    "role": "LK",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_13",
+    "name": "Riccardo Favretto",
+    "position": "SR",
+    "role": "LK",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_14",
+    "name": "Alessandro Ortombina",
+    "position": "BR",
+    "role": "LF",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_15",
+    "name": "Lorenzo Cannone",
+    "position": "BR",
+    "role": "LF",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_16",
+    "name": "Michele Lamaro",
+    "position": "BR",
+    "role": "LF",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_17",
+    "name": "David Odiase",
+    "position": "BR",
+    "role": "LF",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_18",
+    "name": "Ross Vintcent",
+    "position": "BR",
+    "role": "LF",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_19",
+    "name": "Alessandro Fusco",
+    "position": "HB",
+    "role": "SH",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_20",
+    "name": "Alessandro Garbisi",
+    "position": "HB",
+    "role": "SH",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_21",
+    "name": "Stephen Varney",
+    "position": "HB",
+    "role": "SH",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_22",
+    "name": "Tommaso Allan",
+    "position": "HB",
+    "role": "FH",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_23",
+    "name": "Paolo Garbisi",
+    "position": "HB",
+    "role": "FH",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_24",
+    "name": "Giacomo Da Re",
+    "position": "HB",
+    "role": "FH",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_25",
+    "name": "Giulio Bertaccini",
+    "position": "CE",
+    "role": "CE",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_26",
+    "name": "Juan Ignacio Brex",
+    "position": "CE",
+    "role": "CE",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_27",
+    "name": "Leonardo Marin",
+    "position": "CE",
+    "role": "CE",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_28",
+    "name": "Tommaso Menoncello",
+    "position": "CE",
+    "role": "CE",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_29",
+    "name": "Malik Faissal",
+    "position": "B3",
+    "role": "OB",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_30",
+    "name": "Monty Ioane",
+    "position": "B3",
+    "role": "OB",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_31",
+    "name": "Louis Lynagh",
+    "position": "B3",
+    "role": "OB",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_32",
+    "name": "Paolo Odogwu",
+    "position": "B3",
+    "role": "OB",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_33",
+    "name": "Lorenzo Pani",
+    "position": "B3",
+    "role": "OB",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "fra_1",
+    "name": "Moses Alo-Emile",
+    "position": "FR",
+    "role": "PR",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_2",
+    "name": "Demba Bamba",
+    "position": "FR",
+    "role": "PR",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_3",
+    "name": "Sipili Falatea",
+    "position": "FR",
+    "role": "PR",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_4",
+    "name": "Jefferson Poirot",
+    "position": "FR",
+    "role": "PR",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_5",
+    "name": "Régis Montagne",
+    "position": "FR",
+    "role": "PR",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_6",
+    "name": "Tevita Tatafu",
+    "position": "FR",
+    "role": "PR",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_7",
+    "name": "Maxime Lamothe",
+    "position": "FR",
+    "role": "HK",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_8",
+    "name": "Barnabé Massa",
+    "position": "FR",
+    "role": "HK",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_9",
+    "name": "Hugo Auradou",
+    "position": "SR",
+    "role": "LK",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_10",
+    "name": "Mickaël Guillard",
+    "position": "SR",
+    "role": "LK",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_11",
+    "name": "Boris Palu",
+    "position": "SR",
+    "role": "LK",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_12",
+    "name": "Tom Staniforth",
+    "position": "SR",
+    "role": "LK",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_13",
+    "name": "Pierre Bochaton",
+    "position": "BR",
+    "role": "LF",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_14",
+    "name": "Esteban Capilla",
+    "position": "BR",
+    "role": "LF",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_15",
+    "name": "Marko Gazzotti",
+    "position": "BR",
+    "role": "LF",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_16",
+    "name": "Oscar Jegou",
+    "position": "BR",
+    "role": "LF",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_17",
+    "name": "Temo Matiu",
+    "position": "BR",
+    "role": "LF",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_18",
+    "name": "Killian Tixeront",
+    "position": "BR",
+    "role": "LF",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_19",
+    "name": "Nolann Le Garrec",
+    "position": "HB",
+    "role": "SH",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_20",
+    "name": "Maxime Lucu",
+    "position": "HB",
+    "role": "SH",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_21",
+    "name": "Antoine Hastoy",
+    "position": "HB",
+    "role": "FH",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_22",
+    "name": "Matthieu Jalibert",
+    "position": "HB",
+    "role": "FH",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_23",
+    "name": "Fabien Brau-Boirie",
+    "position": "CE",
+    "role": "CE",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_24",
+    "name": "Nicolas Depoortere",
+    "position": "CE",
+    "role": "CE",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_25",
+    "name": "Emilien Gailleton",
+    "position": "CE",
+    "role": "CE",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_26",
+    "name": "Yoram Moefana",
+    "position": "CE",
+    "role": "CE",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_27",
+    "name": "Théo Attissogbe",
+    "position": "B3",
+    "role": "OB",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_28",
+    "name": "Mathis Ferté",
+    "position": "B3",
+    "role": "OB",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_29",
+    "name": "Théo Forner",
+    "position": "B3",
+    "role": "OB",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_30",
+    "name": "Aaron Grandidier-Nkanang",
+    "position": "B3",
+    "role": "OB",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_31",
+    "name": "Damian Penaud",
+    "position": "B3",
+    "role": "OB",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_32",
+    "name": "Max Spring",
+    "position": "B3",
+    "role": "OB",
+    "team": "France",
+    "team_code": "FRA"
   }
 ]

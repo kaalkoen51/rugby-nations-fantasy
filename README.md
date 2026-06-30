@@ -30,15 +30,14 @@ that isn't available yet and are clearly marked in the code:
    marked `TODO: confirm vs source`. Some networks block the DS-API host, so
    wire and test it where that host is reachable.
 
-2. **Squads are a placeholder.** The 2026 squads aren't published until the
-   July window, so `players.json` ships a structurally-correct placeholder
-   (12 unions × 33, correct position groups, placeholder names like
-   "England Front Row 1"). Regenerate it from the real rosters with
-   `python build_players.py` once the DS-API is wired, or hand-edit
-   `players.json`.
+2. **Squads** — `players.json` carries the **real 2026 player pool** (439
+   players across the 12 unions, each with their scoring role), built from
+   the official "2026 Nations Championship Player List" Google Sheet via
+   `python build_players.py --from-mht <export.mht>`. Re-run that (or
+   `--placeholder` for a fresh offline pool) if the list changes.
 
-Until then you can still run a full **test draft** and manual scoring (the
-admin **Match stats** form), and all logic/tests run offline.
+You can run a full **draft** and manual scoring (the admin **Match stats**
+form) today; all logic/tests run offline.
 
 **Scoring** is the Draft Rugby system from the league's sheet (see the
 Scoring section below). One sheet entry is ambiguous: "Turnovers Conceded =
@@ -57,7 +56,7 @@ value in `SCORING` (`daily_pull.py` + `index.html`).
 | `schema.sql` | Supabase schema (idempotent — safe to re-run anytime) |
 | `daily_pull.py` | Daily stats pull → rugby fantasy points → `match_stats` upsert |
 | `live_pull.py` | In-match live scoring loop (5-min updates while games are on) |
-| `build_players.py` | Regenerates `players.json` (DS-API, or `--placeholder` offline) |
+| `build_players.py` | Builds `players.json` (`--from-mht` official sheet, DS-API, or `--placeholder`) |
 | `build_fixtures.py` | Generates `fixtures.json` (DS-API, or `--placeholder` offline) |
 | `build_schedule.py` | Regenerates `live-pull.yml` cron triggers from `fixtures.json` |
 | `build_injuries.py` / `build_photos.py` | Optional availability badges / avatars |
@@ -223,8 +222,9 @@ against the lineup that was locked at the time.
 ```bash
 pip install -r requirements.txt
 
-python build_players.py --placeholder     # offline placeholder squads
-python build_players.py                    # real squads (needs DS-API wired + DRAFT_SPORT_KEY)
+python build_players.py --from-mht list.mht   # real squads from the official Google Sheet export
+python build_players.py --placeholder          # offline placeholder squads
+python build_players.py                        # real squads via DS-API (needs it wired + DRAFT_SPORT_KEY)
 python build_fixtures.py --placeholder     # offline cross-pool schedule
 python build_schedule.py                   # refresh live-pull cron triggers from fixtures.json
 ```
