@@ -70,31 +70,24 @@ two stay in step.
 
 ---
 
-## Positions & roles
+## Positions
 
-The draft uses **six groups** (the lineup is a starting XV). Scoring uses a
-finer **8 roles**, because Draft Rugby scores props differently from
-hookers, scrum-halves from fly-halves, etc. Each player carries both a
-`role` and its draft `position` group (in `players.json`).
+You draft on the **8 scoring positions** (the draft position *is* the
+scoring role, so points always match the position you drafted):
 
-| Group | Roles | Jerseys |
-| --- | --- | --- |
-| `FR` Front Row | Prop, Hooker | 1, 2, 3 |
-| `SR` Second Row | Lock | 4, 5 |
-| `BR` Back Row | Loose forward | 6, 7, 8 |
-| `HB` Half Backs | Scrum-half, Fly-half | 9, 10 |
-| `CE` Centres | Centre | 12, 13 |
-| `B3` Back Three | Outside back | 11, 14, 15 |
+`PR` Prop · `HK` Hooker · `LK` Lock · `LF` Loose Forward · `SH` Scrum-half ·
+`FH` Fly-half · `CE` Centre · `OB` Outside Back.
 
-Plus a `TEAM` pick (a nation, for stage bonuses).
+**Draft squad:** 23 picks — a starting XV + an 8-man bench:
 
-**Draft squad (phase 1):** 22 picks — a starting XV + a 6-man bench + one nation:
-
-- Quota: `FR 4 · SR 3 · BR 4 · HB 3 · CE 3 · B3 4 · TEAM 1`
-- Starters (the XV): `FR 3 · SR 2 · BR 3 · HB 2 · CE 2 · B3 3`; the rest are subs.
+- Quota: `PR 3 · HK 2 · LK 3 · LF 4 · SH 2 · FH 2 · CE 3 · OB 4`
+- Starters (the XV): `PR 2 · HK 1 · LK 2 · LF 3 · SH 1 · FH 1 · CE 2 · OB 3`;
+  the rest are subs.
 
 A sub only scores in a round where its starter didn't feature. Quotas tune
-in `PHASE1_QUOTA` / `PHASE1_STARTERS` (`index.html`).
+in `PHASE1_QUOTA` / `PHASE1_STARTERS` (`index.html`). Admins can set the
+snake **draft order** (or randomize) before starting, and managers can
+**shortlist players** from the lobby while they wait.
 
 ## Scoring
 
@@ -123,41 +116,39 @@ Loosie = flanker/No.8, SH scrum-half, FH fly-half):
 ¹ The sheet shows "Turnovers Conceded = 3 points" unsigned; scored −3 (a
 concession) — confirm with the source.
 
-**TEAM pick** earns cumulative stage bonuses: reaching the **final +15**,
-winning the **title +20**. In the final phase, surviving managers predict
-the champion for **+5**.
+## League formats
 
-## League formats (optional, admin-set)
-
-Two competition modes layer on top of the draft (Admin tab). Both default
-off, so a league runs exactly as before until you turn them on.
-
-### Head-to-Head log table
-Enable in **Admin → Head-to-Head**, set the scheme **before the draft**,
-then **Generate fixtures** (round-robin; byes for odd manager counts). Each
-round you're paired with another manager; your score is your lineup's
-fantasy points that round. The standings then **rank by log points** instead
-of cumulative total:
+### Head-to-Head log table (on by default)
+The standings **are** a Head-to-Head log. Set the scheme in **Admin →
+Head-to-Head** *before the draft*, then **Generate fixtures** (round-robin;
+byes for odd manager counts). Each round you're paired with another manager;
+your score is your lineup's fantasy points that round, and the table **ranks
+by log points**:
 
 - **Win 4 / Draw 2 / Loss 0** (configurable), plus
-- **+1 big-win bonus** (win by ≥ the attacking margin, default 25) and
-  **+1 small-loss bonus** (lose by ≤ the losing margin, default 7).
+- **+1 attacking bonus** for scoring at or above the score threshold
+  (default **450**, win *or* lose), and
+- **+1 losing bonus** for losing within the margin (default **50**).
 
 The Table tab shows the log (W-D-L, points-for, bonus, log points) and the
-current round's matchups with **live scores**; rows still expand to each
-manager's lineup history. Cumulative total remains the "points for" column.
+current round's matchups with **live scores**; the Home tab shows your
+current opponent and who you face next. Cumulative fantasy points remain the
+"points for" (PF) column. (Can be turned off in Admin to rank by PF instead.)
 
-### Trade-window limits & waivers
-In **Admin → Trading window**, blank/0 = unlimited (the default real-time
+### Trade-window limits & waivers (waiver mode on by default)
+In **Admin → Trading window**, blank/0 = unlimited (or switch off the
+waiver mode for instant real-time
 behaviour). You can set:
 
 - **Max trades per manager per window** — caps accepted manager-to-manager trades.
 - **Max free-agent claims per window** — caps each manager's pickups.
-- **Free agents execute at window close** — pickups become **waiver claims**
-  that all process when you close the window, in **reverse-standings order**.
-  Two managers claiming the same player → the lower-ranked one wins, and
-  **winning a contested claim drops that manager to the bottom** of the
-  waiver order (rolling priority). Uncontested pickups don't cost priority.
+- **Free agents execute at window close** (default) — pickups are **not
+  instant**; they become **waiver claims** that all process when you close the
+  window, in **reverse-standings order**. Two managers claiming the same player
+  → the lower-ranked one wins, and **winning a contested claim drops that
+  manager to the bottom** of the waiver order (rolling priority). Uncontested
+  pickups don't cost priority. The waiver order is shown publicly on the Trades
+  tab.
 
 ---
 
@@ -207,13 +198,11 @@ against the lineup that was locked at the time.
 - **Pull stats now** — fetch a date's completed matches straight from the
   provider (once the DS-API is wired) and write everyone's stats.
 - **Match stats** — enter/edit per-player rugby stat rows by hand (works
-  today, no API needed). Match label format: `Home vs Away (YYYY-MM-DD)`.
-- **Team stages** — set each nation's progress (pool → final → winner) for
-  TEAM-pick bonuses; mark teams **out** when eliminated.
+  today, no API needed). Match label format: `Home vs Away (YYYY-MM-DD)`. The
+  history list is collapsible.
+- **Head-to-Head** — set the scheme + generate fixtures before the draft.
 - **Trading window & lineup locks** — open between rounds, close before
-  kickoff to snapshot lineups.
-- **Redrafts & final phase** — as the field narrows, run redrafts with
-  smaller, admin-chosen squads; before the final, switch to champion picks.
+  kickoff (which also processes queued waiver claims) to snapshot lineups.
 
 ---
 
@@ -229,14 +218,13 @@ python build_fixtures.py --placeholder     # offline cross-pool schedule
 python build_schedule.py                   # refresh live-pull cron triggers from fixtures.json
 ```
 
-Player ids are `<code>_<number>` (e.g. `eng_10`); TEAM picks use
-`team:<Nation>`. Re-run `schema.sql` (always additive) after pulling repo
-updates.
+Player ids are `<code>_<number>` (e.g. `eng_10`). Re-run `schema.sql`
+(always additive) after pulling repo updates.
 
 ## Tests
 
 ```bash
-node test_logic.js                 # draft order, quotas, rugby scoring, subs, trades, redrafts
+node test_logic.js                 # draft order, quotas, rugby scoring, subs, trades, H2H, waivers
 python -m unittest test_daily_pull # id mapping, rugby scoring, multi-league fan-out, graceful degradation
 ```
 

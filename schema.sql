@@ -288,16 +288,20 @@ $fn$;
 alter table leagues add column if not exists window_opened_at timestamptz;
 alter table leagues add column if not exists max_trades_per_window int;
 alter table leagues add column if not exists max_fa_per_window int;
-alter table leagues add column if not exists fa_defer_to_close boolean not null default false;
+-- Free agents execute at window close (waiver order) by default in rugby.
+alter table leagues add column if not exists fa_defer_to_close boolean not null default true;
 
--- Head-to-Head log table config (set before the draft). When h2h_enabled,
--- the standings rank by H2H log points instead of cumulative total.
-alter table leagues add column if not exists h2h_enabled boolean not null default false;
+-- Head-to-Head log table config (set before the draft). H2H is the default
+-- standings for rugby: the table ranks by H2H log points, not cumulative
+-- total. h2h_score_bonus = an attacking bonus point for scoring at/above this
+-- many fantasy points in a round (win or lose); h2h_losing_margin = a losing
+-- bonus point for losing by at most this many points.
+alter table leagues add column if not exists h2h_enabled boolean not null default true;
 alter table leagues add column if not exists h2h_win int not null default 4;
 alter table leagues add column if not exists h2h_draw int not null default 2;
 alter table leagues add column if not exists h2h_loss int not null default 0;
-alter table leagues add column if not exists h2h_attack_margin int not null default 25;
-alter table leagues add column if not exists h2h_losing_margin int not null default 7;
+alter table leagues add column if not exists h2h_score_bonus int not null default 450;
+alter table leagues add column if not exists h2h_losing_margin int not null default 50;
 
 -- Rolling waiver priority (lower = picks first). Seeded from reverse
 -- standings on the first close; a manager who wins a *contested* claim drops

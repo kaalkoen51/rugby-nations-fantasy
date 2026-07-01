@@ -92,7 +92,7 @@ def build_placeholder() -> list:
                     {
                         "player_id": f"{code.lower()}_{number}",
                         "name": f"{name} {ROLE_LABEL[role]} {i}",
-                        "position": ROLE_GROUP[role],
+                        "position": role,
                         "role": role,
                         "team": name,
                         "team_code": code,
@@ -159,7 +159,7 @@ def build_from_mht(path: Path) -> list:
         players.append({
             "player_id": f"{code.lower()}_{n}",
             "name": name,
-            "position": ROLE_GROUP[role],
+            "position": role,
             "role": role,
             "team": team,
             "team_code": code,

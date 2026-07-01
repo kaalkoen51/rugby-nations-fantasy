@@ -357,9 +357,9 @@ def extract_player_rows(fixture: dict, teams_data: list, matcher: PlayerMatcher)
                 "api_name": api_name,
                 "team": fix_team_name(team_name),
                 "match_note": match_note,
-                # the app scores by the squad-list role, so prefer it
+                # the app scores by the squad-list role; position == role now
                 "role": matched.get("role") if matched else role,
-                "position": matched["position"] if matched else ROLE_GROUP.get(role, "B3"),
+                "position": matched.get("role") if matched else role,
                 "match_label": match_label,
                 "minutes": minutes,
                 "home_score": to_int(goals.get("home")),

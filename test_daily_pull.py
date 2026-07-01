@@ -210,11 +210,12 @@ class TestExtractPlayerRows(unittest.TestCase):
         self.assertEqual(by_api["154"]["player_id"], "fra_9")
         self.assertEqual(by_api["154"]["player_name"], "Antoine Dupont")
         self.assertEqual(by_api["154"]["tries"], 1)
-        # squad-list role + group win over the provider's position string
+        # squad-list role wins over the provider's position string;
+        # position == role now (draft aligned to scoring positions)
         self.assertEqual(by_api["154"]["role"], "SH")
         self.assertEqual(by_api["284"]["player_id"], "eng_8")
         self.assertEqual(by_api["284"]["role"], "LF")
-        self.assertEqual(by_api["284"]["position"], "BR")
+        self.assertEqual(by_api["284"]["position"], "LF")
         self.assertEqual(by_api["284"]["tackles"], 12)
 
         self.assertIsNone(by_api["999"]["player_id"])
