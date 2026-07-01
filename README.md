@@ -52,12 +52,12 @@ value in `SCORING` (`daily_pull.py` + `index.html`).
 | File | Purpose |
 | --- | --- |
 | `index.html` | The app: lobby, live snake draft, leaderboard, player stats, admin stats entry |
-| `players.json` | Draft pool: 12 squads (placeholder until real rosters land) |
+| `players.json` | Draft pool: the real 12 squads (439 players, each with a scoring role) |
 | `schema.sql` | Supabase schema (idempotent — safe to re-run anytime) |
 | `daily_pull.py` | Daily stats pull → rugby fantasy points → `match_stats` upsert |
 | `live_pull.py` | In-match live scoring loop (5-min updates while games are on) |
 | `build_players.py` | Builds `players.json` (`--from-mht` official sheet, DS-API, or `--placeholder`) |
-| `build_fixtures.py` | Generates `fixtures.json` (DS-API, or `--placeholder` offline) |
+| `build_fixtures.py` | Generates `fixtures.json` (confirmed 2026 schedule by default; `--placeholder` synthetic; `--ds-api`) |
 | `build_schedule.py` | Regenerates `live-pull.yml` cron triggers from `fixtures.json` |
 | `build_injuries.py` / `build_photos.py` | Optional availability badges / avatars |
 | `.github/workflows/*` | Daily/catch-up/live pulls + injuries/photos |
@@ -144,11 +144,17 @@ behaviour). You can set:
 - **Max free-agent claims per window** — caps each manager's pickups.
 - **Free agents execute at window close** (default) — pickups are **not
   instant**; they become **waiver claims** that all process when you close the
-  window, in **reverse-standings order**. Two managers claiming the same player
-  → the lower-ranked one wins, and **winning a contested claim drops that
-  manager to the bottom** of the waiver order (rolling priority). Uncontested
-  pickups don't cost priority. The waiver order is shown publicly on the Trades
-  tab.
+  window. Each manager queues an **ordered preference list** — list as many
+  claims as you like and rank them (reorder with the ▲▼ arrows on the Trades
+  tab). At close we walk the **waiver order** (reverse standings, then rolling):
+  the top manager gets their **#1** claim; if it's **uncontested** they keep
+  priority and continue down their list (up to the per-window cap), and if a
+  claim can't run (the player was already taken, or you no longer hold the
+  out-player) we **fall through to your next claim** for that slot. **Winning a
+  contested claim** (someone else listed the same player) **drops that manager
+  to the bottom** of the order. The per-window number caps how many claims each
+  manager **executes**, not how many they list. The waiver order is shown
+  publicly on the Trades tab.
 
 ---
 
@@ -187,10 +193,12 @@ triggers, a same-day catch-up sweep, and the morning daily sweep — every
 pull is a full idempotent upsert.
 
 ### 5. Create your league & draft
-Open the app → **Create a league** (name, managers, seconds/pick) → save the
-invite code + admin token. Everyone joins; admin hits **Start draft**.
-Random snake order, 22 rounds; on your turn you draft any position you still
-need. After the draft, set your lineup (the XV) via **Home → Pick my team**;
+Open the app → **Create a league** (name, managers, seconds/pick — **0 =
+unlimited**, no pick clock) → save the invite code + admin token. Everyone
+joins; admin hits **Start draft**. Random snake order, 23 rounds; on your turn
+you draft any position you still need. To leave a league at any time, use
+**Exit league** in the top-right header — it returns you to the landing page
+where you can join or create another (re-join later with the invite code). After the draft, set your lineup (the XV) via **Home → Pick my team**;
 lineups lock when the admin closes the trading window, so each round scores
 against the lineup that was locked at the time.
 
@@ -214,7 +222,8 @@ pip install -r requirements.txt
 python build_players.py --from-mht list.mht   # real squads from the official Google Sheet export
 python build_players.py --placeholder          # offline placeholder squads
 python build_players.py                        # real squads via DS-API (needs it wired + DRAFT_SPORT_KEY)
-python build_fixtures.py --placeholder     # offline cross-pool schedule
+python build_fixtures.py                    # confirmed 2026 Nations Championship schedule (default)
+python build_fixtures.py --placeholder      # offline synthetic cross-pool schedule
 python build_schedule.py                   # refresh live-pull cron triggers from fixtures.json
 ```
 

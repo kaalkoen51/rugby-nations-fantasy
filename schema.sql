@@ -309,12 +309,17 @@ alter table leagues add column if not exists h2h_losing_margin int not null defa
 alter table managers add column if not exists waiver_order int;
 
 -- Queued free-agent pickups (when fa_defer_to_close). One row per claim;
--- processed at window close. pick_id is the roster slot to fill.
+-- processed at window close. pick_id is the roster slot to fill. Each manager
+-- submits an ORDERED preference list (rank ascending) — the window-close
+-- resolver works down the list with fallbacks (see resolveFaClaims in
+-- index.html). rank is the manager's own ordering; max_fa_per_window caps how
+-- many actually execute, not how many are listed.
 create table if not exists fa_claims (
     id uuid primary key default gen_random_uuid(),
     league_id uuid references leagues(id) on delete cascade,
     manager_id uuid references managers(id) on delete cascade,
     pick_id uuid references picks(id) on delete cascade,
+    rank int not null default 0,
     out_player_id text,
     out_player_name text,
     in_player_id text,
@@ -324,6 +329,7 @@ create table if not exists fa_claims (
     created_at timestamptz default now()
 );
 create index if not exists fa_claims_league_idx on fa_claims (league_id, status);
+alter table fa_claims add column if not exists rank int not null default 0;
 
 -- Head-to-Head fixtures: who plays whom each round (round-robin). away_manager_id
 -- null = a bye. Generated at draft completion; admin can regenerate.

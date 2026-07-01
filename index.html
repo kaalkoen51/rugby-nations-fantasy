@@ -48,6 +48,8 @@
     <div class="flex items-center gap-2 text-xs text-slate-400">
       <span id="hdr-league" class="truncate max-w-[10rem]"></span>
       <span id="conn-dot" title="realtime connection" class="w-2 h-2 rounded-full bg-slate-600"></span>
+      <button id="hdr-exit" class="hidden rounded-lg px-2 py-1 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300"
+        title="Leave this league and go back to the landing page">Exit league</button>
     </div>
   </div>
 </header>
@@ -88,8 +90,8 @@
       <input id="create-name" placeholder="Braai Boys WC 2026" class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100"></label>
     <label class="block text-sm text-slate-400">Number of managers (5–15 recommended)
       <input id="create-num" type="number" min="2" max="15" value="8" class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100"></label>
-    <label class="block text-sm text-slate-400">Seconds per pick
-      <input id="create-dur" type="number" min="15" max="300" value="60" class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100"></label>
+    <label class="block text-sm text-slate-400">Seconds per pick <span class="text-slate-500">(0 = unlimited)</span>
+      <input id="create-dur" type="number" min="0" value="60" class="mt-1 w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-slate-100"></label>
     <button id="create-go" class="w-full bg-wcred hover:bg-wcred-hov rounded-lg py-2.5 font-semibold">Create league</button>
     <div id="create-result" class="hidden rounded-xl border border-amber-600 bg-amber-950/30 p-4 space-y-2 text-sm">
       <p>League created! <b>Save these somewhere safe:</b></p>
@@ -686,8 +688,17 @@ function leaveLeague() {
   setSession(null);
   S.league = null; S.managers = []; S.picks = []; S.stats = [];
   $("hdr-league").textContent = "";
+  $("hdr-exit").classList.add("hidden");
   renderHome();
   showView("home");
+}
+
+// Header "Exit league" — confirm, then drop the session and return to the
+// landing page (where you can join or create a league).
+function exitLeague() {
+  if (!confirm("Leave this league and return to the landing page? You can re-join later with the invite code."))
+    return;
+  leaveLeague();
 }
 
 /* ---------- routing ---------- */
@@ -703,8 +714,9 @@ const picksPerManager = () =>
 const totalPicks = () => draftSequence().length;
 
 function route() {
-  if (!S.league) { showView("home"); return; }
+  if (!S.league) { $("hdr-exit").classList.add("hidden"); showView("home"); return; }
   $("hdr-league").textContent = S.league.name;
+  $("hdr-exit").classList.remove("hidden");
   // Keep the admin on their screen across realtime refreshes.
   const cur = document.querySelector("[data-view]:not(.hidden)")?.dataset.view;
   if (cur === "admin") { renderAdmin(); return; }
@@ -819,10 +831,10 @@ async function enterLeague() {
 async function createLeague() {
   const name = $("create-name").value.trim();
   const num = parseInt($("create-num").value, 10);
-  const dur = parseInt($("create-dur").value, 10);
+  const dur = parseInt($("create-dur").value, 10) || 0;   // 0 / blank = unlimited (no timer)
   if (!name) return toast("Give the league a name.");
   if (!(num >= 2 && num <= 15)) return toast("Managers must be 2–15.");
-  if (!(dur >= 15 && dur <= 300)) return toast("Pick duration must be 15–300s.");
+  if (dur < 0) return toast("Pick duration can't be negative (0 = unlimited).");
   const row = {
     name, num_managers: num, pick_duration_seconds: dur,
     invite_code: genInviteCode(), admin_token: crypto.randomUUID(), current_pick: 0,
@@ -849,7 +861,7 @@ async function findLeague() {
   S.joinManagers = mgrs || [];
   $("join-league-name").textContent = data.name;
   $("join-league-meta").textContent =
-    `${S.joinManagers.length}/${data.num_managers} managers · ${data.pick_duration_seconds}s per pick` +
+    `${S.joinManagers.length}/${data.num_managers} managers · ${data.pick_duration_seconds ? data.pick_duration_seconds + "s" : "unlimited"} per pick` +
     (data.current_pick ? " · draft already started" : "");
   const full = S.joinManagers.length >= data.num_managers;
   $("join-new-wrap").classList.toggle("hidden", full || data.current_pick > 0);
@@ -900,7 +912,7 @@ function renderLobby() {
   $("lobby-name").textContent = L.name;
   $("lobby-code").textContent = L.invite_code;
   $("lobby-settings").textContent =
-    `${L.num_managers} managers · ${L.pick_duration_seconds}s per pick · ${picksPerManager()} rounds`;
+    `${L.num_managers} managers · ${L.pick_duration_seconds ? L.pick_duration_seconds + "s" : "unlimited"} per pick · ${picksPerManager()} rounds`;
   $("lobby-count").textContent = `${S.managers.length}/${L.num_managers}`;
   const me = myManager();
   $("lobby-managers").innerHTML = S.managers.map((m) =>
@@ -1268,6 +1280,12 @@ function tickTimer() {
   const L = S.league;
   const clock = $("draft-clock");
   if (!L || !L.current_pick || L.current_pick > totalPicks()) { clock.textContent = "--"; return; }
+  if (!L.pick_duration_seconds) {   // 0 = unlimited: no countdown, no auto-pick
+    clock.textContent = "∞";
+    clock.classList.remove("text-red-400");
+    clock.classList.add("text-wcgold");
+    return;
+  }
   const deadline = Date.parse(L.pick_started_at) + L.pick_duration_seconds * 1000;
   const remain = Math.ceil((deadline - Date.now()) / 1000);
   const shown = Math.max(0, remain);
@@ -2008,33 +2026,57 @@ function standingsOrder() {
 
 /* ---------- free-agent waivers (deferred pickups) ---------- */
 
-// Resolve queued free-agent claims by waiver priority (lower order = picks
-// first). Contested player -> highest-priority claimant wins and drops to the
-// bottom of the order; the rest fail. Already-rostered players are skipped.
-// Pure: returns { awards, failed (claim ids), order (updated) }.
-function resolveFaClaims(claims, waiverOrder, taken) {
+// Execute queued free-agent claims at window close. Each manager submits an
+// ORDERED list of claims (by `rank`) — a preference list with fallbacks (e.g.
+// "Kolisi -> B, else Kolisi -> C"). We process managers in waiver-priority
+// order (lower order = picks first). For the current manager we walk their
+// list top-down, SKIPPING claims whose target is already taken or whose
+// out-player they no longer hold (the fallback), and EXECUTE the first viable
+// one. A CONTESTED win (another manager also listed that player) drops them to
+// the bottom of the waiver order and yields to the next manager; an
+// UNCONTESTED win keeps their priority so they continue down their own list.
+// Each manager executes at most `tradeLimit` claims. Loop until all done.
+// Pure: returns { awards:[claim], failed:[claim id], order }.
+function resolveFaClaims(claims, waiverOrder, taken, tradeLimit, pickHolds) {
+  tradeLimit = tradeLimit || Infinity;
   const order = { ...waiverOrder };
-  const seen = new Set(taken || []);
-  let maxOrder = Object.values(order).reduce((m, v) => Math.max(m, v), -1);
-  const groups = {};
-  for (const c of claims) (groups[c.in_player_id] ||= []).push(c);
-  const awards = [], failed = [];
+  let maxOrder = Object.values(order).reduce((m, v) => Math.max(m, v ?? -1), -1);
+  const rostered = new Set(taken || []);           // player ids currently on a roster
+  const holds = { ...(pickHolds || {}) };          // pick_id -> current player id
+  const byMgr = {};
+  for (const c of claims) (byMgr[c.manager_id] ||= []).push(c);
+  for (const m in byMgr) byMgr[m].sort((a, b) =>
+    (a.rank ?? 0) - (b.rank ?? 0) || String(a.created_at || "").localeCompare(String(b.created_at || "")));
+  // "contested" = the same free agent is listed by more than one manager.
+  const wanters = {};
+  for (const c of claims) (wanters[c.in_player_id] ||= new Set()).add(c.manager_id);
+  const contested = (pid) => (wanters[pid]?.size || 0) > 1;
+
+  const ptr = {}, count = {}, done = {};
   const prio = (m) => (order[m] === undefined || order[m] === null ? Infinity : order[m]);
-  // Deterministic: contested groups first, then by player id.
-  const players = Object.keys(groups).sort((p, q) =>
-    (groups[q].length > 1) - (groups[p].length > 1) || String(p).localeCompare(String(q)));
-  for (const pid of players) {
-    const group = groups[pid];
-    if (seen.has(pid)) { group.forEach((c) => failed.push(c.id)); continue; }
-    const ranked = group.slice().sort((a, b) =>
-      prio(a.manager_id) - prio(b.manager_id) ||
-      String(a.created_at || "").localeCompare(String(b.created_at || "")));
-    const winner = ranked[0];
-    awards.push(winner);
-    seen.add(pid);
-    ranked.slice(1).forEach((c) => failed.push(c.id));
-    if (group.length > 1) { maxOrder += 1; order[winner.manager_id] = maxOrder; }  // contested drop
+  const awards = [], failed = [];
+  const active = () => Object.keys(byMgr).filter((m) => !done[m]);
+
+  while (active().length) {
+    const m = active().sort((a, b) => prio(a) - prio(b) || String(a).localeCompare(String(b)))[0];
+    ptr[m] ??= 0; count[m] ??= 0;
+    if (count[m] >= tradeLimit) { done[m] = true; continue; }
+    let executed = null;
+    while (ptr[m] < byMgr[m].length) {
+      const c = byMgr[m][ptr[m]]; ptr[m]++;
+      const feasible = holds[c.pick_id] === c.out_player_id && !rostered.has(c.in_player_id);
+      if (!feasible) { failed.push(c.id); continue; }        // fallback -> try next
+      rostered.delete(c.out_player_id); rostered.add(c.in_player_id);
+      holds[c.pick_id] = c.in_player_id;
+      count[m]++; awards.push(c); executed = c;
+      break;
+    }
+    if (!executed) { done[m] = true; continue; }
+    if (contested(executed.in_player_id)) { maxOrder += 1; order[m] = maxOrder; }  // knocked down -> yield
+    if (count[m] >= tradeLimit) done[m] = true;
   }
+  for (const m in byMgr)                                       // anything unreached fails
+    for (let i = ptr[m] ?? 0; i < byMgr[m].length; i++) failed.push(byMgr[m][i].id);
   return { awards, failed, order };
 }
 
@@ -3111,24 +3153,41 @@ function swapOrClaim(pick, entry) {
 async function submitFaClaim(pick, entry) {
   if (!S.league.trading_open) return toast("Trading window is closed.");
   const me = myManager();
-  const cap = S.league.max_fa_per_window;
-  if (cap) {
-    const mine = (S.faClaims || []).filter((c) =>
-      c.manager_id === me.id && c.status === "pending").length;
-    if (mine >= cap) return toast(`Free-agent claim limit reached (${cap} per window).`);
-  }
-  // One pending claim per slot — replace an existing one on the same pick.
-  const dupe = (S.faClaims || []).find((c) =>
-    c.manager_id === me.id && c.pick_id === pick.id && c.status === "pending");
-  if (dupe) await S.sb.from("fa_claims").delete().eq("id", dupe.id);
+  // Append to this manager's ordered preference list (list as many as you
+  // like — the per-window limit caps how many EXECUTE, not how many you list).
+  const mine = (S.faClaims || []).filter((c) =>
+    c.manager_id === me.id && c.status === "pending");
+  const rank = mine.length ? Math.max(...mine.map((c) => c.rank ?? 0)) + 1 : 0;
   const { error } = await S.sb.from("fa_claims").insert({
-    league_id: S.league.id, manager_id: me.id, pick_id: pick.id,
+    league_id: S.league.id, manager_id: me.id, pick_id: pick.id, rank,
     out_player_id: pick.player_id, out_player_name: pick.player_name,
     in_player_id: entry.player_id, in_player_name: entry.name,
   });
   if (error) return toast(error.message);
-  toast(`Claim submitted: ${entry.name} — processes at window close.`);
+  toast(`Claim #${rank + 1} added: in ${entry.name} — reorder it on the Trades tab.`);
   closeSwap();
+  scheduleRefetch();
+}
+
+// Move a queued claim up/down in this manager's preference list by swapping
+// ranks with its neighbour, then persist both.
+async function reorderClaim(me, claimId, dir) {
+  const mine = (S.faClaims || []).filter((c) =>
+    c.manager_id === me.id && c.status === "pending")
+    .sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0) ||
+      String(a.created_at || "").localeCompare(String(b.created_at || "")));
+  const i = mine.findIndex((c) => c.id === claimId);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= mine.length) return;
+  const a = mine[i], b = mine[j];
+  const ra = a.rank ?? i, rb = b.rank ?? j;
+  const [e1, e2] = await Promise.all([
+    S.sb.from("fa_claims").update({ rank: rb }).eq("id", a.id),
+    S.sb.from("fa_claims").update({ rank: ra }).eq("id", b.id),
+  ]);
+  if (e1.error || e2.error) return toast((e1.error || e2.error).message);
+  a.rank = rb; b.rank = ra;   // optimistic local update
+  renderTrades();
   scheduleRefetch();
 }
 
@@ -3746,18 +3805,32 @@ function effectiveWaiverOrder() {
 function claimsSectionHtml(me) {
   if (!S.league.fa_defer_to_close) return "";
   const mine = (S.faClaims || []).filter((c) =>
-    c.manager_id === me.id && c.status === "pending");
+    c.manager_id === me.id && c.status === "pending")
+    .sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0) ||
+      String(a.created_at || "").localeCompare(String(b.created_at || "")));
   const cap = S.league.max_fa_per_window;
   let html = `<div class="text-xs uppercase tracking-wide text-slate-500 mt-4 mb-1">⏳ Free-agent claims${
-    cap ? ` (${mine.length}/${cap})` : ""} — <b>not instant</b>, processed at window close</div>`;
+    cap ? ` — up to ${cap} executed` : ""} — <b>not instant</b>, processed at window close</div>`;
   if (!mine.length)
-    html += `<p class="text-xs text-slate-500 mb-2">No claims queued. Free agents you pick up are
-      claimed now and awarded at the window close by waiver order (ties to the higher-priority
-      manager); winning a contested claim drops you to the bottom.</p>`;
-  else html += mine.map((c) => `<div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-1.5 mb-1 text-sm">
-    <span class="truncate flex-1">in <b>${esc(c.in_player_name)}</b> <span class="text-slate-500">for ${esc(c.out_player_name)}</span></span>
-    <button data-cancelclaim="${c.id}" class="shrink-0 text-xs underline text-red-400">cancel</button>
-  </div>`).join("");
+    html += `<p class="text-xs text-slate-500 mb-2">No claims queued. Queue as many free-agent
+      claims as you like and rank them in the order you'd want them executed. At window close we
+      work through the waiver order: each manager gets their #1 claim; if you <b>win a contested
+      claim</b> (someone else wanted the same player) you drop to the bottom of the order, otherwise
+      you keep going down your list${cap ? ` up to your ${cap} pickup${cap === 1 ? "" : "s"}` : ""}.
+      If your top pick is taken by a higher-priority manager, your next claim for that slot is your
+      fallback.</p>`;
+  else {
+    html += `<p class="text-xs text-slate-500 mb-1">Ranked in execution order — reorder with the
+      arrows. We try them top-down; if one can't run (player taken, or you no longer hold the
+      out-player) we fall through to the next.</p>`;
+    html += mine.map((c, i) => `<div class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-1.5 mb-1 text-sm">
+      <span class="shrink-0 text-slate-500 w-5 text-right">${i + 1}.</span>
+      <span class="truncate flex-1">in <b>${esc(c.in_player_name)}</b> <span class="text-slate-500">for ${esc(c.out_player_name)}</span></span>
+      <button data-claimup="${c.id}" ${i === 0 ? "disabled" : ""} class="shrink-0 text-xs px-1 ${i === 0 ? "text-slate-600" : "text-slate-300 hover:text-white"}" title="move up">▲</button>
+      <button data-claimdown="${c.id}" ${i === mine.length - 1 ? "disabled" : ""} class="shrink-0 text-xs px-1 ${i === mine.length - 1 ? "text-slate-600" : "text-slate-300 hover:text-white"}" title="move down">▼</button>
+      <button data-cancelclaim="${c.id}" class="shrink-0 text-xs underline text-red-400">cancel</button>
+    </div>`).join("");
+  }
   // Public waiver priority — everyone sees who wins a contested claim.
   const wq = effectiveWaiverOrder();
   html += `<div class="text-xs uppercase tracking-wide text-slate-500 mt-3 mb-1">Waiver priority (public)</div>
@@ -3775,6 +3848,8 @@ function wireTrades(me) {
     if (error) return toast(error.message);
     toast("Claim cancelled."); scheduleRefetch();
   });
+  box.querySelectorAll("[data-claimup]").forEach((b) => b.onclick = () => reorderClaim(me, b.dataset.claimup, -1));
+  box.querySelectorAll("[data-claimdown]").forEach((b) => b.onclick = () => reorderClaim(me, b.dataset.claimdown, +1));
   wireStars(box, renderTrades);
   const slToggle = box.querySelector("#sl-toggle");
   if (slToggle) slToggle.onclick = () => { S.showShortlist = !S.showShortlist; renderTrades(); };
@@ -4168,6 +4243,157 @@ async function pullStatsNow() {
   }
 }
 
+/* ---------- admin: trading window, waivers & H2H ---------- */
+
+function renderAdmin() {
+  const ok = isAdmin();
+  $("admin-gate").classList.toggle("hidden", ok);
+  $("admin-panel").classList.toggle("hidden", !ok);
+  if (!ok) return;
+  if (!$("adm-home").options.length) {
+    const opts = (sel) => $(sel).innerHTML =
+      S.teams.map((t) => `<option>${esc(t)}</option>`).join("");
+    opts("adm-home"); opts("adm-away");
+    $("adm-date").value = new Date().toISOString().slice(0, 10);
+  }
+  $("adm-label-preview").textContent = admLabel();
+  if (!$("adm-api-key").value)
+    $("adm-api-key").value = localStorage.getItem("wcf_apikey") || "";
+  if (!$("adm-pull-date").value)
+    $("adm-pull-date").value = new Date().toISOString().slice(0, 10);
+  const open = !!S.league.trading_open;
+  $("adm-trading-status").textContent = open ? "Trading is OPEN" : "Trading is closed";
+  $("adm-trading-status").className =
+    "text-sm font-semibold " + (open ? "text-wcgold" : "text-slate-400");
+  $("adm-trading-toggle").textContent = open ? "Close trading" : "Open trading";
+  if (document.activeElement?.id !== "adm-max-trades")
+    $("adm-max-trades").value = S.league.max_trades_per_window || "";
+  if (document.activeElement?.id !== "adm-max-fa")
+    $("adm-max-fa").value = S.league.max_fa_per_window || "";
+  $("adm-fa-defer").checked = !!S.league.fa_defer_to_close;
+  $("adm-h2h-enabled").checked = !!S.league.h2h_enabled;
+  const setIf = (id, v) => { if (document.activeElement?.id !== id) $(id).value = v; };
+  setIf("adm-h2h-win", S.league.h2h_win ?? 4);
+  setIf("adm-h2h-draw", S.league.h2h_draw ?? 2);
+  setIf("adm-h2h-loss", S.league.h2h_loss ?? 0);
+  setIf("adm-h2h-score", S.league.h2h_score_bonus ?? 450);
+  setIf("adm-h2h-losing", S.league.h2h_losing_margin ?? 50);
+  const rounds = new Set(S.h2hFixtures.map((f) => f.round)).size;
+  $("adm-h2h-info").textContent = S.h2hFixtures.length
+    ? `${rounds} rounds of fixtures generated.`
+    : "No fixtures yet — generate after everyone has joined.";
+  admRenderSelected();
+  admRenderExisting();
+}
+
+async function toggleTrading() {
+  const next = !S.league.trading_open;
+  // Closing: execute any queued free-agent pickups (waiver order) BEFORE
+  // snapshotting, so locked lineups reflect the new rosters.
+  let awarded = 0;
+  if (!next) awarded = await processFaClaims();
+  const patch = { trading_open: next };
+  if (next) patch.window_opened_at = new Date().toISOString();
+  const { error } = await S.sb.from("leagues").update(patch).eq("id", S.league.id);
+  if (error) return toast(error.message);
+  if (!next) await snapshotRosters(); // closing = lock everyone's lineups in
+  toast(next ? "Trading window opened — lineups and trades unlocked."
+             : `Trading window closed — lineups locked${awarded ? `, ${awarded} pickup(s) processed` : ""}.`);
+  scheduleRefetch();
+}
+
+// Process queued free-agent claims at window close. Returns the number
+// awarded. The ordered-list + waiver-order resolution is in resolveFaClaims().
+async function processFaClaims() {
+  const pending = (S.faClaims || []).filter((c) => c.status === "pending");
+  if (!pending.length) return 0;
+  // Waiver order: existing values, then seed any unseeded from reverse
+  // standings (worst-placed gets the highest priority = lowest order).
+  const order = {};
+  for (const m of S.managers) if (m.waiver_order != null) order[m.id] = m.waiver_order;
+  let next = Object.values(order).reduce((a, v) => Math.max(a, v), -1) + 1;
+  for (const id of standingsOrder().reverse())
+    if (order[id] === undefined) order[id] = next++;
+  const taken = S.picks.map((p) => p.player_id);
+  const pickHolds = Object.fromEntries(S.picks.map((p) => [p.id, p.player_id]));
+  const tradeLimit = S.league.max_fa_per_window || Infinity;
+  const { awards, failed, order: newOrder } =
+    resolveFaClaims(pending, order, taken, tradeLimit, pickHolds);
+
+  const awardedIds = [], failedIds = [...failed];
+  for (const c of awards) {
+    const team = S.playerById?.[c.in_player_id]?.team || null;
+    const { error } = await S.sb.from("picks")
+      .update({ player_id: c.in_player_id, player_name: c.in_player_name, team })
+      .eq("id", c.pick_id).eq("player_id", c.out_player_id);
+    if (error) { failedIds.push(c.id); continue; }
+    awardedIds.push(c.id);
+    const pk = S.picks.find((p) => p.id === c.pick_id);     // keep local state fresh for snapshot
+    if (pk) { pk.player_id = c.in_player_id; pk.player_name = c.in_player_name; pk.team = team; }
+    S.sb.from("transactions").insert({
+      league_id: S.league.id, manager_id: c.manager_id, kind: "waiver",
+      out_player_id: c.out_player_id, out_player_name: c.out_player_name,
+      in_player_id: c.in_player_id, in_player_name: c.in_player_name,
+    }).then(() => {}, () => {});
+  }
+  if (awardedIds.length) await S.sb.from("fa_claims").update({ status: "awarded" }).in("id", awardedIds);
+  if (failedIds.length) await S.sb.from("fa_claims").update({ status: "failed" }).in("id", failedIds);
+  for (const m of S.managers)
+    if (newOrder[m.id] !== undefined && newOrder[m.id] !== m.waiver_order)
+      await S.sb.from("managers").update({ waiver_order: newOrder[m.id] }).eq("id", m.id);
+  return awardedIds.length;
+}
+
+async function saveWindowLimits() {
+  const n = (id) => { const v = parseInt($(id).value, 10); return Number.isFinite(v) && v > 0 ? v : null; };
+  const { error } = await S.sb.from("leagues").update({
+    max_trades_per_window: n("adm-max-trades"),
+    max_fa_per_window: n("adm-max-fa"),
+    fa_defer_to_close: $("adm-fa-defer").checked,
+  }).eq("id", S.league.id);
+  if (error) return toast(error.message);
+  toast("Window limits saved.");
+  scheduleRefetch();
+}
+
+async function saveH2HSettings() {
+  const i = (id) => parseInt($(id).value, 10) || 0;
+  const { error } = await S.sb.from("leagues").update({
+    h2h_enabled: $("adm-h2h-enabled").checked,
+    h2h_win: i("adm-h2h-win"), h2h_draw: i("adm-h2h-draw"), h2h_loss: i("adm-h2h-loss"),
+    h2h_score_bonus: Math.max(1, i("adm-h2h-score")), h2h_losing_margin: Math.max(0, i("adm-h2h-losing")),
+  }).eq("id", S.league.id);
+  if (error) return toast(error.message);
+  toast("H2H settings saved.");
+  scheduleRefetch();
+}
+
+// Build a round-robin fixture list (cycled to cover the whole tournament).
+async function generateH2HSchedule() {
+  const ids = activeManagers().map((m) => m.id);
+  if (ids.length < 2) return toast("Need at least 2 managers to schedule.");
+  const rr = roundRobin(ids);                 // rounds of [home, away] pairs
+  const TOURNAMENT_ROUNDS = 13;               // generous; extra rounds go unused
+  const rows = [];
+  for (let r = 0; r < TOURNAMENT_ROUNDS; r++) {
+    for (const [home, away] of rr[r % rr.length])
+      rows.push({ league_id: S.league.id, round: r + 1,
+        home_manager_id: home, away_manager_id: away });
+  }
+  await S.sb.from("h2h_fixtures").delete().eq("league_id", S.league.id);
+  const { error } = await S.sb.from("h2h_fixtures").insert(rows);
+  if (error) return toast(error.message);
+  toast(`H2H fixtures generated for ${ids.length} managers.`);
+  scheduleRefetch();
+}
+
+function tradesThisWindow(mgrId) {
+  const since = S.league?.window_opened_at ? Date.parse(S.league.window_opened_at) : 0;
+  return (S.trades || []).filter((t) => t.status === "accepted"
+    && Date.parse(t.updated_at || t.created_at) >= since
+    && (t.proposer_manager_id === mgrId || t.target_manager_id === mgrId)).length;
+}
+
 /* ---------- home & init ---------- */
 
 function renderHome() {
@@ -4190,6 +4416,7 @@ function wire() {
   $("home-reconfig").onclick = () => { localStorage.removeItem("wcf_config"); location.reload(); };
   $("home-resume-go").onclick = () => enterLeague().catch((e) => toast(e.message));
   $("home-resume-leave").onclick = leaveLeague;
+  $("hdr-exit").onclick = exitLeague;
   $("create-go").onclick = () => createLeague().catch((e) => toast(e.message));
   $("create-tolobby").onclick = () => enterLeague().catch((e) => toast(e.message));
   $("join-find").onclick = () => findLeague().catch((e) => toast(e.message));

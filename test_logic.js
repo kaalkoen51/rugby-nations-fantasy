@@ -137,15 +137,51 @@ check("leader by log points", tbl[0].mgrId, "a");
 check("leader logPts (win+bonus, then loss)", tbl[0].logPts, 5);   // R1 win+score bonus, R2 loss
 check("leader record 1W 1L", [tbl[0].W, tbl[0].L], [1, 1]);
 
-/* ---------- free-agent waivers ---------- */
-const claim = (id, mgr, pid, t) => ({ id, manager_id: mgr, in_player_id: pid, created_at: t });
-const unc = resolveFaClaims([claim("c1", "m1", "p1", "t1")], { m1: 0, m2: 1 }, []);
+/* ---------- free-agent waivers (ordered preference lists) ---------- */
+// claim(id, mgr, in, pick, out, rank, t): trade OUT `out` (held by `pick`) for
+// free-agent `in`, ranked `rank` in the manager's preference list.
+const claim = (id, mgr, pin, pick, pout, rank, t) =>
+  ({ id, manager_id: mgr, in_player_id: pin, pick_id: pick, out_player_id: pout, rank, created_at: t });
+
+// Uncontested pickup: awarded, priority unchanged.
+const unc = resolveFaClaims([claim("c1", "m1", "p1", "pk1", "o1", 0, "t1")],
+  { m1: 0, m2: 1 }, [], Infinity, { pk1: "o1" });
 check("uncontested awarded, order unchanged", [unc.awards.map((a) => a.id), unc.order.m1], [["c1"], 0]);
-const con = resolveFaClaims([claim("c1", "m1", "p1", "t1"), claim("c2", "m2", "p1", "t2")], { m1: 1, m2: 0 }, []);
+
+// Contested: two managers list the same player — higher priority wins, loser
+// fails, and the winner drops to the bottom of the waiver order.
+const con = resolveFaClaims([
+  claim("c1", "m1", "p1", "pk1", "o1", 0, "t1"),
+  claim("c2", "m2", "p1", "pk2", "o2", 0, "t2"),
+], { m1: 1, m2: 0 }, [], Infinity, { pk1: "o1", pk2: "o2" });
 check("contested: lowest order wins", con.awards.map((a) => a.id), ["c2"]);
 check("contested loser fails", con.failed, ["c1"]);
 check("contested winner drops to bottom", con.order.m2, 2);
-check("already-rostered player fails", resolveFaClaims([claim("c1", "m1", "p1", "t1")], { m1: 0 }, ["p1"]).failed, ["c1"]);
+
+// Fallback: m1's #1 (p1) is taken by higher-priority m2, so m1 falls through to
+// its #2 (p2, same slot/out-player), which is uncontested and awarded.
+const fb = resolveFaClaims([
+  claim("cx", "m2", "p1", "pkx", "ox", 0, "t0"),
+  claim("c1", "m1", "p1", "pk1", "o1", 0, "t1"),
+  claim("c2", "m1", "p2", "pk1", "o1", 1, "t2"),
+], { m1: 1, m2: 0 }, [], Infinity, { pkx: "ox", pk1: "o1" });
+check("fallback: m2 wins p1, m1 falls to p2", fb.awards.map((a) => a.id).sort(), ["c2", "cx"]);
+check("fallback: m1's #1 fails", fb.failed, ["c1"]);
+check("uncontested winner (m1) keeps priority", fb.order.m1, 1);
+
+// Trade limit caps how many of a manager's claims execute (not how many listed).
+const lim = resolveFaClaims([
+  claim("c1", "m1", "p1", "pk1", "o1", 0, "t1"),
+  claim("c2", "m1", "p2", "pk2", "o2", 1, "t2"),
+  claim("c3", "m1", "p3", "pk3", "o3", 2, "t3"),
+], { m1: 0 }, [], 2, { pk1: "o1", pk2: "o2", pk3: "o3" });
+check("trade limit: only first two execute", lim.awards.map((a) => a.id), ["c1", "c2"]);
+check("trade limit: rest fail", lim.failed, ["c3"]);
+
+check("already-rostered player fails",
+  resolveFaClaims([claim("c1", "m1", "p1", "pk1", "o1", 0, "t1")], { m1: 0 }, ["p1"], Infinity, { pk1: "o1" }).failed, ["c1"]);
+check("stale out-player (no longer held) fails",
+  resolveFaClaims([claim("c1", "m1", "p1", "pk1", "o1", 0, "t1")], { m1: 0 }, [], Infinity, { pk1: "SOMEONE_ELSE" }).failed, ["c1"]);
 
 /* ---------- suspensions (red card only) ---------- */
 S.stats = [
