@@ -4514,7 +4514,7 @@ function wire() {
     if (e.target.id === "planner-sheet") $("planner-sheet").classList.add("hidden");
   };
   $("draft-force").onclick = () => {
-    if (confirm("Force a random auto-pick for the manager on the clock?"))
+    if (confirm("Force an auto-pick (from their shortlist if set, else random) for the manager on the clock?"))
       autoPick(pickInfo(S.league.current_pick)).catch((e) => toast(e.message));
   };
   document.querySelectorAll(".board-tab").forEach((b) =>
