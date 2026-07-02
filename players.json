@@ -1194,24 +1194,24 @@
   {
     "player_id": "arg_1",
     "name": "Matías Alemanno",
-    "position": "HK",
-    "role": "HK",
+    "position": "LK",
+    "role": "LK",
     "team": "Argentina",
     "team_code": "ARG"
   },
   {
     "player_id": "arg_2",
     "name": "Luciano Asevedo",
-    "position": "PR",
-    "role": "PR",
+    "position": "LK",
+    "role": "LK",
     "team": "Argentina",
     "team_code": "ARG"
   },
   {
     "player_id": "arg_3",
     "name": "Francisco Coria Machetti",
-    "position": "HK",
-    "role": "HK",
+    "position": "PR",
+    "role": "PR",
     "team": "Argentina",
     "team_code": "ARG"
   },
@@ -1266,8 +1266,8 @@
   {
     "player_id": "arg_10",
     "name": "Joaquín Moro",
-    "position": "PR",
-    "role": "PR",
+    "position": "LF",
+    "role": "LF",
     "team": "Argentina",
     "team_code": "ARG"
   },
@@ -1282,8 +1282,8 @@
   {
     "player_id": "arg_12",
     "name": "Leonel Oviedo",
-    "position": "LF",
-    "role": "LF",
+    "position": "HK",
+    "role": "HK",
     "team": "Argentina",
     "team_code": "ARG"
   },
@@ -1330,8 +1330,8 @@
   {
     "player_id": "arg_18",
     "name": "Boris Wenger",
-    "position": "LF",
-    "role": "LF",
+    "position": "HK",
+    "role": "HK",
     "team": "Argentina",
     "team_code": "ARG"
   },
@@ -1369,7 +1369,7 @@
   },
   {
     "player_id": "arg_23",
-    "name": "Lucio Cintu",
+    "name": "Lucio Cinti",
     "position": "CE",
     "role": "CE",
     "team": "Argentina",
@@ -1386,8 +1386,8 @@
   {
     "player_id": "arg_25",
     "name": "Agustín Fraga",
-    "position": "CE",
-    "role": "CE",
+    "position": "OB",
+    "role": "OB",
     "team": "Argentina",
     "team_code": "ARG"
   },
@@ -1434,8 +1434,8 @@
   {
     "player_id": "arg_31",
     "name": "Gerónimo Prisciantelli",
-    "position": "CE",
-    "role": "CE",
+    "position": "FH",
+    "role": "FH",
     "team": "Argentina",
     "team_code": "ARG"
   },
