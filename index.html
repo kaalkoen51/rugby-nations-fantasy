@@ -1278,8 +1278,17 @@ async function autoPick(info) {
   const pool = GROUPS.filter((g) => quotaLeft(mgrPicks, g) > 0)
     .flatMap((g) => availableForGroup(g));
   if (!pool.length) { toast("No available players fit the open quota."); return; }
-  const entry = pool[Math.floor(Math.random() * pool.length)];
-  toast(`Time's up — auto-picked ${entry.name} for ${info.manager.name}.`);
+  // Prefer the manager's shortlist: pick at random among their shortlisted
+  // players that are still available and fit an open quota. Only when none
+  // qualify (empty shortlist, or all taken / quota-full) fall back to a fully
+  // random pick from the eligible pool.
+  const shortlist = info.manager.shortlist || [];
+  const preferred = pool.filter((p) => shortlist.includes(p.player_id));
+  const from = preferred.length ? preferred : pool;
+  const entry = from[Math.floor(Math.random() * from.length)];
+  toast(`Time's up — auto-picked ${entry.name}`
+    + (preferred.length ? " from their shortlist" : "")
+    + ` for ${info.manager.name}.`);
   await makePick(entry, info);
 }
 
