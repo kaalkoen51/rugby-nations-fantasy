@@ -1226,16 +1226,16 @@
   {
     "player_id": "arg_5",
     "name": "Santi Grondona",
-    "position": "LK",
-    "role": "LK",
+    "position": "LF",
+    "role": "LF",
     "team": "Argentina",
     "team_code": "ARG"
   },
   {
     "player_id": "arg_6",
     "name": "Marcos Kremer",
-    "position": "LK",
-    "role": "LK",
+    "position": "LF",
+    "role": "LF",
     "team": "Argentina",
     "team_code": "ARG"
   },
@@ -1250,8 +1250,8 @@
   {
     "player_id": "arg_8",
     "name": "Franco Molina",
-    "position": "OB",
-    "role": "OB",
+    "position": "LK",
+    "role": "LK",
     "team": "Argentina",
     "team_code": "ARG"
   },
@@ -1290,8 +1290,8 @@
   {
     "player_id": "arg_13",
     "name": "Juan Penoucos",
-    "position": "LK",
-    "role": "LK",
+    "position": "LF",
+    "role": "LF",
     "team": "Argentina",
     "team_code": "ARG"
   },
@@ -1506,8 +1506,8 @@
   {
     "player_id": "jpn_6",
     "name": "Mamoru Harada",
-    "position": "LK",
-    "role": "LK",
+    "position": "HK",
+    "role": "HK",
     "team": "Japan",
     "team_code": "JPN"
   },
@@ -1553,9 +1553,9 @@
   },
   {
     "player_id": "jpn_12",
-    "name": "Warner Dears",
-    "position": "PR",
-    "role": "PR",
+    "name": "Warner Dearns",
+    "position": "LK",
+    "role": "LK",
     "team": "Japan",
     "team_code": "JPN"
   },
@@ -1810,8 +1810,8 @@
   {
     "player_id": "ire_9",
     "name": "Sean Jansen",
-    "position": "LK",
-    "role": "LK",
+    "position": "LF",
+    "role": "LF",
     "team": "Ireland",
     "team_code": "IRE"
   },
@@ -2010,8 +2010,8 @@
   {
     "player_id": "ire_34",
     "name": "Sam Prendergast",
-    "position": "SH",
-    "role": "SH",
+    "position": "FH",
+    "role": "FH",
     "team": "Ireland",
     "team_code": "IRE"
   },
@@ -2170,16 +2170,16 @@
   {
     "player_id": "eng_18",
     "name": "Guy Pepper",
-    "position": "HK",
-    "role": "HK",
+    "position": "LF",
+    "role": "LF",
     "team": "England",
     "team_code": "ENG"
   },
   {
     "player_id": "eng_19",
     "name": "Henry Pollock",
-    "position": "LK",
-    "role": "LK",
+    "position": "LF",
+    "role": "LF",
     "team": "England",
     "team_code": "ENG"
   },
@@ -2378,8 +2378,8 @@
   {
     "player_id": "sco_8",
     "name": "Freddy Douglas",
-    "position": "PR",
-    "role": "PR",
+    "position": "LF",
+    "role": "LF",
     "team": "Scotland",
     "team_code": "SCO"
   },
@@ -2730,8 +2730,8 @@
   {
     "player_id": "wal_16",
     "name": "Alex Mann",
-    "position": "LK",
-    "role": "LK",
+    "position": "LF",
+    "role": "LF",
     "team": "Wales",
     "team_code": "WAL"
   },
@@ -2762,8 +2762,8 @@
   {
     "player_id": "wal_20",
     "name": "Nicky Smith",
-    "position": "HK",
-    "role": "HK",
+    "position": "PR",
+    "role": "PR",
     "team": "Wales",
     "team_code": "WAL"
   },
@@ -2842,8 +2842,8 @@
   {
     "player_id": "wal_30",
     "name": "Bryn Bradley",
-    "position": "OB",
-    "role": "OB",
+    "position": "CE",
+    "role": "CE",
     "team": "Wales",
     "team_code": "WAL"
   },
