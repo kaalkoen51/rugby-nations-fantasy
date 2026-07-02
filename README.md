@@ -59,6 +59,7 @@ value in `SCORING` (`daily_pull.py` + `index.html`).
 | `daily_pull.py` | DS-API daily stats pull → rugby fantasy points → `match_stats` upsert (alt. source) |
 | `live_pull.py` | In-match live scoring loop (5-min updates while games are on) |
 | `build_players.py` | Builds `players.json` (`--from-mht` official sheet, DS-API, or `--placeholder`) |
+| `check_picks.py` | Emits SQL to find already-drafted picks whose position no longer matches `players.json` |
 | `build_fixtures.py` | Generates `fixtures.json` (confirmed 2026 schedule by default; `--placeholder` synthetic; `--ds-api`) |
 | `build_schedule.py` | Regenerates `live-pull.yml` cron triggers from `fixtures.json` |
 | `build_injuries.py` / `build_photos.py` | Optional availability badges / avatars |
