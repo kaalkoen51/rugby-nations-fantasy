@@ -191,8 +191,16 @@ On first open the app asks for the Supabase **URL** and **anon key** (stored
 in that browser's localStorage). The anon key is meant to be public.
 
 ### 4. Stats automation
-`daily_pull.py` runs every morning via the workflow: fetches yesterday's
-completed fixtures, scores them, upserts to `match_stats`. Repo secrets:
+
+> **The Google Sheet (4b below) is the active source.** The DS-API workflows
+> — `daily-pull`, `catchup-pull` and `live-pull` — are **disabled** (their
+> schedules are commented out; they remain runnable manually via
+> **Actions → Run workflow** if you ever wire up the DS-API). The rest of
+> this section describes that DS-API path for reference.
+
+`daily_pull.py` (when enabled) runs every morning via the workflow: fetches
+yesterday's completed fixtures, scores them, upserts to `match_stats`. Repo
+secrets:
 
 | Secret | Value |
 | --- | --- |

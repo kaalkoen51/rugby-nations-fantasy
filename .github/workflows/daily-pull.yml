@@ -1,9 +1,12 @@
 name: Daily stats pull
 
+# DISABLED — superseded by sheet-pull.yml. Stats now come from the source
+# Google Sheet via sheet_pull.py, so this DS-API daily sweep no longer runs
+# on a schedule (only manually). Re-enable by uncommenting the schedule.
 on:
-  schedule:
-    # 04:00 UTC = 06:00 SAST (South Africa, UTC+2)
-    - cron: "0 4 * * *"
+  # schedule:
+  #   # 04:00 UTC = 06:00 SAST (South Africa, UTC+2)
+  #   - cron: "0 4 * * *"
   workflow_dispatch:
     inputs:
       date:

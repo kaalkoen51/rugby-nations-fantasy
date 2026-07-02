@@ -39,11 +39,15 @@ name: Live stats pull
 # build_schedule.py from fixtures.json — edit that script, not the cron
 # list below. Each run exits in seconds when nothing is live or imminent;
 # otherwise live_pull.py stays alive (--max-wait), polling every 5 minutes
-# until the day's matches end. The concurrency group stops triggers from
-# stacking while a loop is running. The daily + same-day catch-up sweeps
-# remain the authoritative reconciliation.
+# until the day's matches end.
+#
+# DISABLED — superseded by sheet-pull.yml. Stats and lineups now come from
+# the source Google Sheet via sheet_pull.py, so this DS-API watchdog no
+# longer runs on a schedule. The per-kickoff triggers are kept below as
+# comments for reference; uncomment the `schedule:` block (and the crons)
+# to bring the DS-API live pull back.
 on:
-  schedule:
+  # schedule:
 {cron_lines}
   workflow_dispatch:
 
@@ -94,8 +98,10 @@ def main() -> None:
     times = trigger_times(fixtures)
     if not times:
         raise SystemExit("No kickoff times in fixtures.json — nothing to schedule.")
+    # Emitted commented-out: the live watchdog is disabled (superseded by
+    # sheet-pull.yml). Uncomment the schedule block + these lines to re-enable.
     cron_lines = "\n".join(
-        f'    - cron: "{m} {h} * * *"' for h, m in times
+        f'  #   - cron: "{m} {h} * * *"' for h, m in times
     )
     WORKFLOW.write_text(TEMPLATE.format(cron_lines=cron_lines), encoding="utf-8")
     print(f"Wrote {len(times)} trigger(s) to {WORKFLOW.relative_to(HERE)} "

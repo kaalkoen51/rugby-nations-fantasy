@@ -7,10 +7,13 @@ name: Catch-up stats sweep
 # firing time doesn't matter (GitHub may delay it — that's fine) and it's
 # safe to overlap with the morning sweep and the live pulls; the last
 # write simply wins. A few API calls per run.
+# DISABLED — superseded by sheet-pull.yml. Stats now come from the source
+# Google Sheet via sheet_pull.py, so this DS-API catch-up sweep no longer
+# runs on a schedule (only manually). Re-enable by uncommenting the schedule.
 on:
-  schedule:
-    - cron: "0 12 * * *"    # midday UTC: covers the early (00:00-04:00 UTC) block
-    - cron: "45 23 * * *"   # late UTC: covers the afternoon/evening block
+  # schedule:
+  #   - cron: "0 12 * * *"    # midday UTC: covers the early (00:00-04:00 UTC) block
+  #   - cron: "45 23 * * *"   # late UTC: covers the afternoon/evening block
   workflow_dispatch:
 
 concurrency:

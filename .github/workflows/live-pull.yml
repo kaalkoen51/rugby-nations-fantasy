@@ -4,43 +4,47 @@ name: Live stats pull
 # build_schedule.py from fixtures.json — edit that script, not the cron
 # list below. Each run exits in seconds when nothing is live or imminent;
 # otherwise live_pull.py stays alive (--max-wait), polling every 5 minutes
-# until the day's matches end. The concurrency group stops triggers from
-# stacking while a loop is running. The daily + same-day catch-up sweeps
-# remain the authoritative reconciliation.
+# until the day's matches end.
+#
+# DISABLED — superseded by sheet-pull.yml. Stats and lineups now come from
+# the source Google Sheet via sheet_pull.py, so this DS-API watchdog no
+# longer runs on a schedule. The per-kickoff triggers are kept below as
+# comments for reference; uncomment the `schedule:` block (and the crons)
+# to bring the DS-API live pull back.
 on:
-  schedule:
-    - cron: "50 4 * * *"
-    - cron: "5 5 * * *"
-    - cron: "50 6 * * *"
-    - cron: "5 7 * * *"
-    - cron: "20 7 * * *"
-    - cron: "35 7 * * *"
-    - cron: "20 8 * * *"
-    - cron: "35 8 * * *"
-    - cron: "40 9 * * *"
-    - cron: "50 9 * * *"
-    - cron: "55 9 * * *"
-    - cron: "5 10 * * *"
-    - cron: "50 12 * * *"
-    - cron: "5 13 * * *"
-    - cron: "20 13 * * *"
-    - cron: "35 13 * * *"
-    - cron: "20 15 * * *"
-    - cron: "35 15 * * *"
-    - cron: "50 15 * * *"
-    - cron: "5 16 * * *"
-    - cron: "50 16 * * *"
-    - cron: "5 17 * * *"
-    - cron: "20 18 * * *"
-    - cron: "35 18 * * *"
-    - cron: "40 18 * * *"
-    - cron: "50 18 * * *"
-    - cron: "55 18 * * *"
-    - cron: "5 19 * * *"
-    - cron: "50 20 * * *"
-    - cron: "5 21 * * *"
-    - cron: "50 21 * * *"
-    - cron: "5 22 * * *"
+  # schedule:
+  #   - cron: "50 4 * * *"
+  #   - cron: "5 5 * * *"
+  #   - cron: "50 6 * * *"
+  #   - cron: "5 7 * * *"
+  #   - cron: "20 7 * * *"
+  #   - cron: "35 7 * * *"
+  #   - cron: "20 8 * * *"
+  #   - cron: "35 8 * * *"
+  #   - cron: "40 9 * * *"
+  #   - cron: "50 9 * * *"
+  #   - cron: "55 9 * * *"
+  #   - cron: "5 10 * * *"
+  #   - cron: "50 12 * * *"
+  #   - cron: "5 13 * * *"
+  #   - cron: "20 13 * * *"
+  #   - cron: "35 13 * * *"
+  #   - cron: "20 15 * * *"
+  #   - cron: "35 15 * * *"
+  #   - cron: "50 15 * * *"
+  #   - cron: "5 16 * * *"
+  #   - cron: "50 16 * * *"
+  #   - cron: "5 17 * * *"
+  #   - cron: "20 18 * * *"
+  #   - cron: "35 18 * * *"
+  #   - cron: "40 18 * * *"
+  #   - cron: "50 18 * * *"
+  #   - cron: "55 18 * * *"
+  #   - cron: "5 19 * * *"
+  #   - cron: "50 20 * * *"
+  #   - cron: "5 21 * * *"
+  #   - cron: "50 21 * * *"
+  #   - cron: "5 22 * * *"
   workflow_dispatch:
 
 concurrency:
