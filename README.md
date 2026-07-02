@@ -39,6 +39,12 @@ that isn't available yet and are clearly marked in the code:
 You can run a full **draft** and manual scoring (the admin **Match stats**
 form) today; all logic/tests run offline.
 
+> **Recommended live source: a Google Sheet.** Rather than the DS-API, the
+> league can keep a live Google Sheet and have the app pull from it — see
+> **Stats & lineups from a Google Sheet** below. It's the simplest reliable
+> path (no API keys, id-keyed so no name-matching), and it also feeds the
+> matchday **Starting XV / Bench / Not-in-squad** badges.
+
 **Scoring** is the Draft Rugby system from the league's sheet (see the
 Scoring section below). One sheet entry is ambiguous: "Turnovers Conceded =
 3 points" is written without a sign; since every other concession is
@@ -54,7 +60,9 @@ value in `SCORING` (`daily_pull.py` + `index.html`).
 | `index.html` | The app: lobby, live snake draft, leaderboard, player stats, admin stats entry |
 | `players.json` | Draft pool: the real 12 squads (439 players, each with a scoring role) |
 | `schema.sql` | Supabase schema (idempotent — safe to re-run anytime) |
-| `daily_pull.py` | Daily stats pull → rugby fantasy points → `match_stats` upsert |
+| `sheet_pull.py` | Pull stats + matchday lineups from the source Google Sheet → `match_stats` / `match_lineups` |
+| `docs/rugby_scoring_source_template.xlsx` | The source-sheet template (PlayerStats + Lineups tabs) to copy into Google Sheets |
+| `daily_pull.py` | DS-API daily stats pull → rugby fantasy points → `match_stats` upsert (alt. source) |
 | `live_pull.py` | In-match live scoring loop (5-min updates while games are on) |
 | `build_players.py` | Builds `players.json` (`--from-mht` official sheet, DS-API, or `--placeholder`) |
 | `build_fixtures.py` | Generates `fixtures.json` (confirmed 2026 schedule by default; `--placeholder` synthetic; `--ds-api`) |
@@ -63,6 +71,7 @@ value in `SCORING` (`daily_pull.py` + `index.html`).
 | `.github/workflows/*` | Daily/catch-up/live pulls + injuries/photos |
 | `test_logic.js` | Smoke tests for draft order + rugby scoring (`node test_logic.js`) |
 | `test_daily_pull.py` | Tests for the id mapping + rugby scoring (`python -m unittest test_daily_pull`) |
+| `test_sheet_pull.py` | Tests for the Google-Sheet stats/lineups mapping (`python -m unittest test_sheet_pull`) |
 
 Scoring lives in one place each — `SCORING` in `daily_pull.py`, mirrored by
 `SCORING` in `index.html` — kept in sync by hand. The test suites assert the
@@ -197,6 +206,41 @@ by per-kickoff triggers generated from `fixtures.json` by
 `build_schedule.py`. Three layers guarantee nothing is missed: live
 triggers, a same-day catch-up sweep, and the morning daily sweep — every
 pull is a full idempotent upsert.
+
+### 4b. Stats & lineups from a Google Sheet (recommended)
+
+Instead of (or alongside) the DS-API, keep a live Google Sheet and let the
+app pull from it. `sheet_pull.py` reads it and writes both scoring stats and
+matchday lineups; because every row carries the squad-list `player_id`, it
+needs no name-matching.
+
+1. **Copy the template into Google Sheets.** Import
+   `docs/rugby_scoring_source_template.xlsx` (File → Import → Upload). It has
+   two tabs you fill — **PlayerStats** (one row per player per match; the
+   column names must not change) and **Lineups** (each player's
+   Starting/Bench/Not-in-squad status) — plus read-only **Players** (copy
+   ids from here), **Fixtures** and **Instructions** tabs.
+2. **Publish each tab as CSV.** File → Share → **Publish to web** → choose the
+   **PlayerStats** tab → **Comma-separated values (.csv)** → Publish, and copy
+   the URL. Repeat for the **Lineups** tab.
+3. **Add the repo secrets** (Settings → Secrets and variables → Actions):
+
+   | Secret | Value |
+   | --- | --- |
+   | `STATS_SHEET_CSV_URL` | published-CSV URL of the **PlayerStats** tab |
+   | `LINEUPS_SHEET_CSV_URL` | published-CSV URL of the **Lineups** tab |
+   | `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` / `FANTASY_LEAGUE_ID` | as above |
+
+The `Sheet stats + lineups pull` workflow then runs every ~10 minutes (and on
+demand via **Actions → Run workflow**), upserting `match_stats` (scored live
+in the app) and `match_lineups` (the badges). Run it locally with
+`python sheet_pull.py --dry-run` to preview without writing. Stats scoring is
+unchanged — the same `SCORING` table, keyed by each player's role.
+
+**Matchday badges:** once lineups are pulled, players show a small badge
+everywhere their name appears — green **XV** (starting, with shirt number in
+the tooltip), gold **B** (bench), or grey **—** (not in the matchday squad),
+taken from each player's most recent match in the sheet.
 
 ### 5. Create your league & draft
 Open the app → **Create a league** (name, managers, seconds/pick — **0 =

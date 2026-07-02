@@ -344,6 +344,22 @@ create table if not exists h2h_fixtures (
 create unique index if not exists h2h_fixtures_round_home_key
     on h2h_fixtures (league_id, round, home_manager_id);
 
+-- Matchday lineups (announced ahead of kickoff). Global, not per league:
+-- one row per player per match. status is 'start' | 'bench' | 'out'. The app
+-- shows a badge (Starting XV / Bench / Not in squad) from each player's most
+-- recent match. Populated by sheet_pull.py from the source Google Sheet.
+create table if not exists match_lineups (
+    match_label text not null,
+    match_date  date,
+    player_id   text not null,
+    status      text not null check (status in ('start','bench','out')),
+    jersey      int,
+    updated_at  timestamptz not null default now(),
+    primary key (match_label, player_id)
+);
+create index if not exists match_lineups_player_idx
+    on match_lineups (player_id, match_date desc);
+
 -- Realtime: stream changes to connected clients.
 -- (wrapped so re-running this file never errors on already-added tables)
 do $$
@@ -352,7 +368,7 @@ begin
     foreach t in array array['leagues','managers','picks','match_stats',
                              'team_stages','trades','trade_items',
                              'lineup_snapshots','transactions',
-                             'fa_claims','h2h_fixtures'] loop
+                             'fa_claims','h2h_fixtures','match_lineups'] loop
         begin
             execute format('alter publication supabase_realtime add table %I', t);
         exception when duplicate_object then null;
@@ -369,7 +385,7 @@ begin
     foreach t in array array['leagues','managers','picks','match_stats',
                              'team_stages','trades','trade_items',
                              'lineup_snapshots','transactions',
-                             'fa_claims','h2h_fixtures'] loop
+                             'fa_claims','h2h_fixtures','match_lineups'] loop
         execute format('alter table %I enable row level security', t);
         execute format('drop policy if exists "open access" on %I', t);
         execute format(

@@ -500,6 +500,7 @@ const S = {
   sb: null, players: [], teams: [],
   league: null, managers: [], picks: [], stats: [], stages: [], trades: [],
   snapshots: [], faClaims: [], h2hFixtures: [],
+  lineups: [], lineupByPlayer: {},
   channel: null,
 };
 
@@ -622,7 +623,7 @@ async function refetchAll() {
     }
     return { data: all, error: null };
   };
-  const [l, m, p, st, tg, tr, sn, tx, fc, hf] = await Promise.all([
+  const [l, m, p, st, tg, tr, sn, tx, fc, hf, ml] = await Promise.all([
     S.sb.from("leagues").select("*").eq("id", id).maybeSingle(),
     S.sb.from("managers").select("*").eq("league_id", id).order("created_at"),
     S.sb.from("picks").select("*").eq("league_id", id).order("pick_number"),
@@ -637,6 +638,8 @@ async function refetchAll() {
     S.sb.from("fa_claims").select("*").eq("league_id", id)
       .order("created_at"),
     S.sb.from("h2h_fixtures").select("*").eq("league_id", id).order("round"),
+    // Matchday lineups are global (not per league) — fetch the lot.
+    S.sb.from("match_lineups").select("*"),
   ]);
   const err = l.error || m.error || p.error || st.error || tg.error || tr.error;
   if (err) { toast("Load failed: " + err.message); return; }
@@ -654,6 +657,9 @@ async function refetchAll() {
   // fa_claims / h2h_fixtures are additive too — degrade to empty if missing.
   S.faClaims = fc && !fc.error ? (fc.data || []) : [];
   S.h2hFixtures = hf && !hf.error ? (hf.data || []) : [];
+  // match_lineups is additive too — degrade to empty if the table's missing.
+  S.lineups = ml && !ml.error ? (ml.data || []) : [];
+  buildLineupIndex();
   ptsCache = null;
   route();
 }
@@ -677,6 +683,8 @@ function subscribeRealtime() {
     .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: "league_id=eq." + id }, scheduleRefetch)
     .on("postgres_changes", { event: "*", schema: "public", table: "fa_claims",    filter: "league_id=eq." + id }, scheduleRefetch)
     .on("postgres_changes", { event: "*", schema: "public", table: "h2h_fixtures", filter: "league_id=eq." + id }, scheduleRefetch)
+    // match_lineups is global (no league_id to filter on).
+    .on("postgres_changes", { event: "*", schema: "public", table: "match_lineups" }, scheduleRefetch)
     .subscribe((status) => {
       $("conn-dot").className = "w-2 h-2 rounded-full " +
         (status === "SUBSCRIBED" ? "bg-wcgreen" : "bg-amber-400");
@@ -687,6 +695,7 @@ function leaveLeague() {
   if (S.channel) { S.sb.removeChannel(S.channel); S.channel = null; }
   setSession(null);
   S.league = null; S.managers = []; S.picks = []; S.stats = [];
+  S.lineups = []; S.lineupByPlayer = {};
   $("hdr-league").textContent = "";
   $("hdr-exit").classList.add("hidden");
   renderHome();
@@ -2730,8 +2739,39 @@ function suspendedNext(pid) {
 const injuryOf = (pid) => (S.injuryByPid || {})[pid] || null;
 
 // 🚫 team knocked out · 🟥 suspended next match · 🤕 out injured · ⚠️ doubtful
+// Index the global match_lineups rows to the latest announced status per
+// player (by match_date), so a badge can show a player's current matchday
+// role — Starting XV / Bench / Not in squad.
+function buildLineupIndex() {
+  const by = {};
+  for (const r of (S.lineups || [])) {
+    if (!r.player_id) continue;
+    const key = r.match_date || r.updated_at || "";
+    const cur = by[r.player_id];
+    if (!cur || (cur._key || "") <= key) by[r.player_id] = { ...r, _key: key };
+  }
+  S.lineupByPlayer = by;
+}
+
+// Matchday-lineup badge (from the source sheet). Empty until lineups are
+// announced/pulled for that player.
+function lineupBadge(pid) {
+  const li = S.lineupByPlayer?.[pid];
+  if (!li) return "";
+  const ctx = li.match_label ? " — " + li.match_label : "";
+  const jer = li.jersey ? " #" + li.jersey : "";
+  const cls = "text-[9px] font-bold rounded px-1 align-middle border ";
+  if (li.status === "start")
+    return `<span class="${cls}text-wcgreen border-wcgreen/50" title="${esc("Starting XV" + jer + ctx)}">XV</span>`;
+  if (li.status === "bench")
+    return `<span class="${cls}text-wcgold border-wcgold/50" title="${esc("On the bench" + jer + ctx)}">B</span>`;
+  if (li.status === "out")
+    return `<span class="${cls}text-slate-500 border-slate-600" title="${esc("Not in the matchday squad" + ctx)}">—</span>`;
+  return "";
+}
+
 function availBadges(pid) {
-  let out = "";
+  let out = lineupBadge(pid);
   const team = S.playerById?.[pid]?.team;
   if (team && isEliminated(team)) out += `<span title="team knocked out">🚫</span>`;
   const susp = suspendedNext(pid);
@@ -2745,6 +2785,9 @@ function availBadges(pid) {
 // Plain-text variant for <option> labels in the trade builder.
 function availText(pid) {
   const bits = [];
+  const li = S.lineupByPlayer?.[pid];
+  if (li) bits.push(li.status === "start" ? "▶ XV"
+    : li.status === "bench" ? "🪑 bench" : "— not in squad");
   const team = S.playerById?.[pid]?.team;
   if (team && isEliminated(team)) bits.push("🚫 KO");
   if (suspendedNext(pid)) bits.push("🟥 susp");
