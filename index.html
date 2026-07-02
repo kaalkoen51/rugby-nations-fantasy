@@ -243,15 +243,15 @@
     </div>
     <div id="admin-panel" class="hidden space-y-4">
       <div class="rounded-xl border border-wcgold/60 bg-slate-900 p-4 space-y-3">
-        <h3 class="font-semibold text-sm">Pull stats now</h3>
-        <p class="text-xs text-slate-500">Fetches completed matches for the chosen date straight
-          from the stats provider (Draft Sport API) and writes everyone's stats — same as the
-          06:00 automated pull, on demand. Your API key is stored only on this device. In-progress
-          games are skipped; re-pull after the final whistle.</p>
-        <input id="adm-api-key" placeholder="Stats-provider (DS-API) key" class="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
+        <h3 class="font-semibold text-sm">Pull from sheet</h3>
+        <p class="text-xs text-slate-500">Fetches the latest stats (and matchday lineups) from the
+          published Google&nbsp;Sheet CSV and writes everyone's scores — the same source as the
+          automatic 10-minute pull, on demand. Paste each tab's <b>Publish&nbsp;to&nbsp;web → CSV</b>
+          link (stored only on this device). Every pull is a safe upsert, so re-running just refreshes.</p>
+        <input id="adm-stats-url" placeholder="PlayerStats tab — published CSV URL" class="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
         <div class="flex gap-2">
-          <input id="adm-pull-date" type="date" class="flex-1 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
-          <button id="adm-pull-now" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-4 py-2 text-sm font-semibold">Pull stats now</button>
+          <input id="adm-lineups-url" placeholder="Lineups CSV URL (optional)" class="flex-1 min-w-0 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
+          <button id="adm-pull-now" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-4 py-2 text-sm font-semibold">Pull now</button>
         </div>
         <pre id="adm-pull-log" class="text-xs text-slate-400 whitespace-pre-wrap"></pre>
       </div>
@@ -4172,122 +4172,139 @@ function admRenderExisting() {
     b.onclick = () => admDelete(S.stats.find((r) => r.id === b.dataset.del)));
 }
 
-/* ---------- admin: on-demand stats pull (mirrors daily_pull.py) ---------- */
+/* ---------- admin: on-demand pull from the source Google Sheet ---------- */
 
-const foldName = (s) => String(s || "").normalize("NFKD")
-  .replace(/[̀-ͯ]/g, "").toLowerCase()
-  .replace(/[^a-z0-9]+/g, " ").trim();
-
-// Browser-side stats fetch. TODO: point at the Draft Sport API (DS-API)
-// base + endpoints and confirm its auth header and response shape against
-// the source (it is blocked by the network policy in some environments).
-async function providerGet(key, path, params) {
-  const url = new URL("https://api.draftsport.com/" + path);
-  for (const k in params) url.searchParams.set(k, params[k]);
-  const resp = await fetch(url, { headers: { Authorization: "Bearer " + key } });
-  const data = await resp.json();
-  const errs = data.errors && Object.values(data.errors);
-  if (errs && errs.length) throw new Error(errs.join("; "));
-  return data.response || [];
+// Minimal CSV parser: handles quoted fields, and commas / newlines / doubled
+// "" quotes inside them. Returns an array of row objects keyed by the header
+// row. Used to read the source Google Sheet's published-CSV tabs.
+function parseCsv(text) {
+  const s = String(text || "").replace(/\r\n?/g, "\n");
+  const rows = [];
+  let row = [], field = "", inQ = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (inQ) {
+      if (c === '"') { if (s[i + 1] === '"') { field += '"'; i++; } else inQ = false; }
+      else field += c;
+    } else if (c === '"') { inQ = true; }
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+    else { field += c; }
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  if (!rows.length) return [];
+  const headers = rows.shift().map((h) => h.trim());
+  return rows
+    .filter((r) => r.some((v) => (v || "").trim() !== ""))
+    .map((r) => { const o = {}; headers.forEach((h, i) => o[h] = (r[i] ?? "").trim()); return o; });
 }
 
-// Provider player -> players.json id. Match by NAME first (exact, then
-// surname, trying both ends); the squad id's trailing number is the
-// squad-list number, only a tiebreaker/last resort. (daily_pull.py matches
-// the same way; matching by number first mis-attributed stats.)
-function mapApiPlayer(team, shirt, apiName) {
-  const roster = S.players.filter((p) => p.team === team);
-  if (!roster.length) return null;
-  const target = foldName(apiName);
-  let hits = roster.filter((p) => foldName(p.name) === target);   // exact name
-  if (hits.length !== 1) {                                        // surname, both ends
-    const t = target.split(" ").filter(Boolean);
-    const ends = [t[0], t[t.length - 1]].filter(Boolean);
-    hits = roster.filter((p) => {
-      const pt = foldName(p.name).split(" ").filter(Boolean);
-      return ends.includes(pt[0]) || ends.includes(pt[pt.length - 1]);
-    });
-  }
-  if (hits.length === 1) return hits[0].player_id;
-  // ambiguous or no name match: fall back to shirt, but only if it agrees
-  // with (or narrows) the name hits — never override a clear name match.
-  if (shirt) {
-    const pid = roster[0].team_code.toLowerCase() + "_" + shirt;
-    if (S.playerById[pid] && (hits.length === 0 || hits.some((h) => h.player_id === pid)))
-      return pid;
-  }
-  return null;
+async function fetchCsv(url) {
+  const resp = await fetch(url, { cache: "no-store" });
+  if (!resp.ok) throw new Error(`fetch failed (${resp.status})`);
+  return parseCsv(await resp.text());
 }
 
-async function pullStatsNow() {
-  const key = $("adm-api-key").value.trim();
-  const date = $("adm-pull-date").value;
+const sheetInt = (v) => { const n = parseInt(String(v ?? "").trim(), 10); return Number.isFinite(n) ? n : 0; };
+
+// Sheet status text -> stored status (mirrors sheet_pull.STATUS_MAP).
+const LINEUP_STATUS = {
+  starting: "start", start: "start", xv: "start", starter: "start",
+  bench: "bench", sub: "bench", substitute: "bench", replacement: "bench",
+  "not in squad": "out", out: "out", dropped: "out", excluded: "out",
+  na: "out", "n/a": "out",
+};
+
+// The 27 counting stats, in the sheet's (and match_stats') column names.
+const SHEET_COUNTING = ["tries","metres","runs","defenders_beaten","clean_breaks",
+  "passes","offloads","turnovers_conceded","try_assists","tackles",
+  "missed_tackles","turnovers_won","conversions","conversions_missed",
+  "penalties","penalties_missed","drop_goals","drop_goals_missed",
+  "lineout_throws_won","lineouts_taken","lineout_steals","penalties_conceded",
+  "red_cards","yellow_cards","scrums_won","scrums_lost","lineouts_lost"];
+
+// "Home vs Away (YYYY-MM-DD)" from a sheet row, or null if incomplete.
+function sheetMatchLabel(rec) {
+  const date = (rec.date || "").trim();
+  const home = TEAM_NAME_FIX[(rec.home_team || "").trim()] || (rec.home_team || "").trim();
+  const away = TEAM_NAME_FIX[(rec.away_team || "").trim()] || (rec.away_team || "").trim();
+  if (!date || !home || !away) return null;
+  return `${home} vs ${away} (${date})`;
+}
+
+// On-demand equivalent of the sheet-pull workflow: read the published CSV
+// tab(s) in the browser and upsert match_stats (+ match_lineups). Keyed by
+// player_id, so no name-matching. Writes go through the app's Supabase
+// connection (open RLS), same as the automated pull.
+async function pullFromSheet() {
+  const statsUrl = $("adm-stats-url").value.trim();
+  const lineupsUrl = $("adm-lineups-url").value.trim();
   const log = (t) => $("adm-pull-log").textContent = t;
-  if (!key) return toast("Enter your stats-provider key first.");
-  if (!date) return toast("Pick a date.");
-  localStorage.setItem("wcf_apikey", key);
+  if (!statsUrl && !lineupsUrl)
+    return toast("Paste the PlayerStats CSV URL (and optionally the Lineups one).");
+  localStorage.setItem("wcf_stats_url", statsUrl);
+  localStorage.setItem("wcf_lineups_url", lineupsUrl);
   const btn = $("adm-pull-now");
   btn.disabled = true;
+  const notes = [];
   try {
-    log("Fetching fixtures for " + date + "…");
-    const fixtures = (await providerGet(key, "fixtures",
-      { date, league: 1, season: 2026 }))
-      .filter((f) => ["FT", "AET"].includes(f.fixture.status.short));
-    if (!fixtures.length) {
-      log("No completed fixtures on " + date + " yet — in-progress games are excluded.");
-      return;
+    if (statsUrl) {
+      log("Fetching PlayerStats…");
+      const rows = [], skipped = [];
+      for (const rec of await fetchCsv(statsUrl)) {
+        const pid = (rec.player_id || "").trim();
+        if (!pid) continue;                                  // blank/spacer line
+        if (!S.playerById[pid]) { skipped.push(pid); continue; }
+        const label = sheetMatchLabel(rec);
+        if (!label) { skipped.push(pid); continue; }
+        const minutes = sheetInt(rec.minutes);
+        const row = {
+          league_id: S.league.id, player_id: pid, match_label: label, appeared: true,
+          home_score: sheetInt(rec.home_score), away_score: sheetInt(rec.away_score),
+          minutes,
+        };
+        let any = 0;
+        for (const k of SHEET_COUNTING) { row[k] = sheetInt(rec[k]); any += row[k]; }
+        if (!minutes && !any) continue;                      // did not feature
+        rows.push(row);
+      }
+      log(`Writing ${rows.length} stat row(s)…`);
+      if (rows.length)
+        await resilientWrite("match_stats", rows,
+          { upsert: true, onConflict: "league_id,player_id,match_label" });
+      notes.push(`${rows.length} stat row(s)`
+        + (skipped.length ? `, ${skipped.length} skipped` : ""));
     }
-    // Counting stats carried straight through from the provider's per-player
-    // block. TODO: confirm the DS-API field names against the source.
-    const COUNTING = ["tries","metres","runs","defenders_beaten","clean_breaks",
-      "passes","offloads","turnovers_conceded","try_assists","tackles",
-      "missed_tackles","turnovers_won","conversions","conversions_missed",
-      "penalties","penalties_missed","drop_goals","drop_goals_missed",
-      "lineout_throws_won","lineouts_taken","lineout_steals","penalties_conceded",
-      "red_cards","yellow_cards","scrums_won","scrums_lost","lineouts_lost"];
-    const skipped = [];
-    let total = 0;
-    for (const f of fixtures) {
-      const home = TEAM_NAME_FIX[f.teams.home.name] || f.teams.home.name;
-      const away = TEAM_NAME_FIX[f.teams.away.name] || f.teams.away.name;
-      const label = `${home} vs ${away} (${f.fixture.date.slice(0, 10)})`;
-      log(`Pulling ${label}…`);
-      const rows = [];
-      for (const tb of await providerGet(key, "fixtures/players",
-                                         { fixture: f.fixture.id })) {
-        const team = TEAM_NAME_FIX[tb.team.name] || tb.team.name;
-        for (const e of tb.players) {
-          const st = (e.statistics || [])[0] || {};
-          const games = st.games || {};
-          const minutes = +games.minutes || 0;
-          // The provider may leave `minutes` null for a just-finished fixture
-          // even for players who featured/scored. Skip only true non-
-          // participants (no minutes AND no recorded stat).
-          const contributed = COUNTING.some((k) => +st[k] || 0);
-          if (!minutes && !contributed) continue;
-          const pid = mapApiPlayer(team, +games.number || 0, e.player.name);
-          if (!pid) { skipped.push(`${e.player.name} (${team})`); continue; }
-          const row = {
-            league_id: S.league.id, player_id: pid, match_label: label,
-            appeared: true,
-            home_score: +f.goals.home || 0, away_score: +f.goals.away || 0,
-            minutes,
-          };
-          for (const k of COUNTING) row[k] = +st[k] || 0;
-          rows.push(row);
+    if (lineupsUrl) {
+      log("Fetching Lineups…");
+      const rows = [], skipped = [];
+      for (const rec of await fetchCsv(lineupsUrl)) {
+        const pid = (rec.player_id || "").trim();
+        const status = LINEUP_STATUS[(rec.status || "").trim().toLowerCase()];
+        if (!pid && !(rec.status || "").trim()) continue;    // blank line
+        const label = sheetMatchLabel(rec);
+        if (!pid || !status || !label || !S.playerById[pid]) { skipped.push(pid || "?"); continue; }
+        rows.push({
+          match_label: label, match_date: (rec.date || "").trim() || null,
+          player_id: pid, status, jersey: sheetInt(rec.jersey) || null,
+        });
+      }
+      if (rows.length) {
+        try {
+          await resilientWrite("match_lineups", rows,
+            { upsert: true, onConflict: "match_label,player_id" });
+          notes.push(`${rows.length} lineup row(s)`
+            + (skipped.length ? `, ${skipped.length} skipped` : ""));
+        } catch (e) {
+          notes.push(`lineups failed (${e.message} — run schema.sql?)`);
         }
       }
-      await resilientWrite("match_stats", rows,
-        { upsert: true, onConflict: "league_id,player_id,match_label" });
-      total += rows.length;
     }
-    log(`Done — ${total} player rows from ${fixtures.length} match(es).`
-      + (skipped.length
-        ? `\nCould not map (enter manually): ${[...new Set(skipped)].join(", ")}`
-        : ""));
+    log("Done — " + (notes.join("; ") || "nothing to write") + ".");
     scheduleRefetch();
   } catch (e) {
-    log("Pull failed: " + e.message);
+    log("Pull failed: " + e.message
+      + "\n(If this is a CORS/network error, use the sheet-pull GitHub Action instead.)");
   } finally {
     btn.disabled = false;
   }
@@ -4307,10 +4324,10 @@ function renderAdmin() {
     $("adm-date").value = new Date().toISOString().slice(0, 10);
   }
   $("adm-label-preview").textContent = admLabel();
-  if (!$("adm-api-key").value)
-    $("adm-api-key").value = localStorage.getItem("wcf_apikey") || "";
-  if (!$("adm-pull-date").value)
-    $("adm-pull-date").value = new Date().toISOString().slice(0, 10);
+  if (!$("adm-stats-url").value)
+    $("adm-stats-url").value = localStorage.getItem("wcf_stats_url") || "";
+  if (!$("adm-lineups-url").value)
+    $("adm-lineups-url").value = localStorage.getItem("wcf_lineups_url") || "";
   const open = !!S.league.trading_open;
   $("adm-trading-status").textContent = open ? "Trading is OPEN" : "Trading is closed";
   $("adm-trading-status").className =
@@ -4508,7 +4525,7 @@ function wire() {
   $("adm-save-limits").onclick = () => saveWindowLimits().catch((e) => toast(e.message));
   $("adm-save-h2h").onclick = () => saveH2HSettings().catch((e) => toast(e.message));
   $("adm-gen-h2h").onclick = () => generateH2HSchedule().catch((e) => toast(e.message));
-  $("adm-pull-now").onclick = () => pullStatsNow().catch((e) => toast(e.message));
+  $("adm-pull-now").onclick = () => pullFromSheet().catch((e) => toast(e.message));
   $("adm-snapshot").onclick = () => {
     if (confirm("Snapshot every manager's current lineup as the locked state from today?"))
       snapshotRosters().then(() => { toast("Lineups locked."); scheduleRefetch(); })

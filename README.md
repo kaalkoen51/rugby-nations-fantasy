@@ -16,19 +16,19 @@ July window, three in November), then a finals weekend.
 
 ---
 
-## ⚠️ Status: working first iteration — two things to finish
+## Status
 
-This is a complete, test-passing port. Two items depend on external access
-that isn't available yet and are clearly marked in the code:
+A complete, test-passing app. How the pieces stand:
 
-1. **Live stats source (Draft Sport API).** Stats are meant to come from
-   [draftrugby.com](https://draftrugby.com)'s Draft Sport API (DS-API). The
-   scoring engine, the player-id matcher and the Supabase upsert are all
-   built and tested; the **fetch layer is the documented adapter to repoint
-   at the DS-API** (`fetch_fixtures` / `fetch_fixture_players` in
-   `daily_pull.py`, and `providerGet` in `index.html`). Field names are
-   marked `TODO: confirm vs source`. Some networks block the DS-API host, so
-   wire and test it where that host is reachable.
+1. **Live stats source: a Google Sheet.** The league keeps a live Google
+   Sheet (shape: `docs/rugby_scoring_source_template.xlsx`) and the app pulls
+   from it — automatically every ~10 minutes via `sheet-pull.yml`, and on
+   demand from **Admin → Pull from sheet**. It's id-keyed (no name-matching),
+   needs no API keys, and also feeds the matchday **Starting XV / Bench /
+   Not-in-squad** badges. See **Stats & lineups from a Google Sheet** below.
+   *(The older Draft Sport API path — `daily_pull.py` / `live_pull.py` — is a
+   documented adapter that's still in the tree but disabled; see Stats
+   automation.)*
 
 2. **Squads** — `players.json` carries the **real 2026 player pool** (439
    players across the 12 unions, each with their scoring role), built from
@@ -36,14 +36,8 @@ that isn't available yet and are clearly marked in the code:
    `python build_players.py --from-mht <export.mht>`. Re-run that (or
    `--placeholder` for a fresh offline pool) if the list changes.
 
-You can run a full **draft** and manual scoring (the admin **Match stats**
-form) today; all logic/tests run offline.
-
-> **Recommended live source: a Google Sheet.** Rather than the DS-API, the
-> league can keep a live Google Sheet and have the app pull from it — see
-> **Stats & lineups from a Google Sheet** below. It's the simplest reliable
-> path (no API keys, id-keyed so no name-matching), and it also feeds the
-> matchday **Starting XV / Bench / Not-in-squad** badges.
+You can also run a full **draft** and score by hand (the admin **Match
+stats** form) with no source at all; all logic/tests run offline.
 
 **Scoring** is the Draft Rugby system from the league's sheet (see the
 Scoring section below). One sheet entry is ambiguous: "Turnovers Conceded =
@@ -261,8 +255,11 @@ lineups lock when the admin closes the trading window, so each round scores
 against the lineup that was locked at the time.
 
 ### 6. Admin (Admin tab → unlock with the admin token)
-- **Pull stats now** — fetch a date's completed matches straight from the
-  provider (once the DS-API is wired) and write everyone's stats.
+- **Pull from sheet** — paste the published-CSV links for the PlayerStats
+  (and optionally Lineups) tabs and pull on demand, straight in the browser:
+  the same source as the automatic 10-minute pull, for when you don't want to
+  wait for the timer. Links are stored on that device. (If a browser CORS
+  block ever stops the fetch, use **Actions → sheet-pull → Run workflow**.)
 - **Match stats** — enter/edit per-player rugby stat rows by hand (works
   today, no API needed). Match label format: `Home vs Away (YYYY-MM-DD)`. The
   history list is collapsible.
