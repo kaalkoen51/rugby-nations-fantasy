@@ -144,8 +144,30 @@ def parse_mht(path: Path):
     return rows
 
 
+def load_existing_ids():
+    """Map (team_code, name) -> existing player_id from the current
+    players.json, plus the highest id number used per team. Lets a rebuild
+    keep a player's id stable even when the squad list inserts/reorders rows
+    (ids are the key the app scores and rosters by — renumbering a drafted
+    player would silently re-point their picks and stats)."""
+    by_name, max_num = {}, {}
+    if not PLAYERS_JSON.exists():
+        return by_name, max_num
+    for p in json.loads(PLAYERS_JSON.read_text(encoding="utf-8")):
+        code = p.get("team_code")
+        by_name[(code, p["name"])] = p["player_id"]
+        try:
+            num = int(str(p["player_id"]).split("_")[1])
+            max_num[code] = max(max_num.get(code, 0), num)
+        except (IndexError, ValueError):
+            pass
+    return by_name, max_num
+
+
 def build_from_mht(path: Path) -> list:
-    players, counters, problems = [], {}, []
+    existing, max_num = load_existing_ids()
+    players, problems, used, seen = [], [], set(), set()
+    kept = added = dupes = 0
     for name, team, pos in parse_mht(path):
         role = POS_TO_ROLE.get(pos) or NA_OVERRIDE.get(name)
         code = NAME_TO_CODE.get(team)
@@ -155,9 +177,26 @@ def build_from_mht(path: Path) -> list:
         if not role:
             problems.append(f"unknown position {pos!r} for {name!r}")
             continue
-        n = counters[code] = counters.get(code, 0) + 1
+        # Skip duplicate rows for the same player (the source sheet has
+        # occasionally listed a player twice) so we never emit a dup id.
+        if (code, name) in seen:
+            print(f"  duplicate row skipped: {name} ({team})", file=sys.stderr)
+            dupes += 1
+            continue
+        seen.add((code, name))
+        # Reuse the player's existing id (matched by team + name); only mint a
+        # new one for a genuinely new name. New ids append after the team's
+        # current max, so no existing id is ever reassigned.
+        pid = existing.get((code, name))
+        if pid and pid not in used:
+            kept += 1
+        else:
+            max_num[code] = max_num.get(code, 0) + 1
+            pid = f"{code.lower()}_{max_num[code]}"
+            added += 1
+        used.add(pid)
         players.append({
-            "player_id": f"{code.lower()}_{n}",
+            "player_id": pid,
             "name": name,
             "position": role,
             "role": role,
@@ -167,6 +206,8 @@ def build_from_mht(path: Path) -> list:
     if problems:
         print("\n".join(problems), file=sys.stderr)
         sys.exit("Resolve the unmapped rows above (add to NA_OVERRIDE / TEAMS).")
+    print(f"  kept {kept} existing ids, minted {added} new"
+          + (f", skipped {dupes} duplicate row(s)" if dupes else ""))
     return players
 
 

@@ -2538,8 +2538,8 @@
   {
     "player_id": "sco_28",
     "name": "Tom Jordan",
-    "position": "FH",
-    "role": "FH",
+    "position": "OB",
+    "role": "OB",
     "team": "Scotland",
     "team_code": "SCO"
   },
@@ -3580,6 +3580,262 @@
     "name": "Florien Verhaeghe",
     "position": "LK",
     "role": "LK",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "rsa_47",
+    "name": "Sacha Feinberg-Mngomezulu",
+    "position": "FH",
+    "role": "FH",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "fra_42",
+    "name": "Antoine Dupont",
+    "position": "SH",
+    "role": "SH",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_43",
+    "name": "Louis Bielle-Biarrey",
+    "position": "OB",
+    "role": "OB",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "rsa_48",
+    "name": "RG Snyman",
+    "position": "LK",
+    "role": "LK",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_49",
+    "name": "Kwagga Smith",
+    "position": "LF",
+    "role": "LF",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_50",
+    "name": "Jean-Luc du Preez",
+    "position": "LF",
+    "role": "LF",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_51",
+    "name": "Deon Fourie",
+    "position": "LF",
+    "role": "LF",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_52",
+    "name": "Juarno Augustus",
+    "position": "LF",
+    "role": "LF",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_53",
+    "name": "Ruan Venter",
+    "position": "LF",
+    "role": "LF",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_54",
+    "name": "Jordan Hendrikse",
+    "position": "FH",
+    "role": "FH",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_55",
+    "name": "Neethling Fouche",
+    "position": "PR",
+    "role": "PR",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "rsa_56",
+    "name": "Faf de Klerk",
+    "position": "SH",
+    "role": "SH",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "eng_37",
+    "name": "Maro Itoje",
+    "position": "LK",
+    "role": "LK",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "eng_38",
+    "name": "Sam Underhill",
+    "position": "LF",
+    "role": "LF",
+    "team": "England",
+    "team_code": "ENG"
+  },
+  {
+    "player_id": "fra_44",
+    "name": "Thomas Ramos",
+    "position": "OB",
+    "role": "OB",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_45",
+    "name": "Gael Fickou",
+    "position": "CE",
+    "role": "CE",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_46",
+    "name": "Charles Ollivon",
+    "position": "LF",
+    "role": "LF",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "ire_37",
+    "name": "Mack Hansen",
+    "position": "OB",
+    "role": "OB",
+    "team": "Ireland",
+    "team_code": "IRE"
+  },
+  {
+    "player_id": "nzl_35",
+    "name": "Ethan Blackadder",
+    "position": "LF",
+    "role": "LF",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "aus_38",
+    "name": "Darby Lancaster",
+    "position": "OB",
+    "role": "OB",
+    "team": "Australia",
+    "team_code": "AUS"
+  },
+  {
+    "player_id": "sco_37",
+    "name": "Matt Currie",
+    "position": "CE",
+    "role": "CE",
+    "team": "Scotland",
+    "team_code": "SCO"
+  },
+  {
+    "player_id": "ita_34",
+    "name": "Ange Capuozzo",
+    "position": "OB",
+    "role": "OB",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_35",
+    "name": "Sebasitan Negri",
+    "position": "LF",
+    "role": "LF",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_36",
+    "name": "Simone Ferrari",
+    "position": "PR",
+    "role": "PR",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_37",
+    "name": "Manuel Zuliani",
+    "position": "LF",
+    "role": "LF",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "ita_38",
+    "name": "Jacopo Trulla",
+    "position": "OB",
+    "role": "OB",
+    "team": "Italy",
+    "team_code": "ITA"
+  },
+  {
+    "player_id": "fij_33",
+    "name": "Iosefo Masi",
+    "position": "CE",
+    "role": "CE",
+    "team": "Fiji",
+    "team_code": "FIJ"
+  },
+  {
+    "player_id": "arg_35",
+    "name": "Facundo Isa",
+    "position": "LF",
+    "role": "LF",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "arg_36",
+    "name": "Jeronimo De La Fuente",
+    "position": "CE",
+    "role": "CE",
+    "team": "Argentina",
+    "team_code": "ARG"
+  },
+  {
+    "player_id": "fra_47",
+    "name": "Francois Cros",
+    "position": "LF",
+    "role": "LF",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_48",
+    "name": "Thibaud Flament",
+    "position": "LK",
+    "role": "LK",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_49",
+    "name": "Anthony Jelonch",
+    "position": "LF",
+    "role": "LF",
     "team": "France",
     "team_code": "FRA"
   }
