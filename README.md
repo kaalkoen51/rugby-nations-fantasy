@@ -248,7 +248,11 @@ taken from each player's most recent match in the sheet.
 Open the app → **Create a league** (name, managers, seconds/pick — **0 =
 unlimited**, no pick clock) → save the invite code + admin token. Everyone
 joins; admin hits **Start draft**. Random snake order, 23 rounds; on your turn
-you draft any position you still need. To leave a league at any time, use
+you draft any position you still need. The admin can **retune the pick timer
+on the fly** from the draft room (Admin — pick timer; `0` = unlimited) — the
+new duration applies fresh from the current pick. When a pick times out (or
+the admin forces one), the auto-pick is random **from that manager's
+shortlist** if they set one, otherwise random from the eligible pool. To leave a league at any time, use
 **Exit league** in the top-right header — it returns you to the landing page
 where you can join or create another (re-join later with the invite code). After the draft, set your lineup (the XV) via **Home → Pick my team**;
 lineups lock when the admin closes the trading window, so each round scores

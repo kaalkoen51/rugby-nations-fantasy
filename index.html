@@ -186,6 +186,12 @@
         <div id="draft-clock" class="text-4xl font-mono font-bold text-wcgold shrink-0">--</div>
       </div>
       <div id="draft-order" class="mt-3 flex gap-1.5 overflow-x-auto pb-1 text-xs"></div>
+      <div id="draft-timer-admin" class="hidden mt-3 flex items-center gap-2 text-xs border-t border-slate-800 pt-3">
+        <span class="text-slate-400 shrink-0">Admin — pick timer</span>
+        <input id="draft-timer-input" type="number" min="0" step="5" class="w-20 shrink-0 rounded bg-slate-800 border border-slate-700 px-2 py-1">
+        <span class="text-slate-500 shrink-0">sec (0 = ∞)</span>
+        <button id="draft-timer-set" class="ml-auto shrink-0 bg-slate-800 border border-wcgold/60 text-wcgold rounded px-3 py-1 font-semibold">Set</button>
+      </div>
     </div>
     <div id="draft-mybanner" class="hidden rounded-xl border border-wcgold bg-wcred/15 p-3 text-center font-semibold"></div>
     <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-3">
@@ -1292,6 +1298,25 @@ async function autoPick(info) {
   await makePick(entry, info);
 }
 
+// Admin: change the pick timer mid-draft. 0 = unlimited. Resetting
+// pick_started_at applies the new duration fresh to the current pick, so a
+// shortened timer never triggers an instant auto-pick and a lengthened one
+// grants the full new time.
+async function setPickTimer() {
+  if (!isAdmin()) return toast("Admins only.");
+  const raw = parseInt($("draft-timer-input").value, 10);
+  const secs = Number.isFinite(raw) && raw > 0 ? raw : 0;
+  const upd = { pick_duration_seconds: secs };
+  if (S.league.current_pick && S.league.current_pick <= totalPicks())
+    upd.pick_started_at = new Date().toISOString();
+  const { error } = await S.sb.from("leagues").update(upd).eq("id", S.league.id);
+  if (error) return toast(error.message);
+  S.league.pick_duration_seconds = secs;   // optimistic, so the clock updates now
+  toast(secs ? `Pick timer set to ${secs}s (applies from this pick).`
+             : "Pick timer set to unlimited.");
+  scheduleRefetch();
+}
+
 // Runs every 500ms. The on-the-clock manager's client auto-picks at 0;
 // the admin's client is a fallback 4s later in case that phone is gone.
 function tickTimer() {
@@ -1483,6 +1508,12 @@ function renderDraft() {
 
   renderRosters("draft-rosters");
   $("draft-force").classList.toggle("hidden", !isAdmin() || myTurn);
+  // Admin can retune the pick timer mid-draft. Don't overwrite the field
+  // while it's being edited.
+  $("draft-timer-admin").classList.toggle("hidden", !isAdmin());
+  const ti = $("draft-timer-input");
+  if (document.activeElement !== ti)
+    ti.value = S.league.pick_duration_seconds || 0;
 }
 
 /* ---------- scoring & leaderboard ---------- */
@@ -4517,6 +4548,7 @@ function wire() {
     if (confirm("Force an auto-pick (from their shortlist if set, else random) for the manager on the clock?"))
       autoPick(pickInfo(S.league.current_pick)).catch((e) => toast(e.message));
   };
+  $("draft-timer-set").onclick = () => setPickTimer().catch((e) => toast(e.message));
   document.querySelectorAll(".board-tab").forEach((b) =>
     b.onclick = () => { setBoardTab(b.dataset.tab); renderBoard(); });
   $("tab-admin").onclick = () => { renderAdmin(); showView("admin"); };
