@@ -1226,8 +1226,8 @@
   {
     "player_id": "arg_5",
     "name": "Santi Grondona",
-    "position": "LF",
-    "role": "LF",
+    "position": "LK",
+    "role": "LK",
     "team": "Argentina",
     "team_code": "ARG"
   },
@@ -1330,8 +1330,8 @@
   {
     "player_id": "arg_18",
     "name": "Boris Wenger",
-    "position": "HK",
-    "role": "HK",
+    "position": "PR",
+    "role": "PR",
     "team": "Argentina",
     "team_code": "ARG"
   },
@@ -1466,8 +1466,8 @@
   {
     "player_id": "jpn_1",
     "name": "Sojiro Otsuka",
-    "position": "LK",
-    "role": "LK",
+    "position": "PR",
+    "role": "PR",
     "team": "Japan",
     "team_code": "JPN"
   },
@@ -1482,8 +1482,8 @@
   {
     "player_id": "jpn_3",
     "name": "Yota Kamimori",
-    "position": "HK",
-    "role": "HK",
+    "position": "PR",
+    "role": "PR",
     "team": "Japan",
     "team_code": "JPN"
   },
@@ -1498,8 +1498,8 @@
   {
     "player_id": "jpn_5",
     "name": "Kenji Sato",
-    "position": "PR",
-    "role": "PR",
+    "position": "HK",
+    "role": "HK",
     "team": "Japan",
     "team_code": "JPN"
   },
@@ -1514,16 +1514,16 @@
   {
     "player_id": "jpn_7",
     "name": "Izi Sword",
-    "position": "LF",
-    "role": "LF",
+    "position": "PR",
+    "role": "PR",
     "team": "Japan",
     "team_code": "JPN"
   },
   {
     "player_id": "jpn_8",
     "name": "Shuhei Takeuchi",
-    "position": "HK",
-    "role": "HK",
+    "position": "PR",
+    "role": "PR",
     "team": "Japan",
     "team_code": "JPN"
   },
@@ -1546,8 +1546,8 @@
   {
     "player_id": "jpn_11",
     "name": "Michael Stolberg",
-    "position": "LF",
-    "role": "LF",
+    "position": "LK",
+    "role": "LK",
     "team": "Japan",
     "team_code": "JPN"
   },
@@ -1594,16 +1594,16 @@
   {
     "player_id": "jpn_17",
     "name": "Waisake Raratubua",
-    "position": "PR",
-    "role": "PR",
+    "position": "LF",
+    "role": "LF",
     "team": "Japan",
     "team_code": "JPN"
   },
   {
     "player_id": "jpn_18",
     "name": "Esei Haangana",
-    "position": "PR",
-    "role": "PR",
+    "position": "LF",
+    "role": "LF",
     "team": "Japan",
     "team_code": "JPN"
   },
@@ -1634,16 +1634,16 @@
   {
     "player_id": "jpn_22",
     "name": "Takuro Hojo",
-    "position": "OB",
-    "role": "OB",
+    "position": "SH",
+    "role": "SH",
     "team": "Japan",
     "team_code": "JPN"
   },
   {
     "player_id": "jpn_23",
     "name": "Haruto Watanabe",
-    "position": "CE",
-    "role": "CE",
+    "position": "SH",
+    "role": "SH",
     "team": "Japan",
     "team_code": "JPN"
   },
@@ -1658,16 +1658,16 @@
   {
     "player_id": "jpn_25",
     "name": "Shinya Komura",
-    "position": "CE",
-    "role": "CE",
+    "position": "FH",
+    "role": "FH",
     "team": "Japan",
     "team_code": "JPN"
   },
   {
     "player_id": "jpn_26",
     "name": "Samisoni Tua",
-    "position": "OB",
-    "role": "OB",
+    "position": "CE",
+    "role": "CE",
     "team": "Japan",
     "team_code": "JPN"
   },
@@ -1698,48 +1698,48 @@
   {
     "player_id": "jpn_30",
     "name": "Kippei Ishida",
-    "position": "SH",
-    "role": "SH",
+    "position": "OB",
+    "role": "OB",
     "team": "Japan",
     "team_code": "JPN"
   },
   {
     "player_id": "jpn_31",
     "name": "Kazuma Ueda",
-    "position": "CE",
-    "role": "CE",
+    "position": "OB",
+    "role": "OB",
     "team": "Japan",
     "team_code": "JPN"
   },
   {
     "player_id": "jpn_32",
     "name": "Haruto Kida",
-    "position": "FH",
-    "role": "FH",
+    "position": "OB",
+    "role": "OB",
     "team": "Japan",
     "team_code": "JPN"
   },
   {
     "player_id": "jpn_33",
     "name": "Inoke Burua",
-    "position": "PR",
-    "role": "PR",
+    "position": "OB",
+    "role": "OB",
     "team": "Japan",
     "team_code": "JPN"
   },
   {
     "player_id": "jpn_34",
     "name": "Shunsuke Uenobo",
-    "position": "HK",
-    "role": "HK",
+    "position": "OB",
+    "role": "OB",
     "team": "Japan",
     "team_code": "JPN"
   },
   {
     "player_id": "jpn_35",
     "name": "Takuro Matsunaga",
-    "position": "LK",
-    "role": "LK",
+    "position": "OB",
+    "role": "OB",
     "team": "Japan",
     "team_code": "JPN"
   },
@@ -1842,8 +1842,8 @@
   {
     "player_id": "ire_13",
     "name": "Darragh Murray",
-    "position": "HK",
-    "role": "HK",
+    "position": "LK",
+    "role": "LK",
     "team": "Ireland",
     "team_code": "IRE"
   },
@@ -2098,8 +2098,8 @@
   {
     "player_id": "eng_9",
     "name": "Greg Fisilau",
-    "position": "PR",
-    "role": "PR",
+    "position": "LF",
+    "role": "LF",
     "team": "England",
     "team_code": "ENG"
   },
@@ -2226,8 +2226,8 @@
   {
     "player_id": "eng_25",
     "name": "Tommy Freeman",
-    "position": "OB",
-    "role": "OB",
+    "position": "CE",
+    "role": "CE",
     "team": "England",
     "team_code": "ENG"
   },
@@ -2442,8 +2442,8 @@
   {
     "player_id": "sco_16",
     "name": "Elliot Millar Mills",
-    "position": "LK",
-    "role": "LK",
+    "position": "PR",
+    "role": "PR",
     "team": "Scotland",
     "team_code": "SCO"
   },
@@ -2458,8 +2458,8 @@
   {
     "player_id": "sco_18",
     "name": "Alex Samuel",
-    "position": "LF",
-    "role": "LF",
+    "position": "LK",
+    "role": "LK",
     "team": "Scotland",
     "team_code": "SCO"
   },
@@ -2538,8 +2538,8 @@
   {
     "player_id": "sco_28",
     "name": "Tom Jordan",
-    "position": "OB",
-    "role": "OB",
+    "position": "FH",
+    "role": "FH",
     "team": "Scotland",
     "team_code": "SCO"
   },
@@ -2682,8 +2682,8 @@
   {
     "player_id": "wal_10",
     "name": "Kane James",
-    "position": "PR",
-    "role": "PR",
+    "position": "LF",
+    "role": "LF",
     "team": "Wales",
     "team_code": "WAL"
   },
@@ -2722,8 +2722,8 @@
   {
     "player_id": "wal_15",
     "name": "Evan Lloyd",
-    "position": "OB",
-    "role": "OB",
+    "position": "HK",
+    "role": "HK",
     "team": "Wales",
     "team_code": "WAL"
   },
@@ -2770,8 +2770,8 @@
   {
     "player_id": "wal_21",
     "name": "Gareth Thomas",
-    "position": "LK",
-    "role": "LK",
+    "position": "PR",
+    "role": "PR",
     "team": "Wales",
     "team_code": "WAL"
   },
@@ -2818,8 +2818,8 @@
   {
     "player_id": "wal_27",
     "name": "Ryan Woodman",
-    "position": "PR",
-    "role": "PR",
+    "position": "LK",
+    "role": "LK",
     "team": "Wales",
     "team_code": "WAL"
   },
@@ -2906,8 +2906,8 @@
   {
     "player_id": "wal_38",
     "name": "Louie Hennessey",
-    "position": "OB",
-    "role": "OB",
+    "position": "CE",
+    "role": "CE",
     "team": "Wales",
     "team_code": "WAL"
   },
@@ -3508,6 +3508,78 @@
     "name": "Max Spring",
     "position": "OB",
     "role": "OB",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_33",
+    "name": "Reda Wardi",
+    "position": "PR",
+    "role": "PR",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_34",
+    "name": "Romain Ntamack",
+    "position": "FH",
+    "role": "FH",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_35",
+    "name": "Kalvin Gourgues",
+    "position": "CE",
+    "role": "CE",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_36",
+    "name": "Peato Mauvaka",
+    "position": "HK",
+    "role": "HK",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_37",
+    "name": "Emmanuel Meafou",
+    "position": "LK",
+    "role": "LK",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_38",
+    "name": "Alexandre Roumat",
+    "position": "LF",
+    "role": "LF",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_39",
+    "name": "Lenni Nouchi",
+    "position": "LF",
+    "role": "LF",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_40",
+    "name": "Auguste Cadot",
+    "position": "CE",
+    "role": "CE",
+    "team": "France",
+    "team_code": "FRA"
+  },
+  {
+    "player_id": "fra_41",
+    "name": "Florien Verhaeghe",
+    "position": "LK",
+    "role": "LK",
     "team": "France",
     "team_code": "FRA"
   }
