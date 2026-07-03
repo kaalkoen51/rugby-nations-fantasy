@@ -3838,5 +3838,21 @@
     "role": "LF",
     "team": "France",
     "team_code": "FRA"
+  },
+  {
+    "player_id": "fij_34",
+    "name": "Livai Natave",
+    "position": "PR",
+    "role": "PR",
+    "team": "Fiji",
+    "team_code": "FIJ"
+  },
+  {
+    "player_id": "jpn_36",
+    "name": "Sam Greene",
+    "position": "OB",
+    "role": "OB",
+    "team": "Japan",
+    "team_code": "JPN"
   }
 ]

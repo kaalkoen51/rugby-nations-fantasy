@@ -59,7 +59,7 @@ const row = (o) => ({
   tackles: 0, missed_tackles: 0, turnovers_won: 0, conversions: 0,
   conversions_missed: 0, penalties: 0, penalties_missed: 0, drop_goals: 0,
   drop_goals_missed: 0, lineout_throws_won: 0, lineouts_taken: 0, lineout_steals: 0,
-  penalties_conceded: 0, scrums_won: 0,
+  penalties_conceded: 0, red_cards: 0, yellow_cards: 0, scrums_won: 0,
   scrums_lost: 0, lineouts_lost: 0, ...o });
 const cp = (o, role) => calcPlayerPoints(row(o), role);   // includes +2 minutes
 
@@ -71,6 +71,7 @@ check("back metres 1/10m", cp({ metres: 25 }, "OB"), 2 + 2);
 check("prop tackle x2", cp({ tackles: 3 }, "PR"), 2 + 6);
 check("SH passes 1/5", cp({ passes: 10 }, "SH"), 2 + 2);
 check("prop scrums won 1.5", cp({ scrums_won: 2 }, "PR"), 2 + 3);
+check("red card", cp({ red_cards: 1 }, "PR"), 2 - 20);
 check("0 minutes scores 0", cp({ minutes: 0, tries: 3 }, "OB"), 0);
 
 /* ---------- breakdown sums to player total ---------- */

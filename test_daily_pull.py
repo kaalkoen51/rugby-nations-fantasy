@@ -32,7 +32,7 @@ daily_pull_ROW = {
     "turnovers_won": 1, "conversions": 0, "conversions_missed": 0, "penalties": 0,
     "penalties_missed": 0, "drop_goals": 0, "drop_goals_missed": 0,
     "lineout_throws_won": 0, "lineouts_taken": 0, "lineout_steals": 0,
-    "penalties_conceded": 0, "scrums_won": 0,
+    "penalties_conceded": 0, "red_cards": 0, "yellow_cards": 0, "scrums_won": 0,
     "scrums_lost": 0, "lineouts_lost": 0, "home_score": 27, "away_score": 24,
 }
 
@@ -113,6 +113,7 @@ class TestScoring(unittest.TestCase):
     def test_negatives_and_scrums_by_role(self):
         self.assertEqual(calculate_points(self.base(role="PR", penalties_conceded=1)), 2 - 3)
         self.assertEqual(calculate_points(self.base(role="OB", penalties_conceded=1)), 2 - 4)
+        self.assertEqual(calculate_points(self.base(role="PR", red_cards=1)), 2 - 20)
         self.assertEqual(calculate_points(self.base(role="PR", scrums_won=2)), 2 + 3)
         self.assertEqual(calculate_points(self.base(role="LF", scrums_won=2)), 2 + 1)
 

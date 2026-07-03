@@ -115,6 +115,7 @@ Loosie = flanker/No.8, SH scrum-half, FH fly-half):
 | Scrums won | Props +1.5 · Hookers/Locks +1 · Loosies +0.5 |
 | Scrums lost | Props −3 · Hookers/Locks −2 · Loosies −1 |
 | Penalties conceded | −4 (Props −3) |
+| Yellow card −10 · Red card −20 | |
 
 ¹ The sheet shows "Turnovers Conceded = 3 points" unsigned; scored −3 (a
 concession) — confirm with the source.
