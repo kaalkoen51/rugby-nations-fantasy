@@ -255,9 +255,12 @@ new duration applies fresh from the current pick. When a pick times out (or
 the admin forces one), the auto-pick is random **from that manager's
 shortlist** if they set one, otherwise random from the eligible pool. To leave a league at any time, use
 **Exit league** in the top-right header — it returns you to the landing page
-where you can join or create another (re-join later with the invite code). After the draft, set your lineup (the XV) via **Home → Pick my team**;
-lineups lock when the admin closes the trading window, so each round scores
-against the lineup that was locked at the time.
+where you can join or create another (re-join later with the invite code). After the draft, set your lineup (the XV) via **Home → Pick my team**
+any time lineups are **unlocked**. The admin **locks** lineups at kickoff
+(snapshotting everyone's lineup) and **unlocks** when the round ends; each
+round scores against the snapshot taken at its lock, so later edits never
+rewrite an earlier round. The lineup lock is independent of the trading
+window, so you can finalise lineups after trades/waivers have executed.
 
 ### 6. Admin (Admin tab → unlock with the admin token)
 - **Pull from sheet** — paste the published-CSV links for the PlayerStats
@@ -269,8 +272,12 @@ against the lineup that was locked at the time.
   today, no API needed). Match label format: `Home vs Away (YYYY-MM-DD)`. The
   history list is collapsible.
 - **Head-to-Head** — set the scheme + generate fixtures before the draft.
-- **Trading window & lineup locks** — open between rounds, close before
-  kickoff (which also processes queued waiver claims) to snapshot lineups.
+- **Lineup lock** — **Lock (start round)** at kickoff snapshots every
+  manager's lineup and freezes editing; the round scores against that
+  snapshot. **Unlock (end round)** reopens editing for the next round
+  (lineups carry over). Independent of the trading window.
+- **Trading window** — open between rounds for trades/free-agent claims;
+  closing it processes any queued waiver claims. Separate from the lineup lock.
 
 ---
 

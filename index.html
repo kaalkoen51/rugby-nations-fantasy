@@ -327,17 +327,27 @@
         <div id="adm-existing" class="px-4 pb-4 space-y-3 text-sm"></div>
       </details>
       <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-2">
-        <h3 class="font-semibold text-sm">Trading window &amp; lineup locks</h3>
-        <p class="text-xs text-slate-500">Open it between rounds (once all teams have played);
-          managers can then trade, swap free agents and change their lineups. <b>Closing it
-          locks everyone's lineup in</b> for the next games — points for each matchday are
-          scored against the lineup that was locked at the time, so later changes never
-          rewrite earlier rounds. Close it before kickoff.</p>
+        <h3 class="font-semibold text-sm">Lineup lock (per round)</h3>
+        <p class="text-xs text-slate-500">Managers can set their lineup any time it's <b>unlocked</b>.
+          <b>Lock</b> it at kickoff — that snapshots everyone's lineup, and the round is scored
+          against that snapshot. <b>Unlock</b> when the round ends to reopen lineups for the next
+          round (they carry over). Earlier rounds keep their locked lineup, so later changes never
+          rewrite past scores.</p>
+        <div class="flex items-center justify-between gap-3">
+          <span id="adm-lineup-status" class="text-sm font-semibold"></span>
+          <button id="adm-lineup-toggle" class="rounded-lg px-4 py-2 text-sm font-semibold bg-wcred hover:bg-wcred-hov"></button>
+        </div>
+        <button id="adm-snapshot" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-1.5 text-xs font-semibold">Re-snapshot lineups now (fallback)</button>
+      </div>
+      <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-2">
+        <h3 class="font-semibold text-sm">Trading window</h3>
+        <p class="text-xs text-slate-500">Open it between rounds so managers can trade and claim
+          free agents. Closing it processes any deferred waiver pickups. Independent of the lineup
+          lock above.</p>
         <div class="flex items-center justify-between gap-3">
           <span id="adm-trading-status" class="text-sm font-semibold"></span>
           <button id="adm-trading-toggle" class="rounded-lg px-4 py-2 text-sm font-semibold bg-wcred hover:bg-wcred-hov"></button>
         </div>
-        <button id="adm-snapshot" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-1.5 text-xs font-semibold">Re-lock current lineups now (fallback)</button>
         <div class="border-t border-slate-800 pt-2 space-y-2">
           <div class="text-xs text-slate-400">Window limits (blank/0 = unlimited, real-time)</div>
           <div class="grid grid-cols-2 gap-2 text-sm">
@@ -2321,9 +2331,9 @@ function renderHomeTab() {
     subline = `#${rank} of ${count}`;
   }
   const squadHtml = `
-    ${me.eliminated ? "" : `<button id="home-lineup" class="w-full bg-slate-800 border ${S.league.trading_open ? "border-wcgold/60 text-wcgold" : "border-slate-700 text-slate-500"} rounded-xl py-2.5 text-sm font-semibold">${
-      S.league.trading_open ? "Pick my team for the next games"
-                            : "🔒 Lineup locked — opens with the trading window"}</button>`}
+    ${me.eliminated ? "" : `<button id="home-lineup" class="w-full bg-slate-800 border ${!S.league.lineups_locked ? "border-wcgold/60 text-wcgold" : "border-slate-700 text-slate-500"} rounded-xl py-2.5 text-sm font-semibold">${
+      !S.league.lineups_locked ? "Pick my team for the next games"
+                            : "🔒 Lineups locked — the round is live"}</button>`}
     <div id="hist-home-${me.id}" class="rounded-xl border border-slate-700 bg-slate-900 p-3"></div>`;
   box.innerHTML = `
     <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 flex items-center justify-between">
@@ -3053,8 +3063,8 @@ async function snapshotRosters() {
 function openLineup() {
   const me = myManager();
   if (!me) return;
-  if (!S.league.trading_open)
-    return toast("Lineups are locked — the admin opens the window between rounds.");
+  if (S.league.lineups_locked)
+    return toast("Lineups are locked — the round is live. They reopen when the admin unlocks.");
   // Draft of the new lineup: set of pick ids that will be starters.
   S.lineupDraft = new Set(managerPicks(me.id)
     .filter((pk) => !pk.is_sub && pk.slot !== "TEAM").map((pk) => pk.id));
@@ -3122,8 +3132,8 @@ function renderLineup() {
 
 async function saveLineup() {
   const me = myManager();
-  if (!S.league.trading_open)
-    return toast("Lineups are locked — the window closed while you were editing.");
+  if (S.league.lineups_locked)
+    return toast("Lineups locked — the round started while you were editing.");
   if (!lineupValid(lineupCounts())) return;
   const changes = managerPicks(me.id).filter((pk) => pk.slot !== "TEAM").map((pk) => {
     const isSub = !S.lineupDraft.has(pk.id);
@@ -4373,6 +4383,11 @@ function renderAdmin() {
   $("adm-trading-status").className =
     "text-sm font-semibold " + (open ? "text-wcgold" : "text-slate-400");
   $("adm-trading-toggle").textContent = open ? "Close trading" : "Open trading";
+  const locked = !!S.league.lineups_locked;
+  $("adm-lineup-status").textContent = locked ? "Lineups LOCKED (round live)" : "Lineups unlocked (editable)";
+  $("adm-lineup-status").className =
+    "text-sm font-semibold " + (locked ? "text-wcgold" : "text-slate-400");
+  $("adm-lineup-toggle").textContent = locked ? "Unlock (end round)" : "Lock (start round)";
   if (document.activeElement?.id !== "adm-max-trades")
     $("adm-max-trades").value = S.league.max_trades_per_window || "";
   if (document.activeElement?.id !== "adm-max-fa")
@@ -4395,17 +4410,29 @@ function renderAdmin() {
 
 async function toggleTrading() {
   const next = !S.league.trading_open;
-  // Closing: execute any queued free-agent pickups (waiver order) BEFORE
-  // snapshotting, so locked lineups reflect the new rosters.
+  // Closing: execute any queued free-agent pickups (waiver order). Lineup
+  // locking is separate now — the admin locks lineups at kickoff.
   let awarded = 0;
   if (!next) awarded = await processFaClaims();
   const patch = { trading_open: next };
   if (next) patch.window_opened_at = new Date().toISOString();
   const { error } = await S.sb.from("leagues").update(patch).eq("id", S.league.id);
   if (error) return toast(error.message);
-  if (!next) await snapshotRosters(); // closing = lock everyone's lineups in
-  toast(next ? "Trading window opened — lineups and trades unlocked."
-             : `Trading window closed — lineups locked${awarded ? `, ${awarded} pickup(s) processed` : ""}.`);
+  toast(next ? "Trading window opened."
+             : `Trading window closed${awarded ? ` — ${awarded} pickup(s) processed` : ""}.`);
+  scheduleRefetch();
+}
+
+// Lock lineups for a round (snapshotting everyone's current lineup, which
+// scoring replays against), or unlock to reopen editing for the next round.
+async function toggleLineupLock() {
+  const next = !S.league.lineups_locked;
+  const { error } = await S.sb.from("leagues").update({ lineups_locked: next }).eq("id", S.league.id);
+  if (error) return toast(error.message);
+  S.league.lineups_locked = next;              // optimistic
+  if (next) await snapshotRosters();           // lock = snapshot the round's lineups
+  toast(next ? "Lineups locked — this round scores against the current lineups."
+             : "Lineups unlocked — managers can edit for the next round.");
   scheduleRefetch();
 }
 
@@ -4563,6 +4590,7 @@ function wire() {
   $("adm-psearch").oninput = admRenderPlayerSearch;
   $("adm-drafted").onchange = admRenderPlayerSearch;
   $("adm-trading-toggle").onclick = () => toggleTrading().catch((e) => toast(e.message));
+  $("adm-lineup-toggle").onclick = () => toggleLineupLock().catch((e) => toast(e.message));
   $("adm-save-limits").onclick = () => saveWindowLimits().catch((e) => toast(e.message));
   $("adm-save-h2h").onclick = () => saveH2HSettings().catch((e) => toast(e.message));
   $("adm-gen-h2h").onclick = () => generateH2HSchedule().catch((e) => toast(e.message));

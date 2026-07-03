@@ -78,6 +78,11 @@ create table if not exists team_stages (
 -- e.g. "team:Ireland"; regular slots use players.json ids like "eng_10".
 alter table leagues add column if not exists invite_code text;
 alter table leagues add column if not exists trading_open boolean not null default false;
+-- Lineup lock, independent of the trading window. Managers edit lineups while
+-- unlocked; the admin locks at kickoff (which snapshots everyone's lineup for
+-- the round) and unlocks when the round ends. Scoring replays each round
+-- against the snapshot taken at its lock, so later edits never rewrite it.
+alter table leagues add column if not exists lineups_locked boolean not null default false;
 alter table leagues add column if not exists admin_token text;
 alter table leagues add column if not exists num_managers int default 8;
 alter table leagues add column if not exists pick_duration_seconds int default 60;
