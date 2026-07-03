@@ -62,8 +62,8 @@ value in `SCORING` (`daily_pull.py` + `index.html`).
 | `check_picks.py` | Emits SQL to find already-drafted picks whose position no longer matches `players.json` |
 | `build_fixtures.py` | Generates `fixtures.json` (confirmed 2026 schedule by default; `--placeholder` synthetic; `--ds-api`) |
 | `build_schedule.py` | Regenerates `live-pull.yml` cron triggers from `fixtures.json` |
-| `build_injuries.py` / `build_photos.py` | Optional availability badges / avatars |
-| `.github/workflows/*` | Daily/catch-up/live pulls + injuries/photos |
+| `build_photos.py` | Optional player avatars (`photos.json`) |
+| `.github/workflows/*` | Sheet pull (stats + lineups) + optional photos |
 | `test_logic.js` | Smoke tests for draft order + rugby scoring (`node test_logic.js`) |
 | `test_daily_pull.py` | Tests for the id mapping + rugby scoring (`python -m unittest test_daily_pull`) |
 | `test_sheet_pull.py` | Tests for the Google-Sheet stats/lineups mapping (`python -m unittest test_sheet_pull`) |
@@ -115,7 +115,6 @@ Loosie = flanker/No.8, SH scrum-half, FH fly-half):
 | Scrums won | Props +1.5 · Hookers/Locks +1 · Loosies +0.5 |
 | Scrums lost | Props −3 · Hookers/Locks −2 · Loosies −1 |
 | Penalties conceded | −4 (Props −3) |
-| Yellow card −10 · Red card −20 | |
 
 ¹ The sheet shows "Turnovers Conceded = 3 points" unsigned; scored −3 (a
 concession) — confirm with the source.

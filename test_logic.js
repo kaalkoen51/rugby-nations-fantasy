@@ -16,12 +16,12 @@ const lsStub = { getItem: (k) => k === "wcf_session" ? _session : null,
                  setItem: () => {}, removeItem: () => {} };
 const api = new Function(
   "document", "localStorage", "window", "crypto", "navigator",
-  src + "\nreturn { S, pickInfo, calcPlayerPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, suspendedNext, playerStatTotal, h2hResult, roundRobin, h2hTable, resolveFaClaims };"
+  src + "\nreturn { S, pickInfo, calcPlayerPoints, computeScores, slotGroup, pairValid, tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager, totalPicks, playerBreakdown, playerPoints, playerStatTotal, h2hResult, roundRobin, h2hTable, resolveFaClaims };"
 )(stubDoc, lsStub, winStub, {}, {});
 
 const { S, pickInfo, calcPlayerPoints, computeScores, slotGroup, pairValid,
         tradeError, quotaLeft, slotForNewPick, posQuota, picksPerManager,
-        totalPicks, playerBreakdown, playerPoints, suspendedNext,
+        totalPicks, playerBreakdown, playerPoints,
         playerStatTotal, h2hResult, roundRobin, h2hTable, resolveFaClaims } = api;
 
 let fails = 0;
@@ -59,7 +59,7 @@ const row = (o) => ({
   tackles: 0, missed_tackles: 0, turnovers_won: 0, conversions: 0,
   conversions_missed: 0, penalties: 0, penalties_missed: 0, drop_goals: 0,
   drop_goals_missed: 0, lineout_throws_won: 0, lineouts_taken: 0, lineout_steals: 0,
-  penalties_conceded: 0, red_cards: 0, yellow_cards: 0, scrums_won: 0,
+  penalties_conceded: 0, scrums_won: 0,
   scrums_lost: 0, lineouts_lost: 0, ...o });
 const cp = (o, role) => calcPlayerPoints(row(o), role);   // includes +2 minutes
 
@@ -71,12 +71,11 @@ check("back metres 1/10m", cp({ metres: 25 }, "OB"), 2 + 2);
 check("prop tackle x2", cp({ tackles: 3 }, "PR"), 2 + 6);
 check("SH passes 1/5", cp({ passes: 10 }, "SH"), 2 + 2);
 check("prop scrums won 1.5", cp({ scrums_won: 2 }, "PR"), 2 + 3);
-check("red card", cp({ red_cards: 1 }, "PR"), 2 - 20);
 check("0 minutes scores 0", cp({ minutes: 0, tries: 3 }, "OB"), 0);
 
 /* ---------- breakdown sums to player total ---------- */
 S.stats = [
-  row({ player_id: "eng_5", match_label: "England vs Fiji (2026-07-04)", tries: 1, tackles: 3, yellow_cards: 1 }),
+  row({ player_id: "eng_5", match_label: "England vs Fiji (2026-07-04)", tries: 1, tackles: 3 }),
 ];
 check("breakdown sums to playerPoints", playerBreakdown("eng_5", "PR").reduce((s, r) => s + r.pts, 0),
   playerPoints("eng_5", "PR"));
@@ -196,15 +195,6 @@ check("already-rostered player fails",
   resolveFaClaims([claim("c1", "m1", "p1", "pk1", "o1", 0, "t1")], { m1: 0 }, ["p1"], Infinity, { pk1: "o1" }).failed, ["c1"]);
 check("stale out-player (no longer held) fails",
   resolveFaClaims([claim("c1", "m1", "p1", "pk1", "o1", 0, "t1")], { m1: 0 }, [], Infinity, { pk1: "SOMEONE_ELSE" }).failed, ["c1"]);
-
-/* ---------- suspensions (red card only) ---------- */
-S.stats = [
-  row({ player_id: "wal_7", match_label: "Wales vs Fiji (2026-07-04)", appeared: true, yellow_cards: 1 }),
-  row({ player_id: "wal_7", match_label: "Wales vs Japan (2026-07-11)", appeared: true, red_cards: 1 }),
-];
-check("red card = suspended", suspendedNext("wal_7"), "red card");
-S.stats = [row({ player_id: "wal_7", match_label: "Wales vs Fiji (2026-07-04)", appeared: true, yellow_cards: 1 })];
-check("single yellow not a ban", suspendedNext("wal_7"), null);
 
 console.log(fails ? `\n${fails} check(s) FAILED` : "\nAll checks passed");
 process.exit(fails ? 1 : 0);

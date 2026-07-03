@@ -314,8 +314,6 @@
           <label class="text-xs text-slate-400">Lineouts lost<input id="adm-ll" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Scrums won<input id="adm-sw" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
           <label class="text-xs text-slate-400">Scrums lost<input id="adm-sl" type="number" value="0" min="0" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
-          <label class="text-xs text-slate-400">Yellows<input id="adm-yc" type="number" value="0" min="0" max="2" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
-          <label class="text-xs text-slate-400">Reds<input id="adm-rc" type="number" value="0" min="0" max="1" class="mt-0.5 w-full rounded bg-slate-800 border border-slate-700 px-2 py-1.5"></label>
         </div>
         <div class="flex flex-wrap gap-4 text-sm">
           <label class="flex items-center gap-1.5"><input id="adm-appeared" type="checkbox" checked> appeared</label>
@@ -499,8 +497,6 @@ const SCORING = {
   lineout_throw_won: 1,
   lineout_taken: 2,
   lineout_steal: 4,
-  red_card: -20,
-  yellow_card: -10,
   lineout_lost: -2,
 };
 
@@ -823,26 +819,14 @@ function upNextHtml(team, size = "w-4 h-4") {
     f.home === team ? "vs" : "@"} ${esc(opp)} · ${esc(when)}">next:${avatarHtml("team:" + opp, opp, size)}</span>`;
 }
 
-// photos.json (faces/crests) and injuries.json (availability hints) are
-// optional, like fixtures.json — the app degrades gracefully without them.
+// photos.json (faces/crests) is optional, like fixtures.json — the app
+// degrades gracefully without it.
 async function loadExtras() {
   const get = async (file, fallback) => {
     try { const r = await fetch(file); return r.ok ? await r.json() : fallback; }
     catch { return fallback; }
   };
   if (S.photos === undefined) S.photos = await get("photos.json", null);
-  if (S.injuryByPid === undefined) {
-    const list = await get("injuries.json", []);
-    // Expire by how fresh the feed is (`as_of` = the day it was built), since
-    // the API's fixture_date is often stale. The feed rebuilds daily, so this
-    // stays current; if it stops, badges fade after a few days. Older files
-    // without `as_of` fall back to fixture_date.
-    const cutoff = new Date(Date.now() - 4 * 86400e3).toISOString().slice(0, 10);
-    S.injuryByPid = {};
-    for (const r of list || []) {
-      if ((r.as_of || r.fixture_date || "") >= cutoff) S.injuryByPid[r.player_id] = r;
-    }
-  }
 }
 
 async function enterLeague() {
@@ -1567,8 +1551,6 @@ function calcPlayerPoints(r, hint) {
   p += n("lineouts_taken") * SCORING.lineout_taken;
   p += n("lineout_steals") * SCORING.lineout_steal;
   p += n("penalties_conceded") * rv("penalty_conceded", -4);
-  p += n("red_cards") * SCORING.red_card;
-  p += n("yellow_cards") * SCORING.yellow_card;
   p += n("scrums_won") * rv("scrum_won", 0);
   p += n("scrums_lost") * rv("scrum_lost", 0);
   p += n("lineouts_lost") * SCORING.lineout_lost;
@@ -2170,8 +2152,6 @@ function scoringHtml() {
     ["Lineout steals", `+${SCORING.lineout_steal}`],
     ["Lineouts lost", SCORING.lineout_lost],
     ["Penalties conceded", "-4 (Props -3)"],
-    ["Yellow card", SCORING.yellow_card],
-    ["Red card", SCORING.red_card],
     ["Scrums won", "Props +1.5 · Hookers/Locks +1 · Loosies +0.5"],
     ["Scrums lost", "Props -3 · Hookers/Locks -2 · Loosies -1"],
   ];
@@ -2685,7 +2665,6 @@ const STAT_SORTS = [
   ["turnovers_won", "Turnovers won"], ["turnovers_conceded", "Turnovers conceded"],
   ["conversions", "Conversions"], ["penalties", "Penalties"], ["drop_goals", "Drop goals"],
   ["lineout_steals", "Lineout steals"], ["penalties_conceded", "Penalties conceded"],
-  ["yellow_cards", "Yellow cards"], ["red_cards", "Red cards"],
 ];
 
 const statRowsFor = (pid) =>
@@ -2722,8 +2701,6 @@ function playerBreakdown(pid, hint) {
     ["lineouts_taken", "Lineouts taken", null, (r, c) => c * SCORING.lineout_taken],
     ["lineout_steals", "Lineout steals", null, (r, c) => c * SCORING.lineout_steal],
     ["penalties_conceded", "Penalties conceded", null, (r, c) => c * rv("penalty_conceded", -4)],
-    ["red_cards", "Red cards", null, (r, c) => c * SCORING.red_card],
-    ["yellow_cards", "Yellow cards", null, (r, c) => c * SCORING.yellow_card],
     ["scrums_won", "Scrums won", null, (r, c) => c * rv("scrum_won", 0)],
     ["scrums_lost", "Scrums lost", null, (r, c) => c * rv("scrum_lost", 0)],
     ["lineouts_lost", "Lineouts lost", null, (r, c) => c * SCORING.lineout_lost],
@@ -2757,8 +2734,6 @@ function statBits(r) {
   if (r.defenders_beaten) bits.push(r.defenders_beaten + "db");
   if (r.offloads) bits.push(r.offloads + "off");
   if (r.lineout_steals) bits.push(r.lineout_steals + "ls");
-  if (r.yellow_cards) bits.push(r.yellow_cards + "Y");
-  if (r.red_cards) bits.push("R");
   return bits.join(" ");
 }
 
@@ -2767,28 +2742,8 @@ const ownerOf = (pid) => {
   return pk ? S.managers.find((m) => m.id === pk.manager_id)?.name : null;
 };
 
-/* ---------- availability (suspensions & injuries) and avatars ---------- */
+/* ---------- availability (matchday status, KO) and avatars ---------- */
 
-// Best-effort "suspended for their next match" from our own card data: a
-// red card (straight or two-yellow) in their latest appearance. Rugby
-// doesn't carry single yellows as an accumulation ban (a yellow is a
-// 10-minute sin-bin), so unlike soccer there's no yellow-count rule; a
-// red triggers a disciplinary process and at least a one-match ban.
-// Playing again clears the flag (ban served). Multi-match bans set by a
-// hearing aren't tracked — they're decided case by case.
-function suspendedNext(pid) {
-  const rows = statRowsFor(pid).filter((r) => r.appeared)
-    .sort((a, b) => String(labelDate(a.match_label))
-      .localeCompare(String(labelDate(b.match_label))));
-  if (!rows.length) return null;
-  const last = rows[rows.length - 1];
-  if ((last.red_cards || 0) > 0) return "red card";
-  return null;
-}
-
-const injuryOf = (pid) => (S.injuryByPid || {})[pid] || null;
-
-// 🚫 team knocked out · 🟥 suspended next match · 🤕 out injured · ⚠️ doubtful
 // Index the global match_lineups rows to the latest announced status per
 // player (by match_date), so a badge can show a player's current matchday
 // role — Starting XV / Bench / Not in squad.
@@ -2824,11 +2779,6 @@ function availBadges(pid) {
   let out = lineupBadge(pid);
   const team = S.playerById?.[pid]?.team;
   if (team && isEliminated(team)) out += `<span title="team knocked out">🚫</span>`;
-  const susp = suspendedNext(pid);
-  if (susp) out += `<span title="suspended next match (${susp})">🟥</span>`;
-  const inj = injuryOf(pid);
-  if (inj) out += `<span title="${esc(inj.reason || "injury")}">${
-    inj.status === "out" ? "🤕" : "⚠️"}</span>`;
   return out;
 }
 
@@ -2840,9 +2790,6 @@ function availText(pid) {
     : li.status === "bench" ? "🪑 bench" : "— not in squad");
   const team = S.playerById?.[pid]?.team;
   if (team && isEliminated(team)) bits.push("🚫 KO");
-  if (suspendedNext(pid)) bits.push("🟥 susp");
-  const inj = injuryOf(pid);
-  if (inj) bits.push(inj.status === "out" ? "🤕 out" : "⚠ doubtful");
   return bits.length ? " · " + bits.join(" ") : "";
 }
 
@@ -4148,7 +4095,6 @@ const ADM_FIELDS = [
   ["adm-ltw", "lineout_throws_won"], ["adm-lt", "lineouts_taken"],
   ["adm-ls", "lineout_steals"], ["adm-ll", "lineouts_lost"],
   ["adm-sw", "scrums_won"], ["adm-sl", "scrums_lost"],
-  ["adm-yc", "yellow_cards"], ["adm-rc", "red_cards"],
 ];
 
 async function admSave() {
@@ -4271,7 +4217,7 @@ const SHEET_COUNTING = ["tries","metres","runs","defenders_beaten","clean_breaks
   "missed_tackles","turnovers_won","conversions","conversions_missed",
   "penalties","penalties_missed","drop_goals","drop_goals_missed",
   "lineout_throws_won","lineouts_taken","lineout_steals","penalties_conceded",
-  "red_cards","yellow_cards","scrums_won","scrums_lost","lineouts_lost"];
+  "scrums_won","scrums_lost","lineouts_lost"];
 
 // "Home vs Away (YYYY-MM-DD)" from a sheet row, or null if incomplete.
 function sheetMatchLabel(rec) {

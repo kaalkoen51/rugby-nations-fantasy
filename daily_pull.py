@@ -91,8 +91,6 @@ SCORING = {
     "lineout_throw_won": 1,
     "lineout_taken": 2,
     "lineout_steal": 4,
-    "red_card": -20,
-    "yellow_card": -10,
     "lineout_lost": -2,
 }
 
@@ -303,8 +301,8 @@ STAT_FIELDS = (
     "offloads", "turnovers_conceded", "try_assists", "tackles", "missed_tackles",
     "turnovers_won", "conversions", "conversions_missed", "penalties",
     "penalties_missed", "drop_goals", "drop_goals_missed", "lineout_throws_won",
-    "lineouts_taken", "lineout_steals", "penalties_conceded", "red_cards",
-    "yellow_cards", "scrums_won", "scrums_lost", "lineouts_lost",
+    "lineouts_taken", "lineout_steals", "penalties_conceded",
+    "scrums_won", "scrums_lost", "lineouts_lost",
 )
 
 # Counting stats carried straight through from the provider's per-player
@@ -407,8 +405,6 @@ def calculate_points(row: dict):
     points += g("lineouts_taken") * SCORING["lineout_taken"]
     points += g("lineout_steals") * SCORING["lineout_steal"]
     points += g("penalties_conceded") * rv("penalty_conceded", -4)
-    points += g("red_cards") * SCORING["red_card"]
-    points += g("yellow_cards") * SCORING["yellow_card"]
     points += g("scrums_won") * rv("scrum_won", 0)
     points += g("scrums_lost") * rv("scrum_lost", 0)
     points += g("lineouts_lost") * SCORING["lineout_lost"]
