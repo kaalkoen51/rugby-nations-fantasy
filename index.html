@@ -419,6 +419,12 @@
   </div>
 </div>
 
+<div id="h2h-sheet" class="hidden fixed inset-0 z-[45] bg-black/60">
+  <div class="absolute bottom-0 inset-x-0 max-h-[85vh] overflow-y-auto bg-slate-900 border-t border-slate-700 rounded-t-2xl p-4">
+    <div id="h2h-sheet-body"></div>
+  </div>
+</div>
+
 <!-- Squad-planner choice picker (Trades tab → plan a replacement) -->
 <div id="planner-sheet" class="hidden fixed inset-0 z-40 bg-black/60">
   <div class="absolute bottom-0 inset-x-0 max-h-[80vh] bg-slate-900 border-t border-slate-700 rounded-t-2xl p-4 flex flex-col">
@@ -2237,7 +2243,9 @@ function h2hFixturesHtml(round, scoresByMgr, upcoming) {
     const lead = (id) => !upcoming && ((id === f.home_manager_id && sa > sb) || (id === f.away_manager_id && sb > sa));
     const side = (id, s, pts) => `<span class="flex-1 min-w-0 ${lead(id) ? "text-wcgold font-semibold" : "text-slate-300"} ${id === f.away_manager_id ? "text-right" : ""}">
       <span class="truncate">${esc(nameOf(id))}</span> <span class="font-mono">${s}</span>${!upcoming && pts ? `<span class="text-[10px] text-slate-500"> +${pts}</span>` : ""}</span>`;
-    return `<div class="rounded-lg bg-slate-800/60 px-3 py-2 text-sm flex items-center gap-2">
+    // Tap a played matchup to see the two teams side by side.
+    const tapAttr = upcoming ? "" : ` data-h2h="${round}|${f.home_manager_id}|${f.away_manager_id}" role="button"`;
+    return `<div class="rounded-lg bg-slate-800/60 px-3 py-2 text-sm flex items-center gap-2${upcoming ? "" : " cursor-pointer hover:bg-slate-800"}"${tapAttr}>
       ${side(f.home_manager_id, sa, res.ptsA + res.bonusA)}
       <span class="text-slate-600 text-xs shrink-0">v</span>
       ${side(f.away_manager_id, sb, res.ptsB + res.bonusB)}</div>`;
@@ -2251,6 +2259,40 @@ function h2hFixturesHtml(round, scoresByMgr, upcoming) {
       Table ranks by <b>log points (Pts)</b>; PF = your fantasy points. <b>P</b> = games played;
       with an odd number of managers one sits out each round (a <b>bye</b>, no points), so P can
       differ by one until byes even out.</p></div>`;
+}
+
+// Side-by-side player-vs-player view of a H2H matchup for one round: each
+// manager's lineup for that round with per-player points.
+function openH2HMatchup(round, aId, bId) {
+  const col = (id) => {
+    const m = S.managers.find((x) => x.id === id);
+    const rd = (managerHistory(id).rounds || []).find((r) => r.n === round);
+    const items = (rd ? rd.items : []).filter((it) => it.entry.position !== "TEAM")
+      .sort((x, y) => (SLOT_RANK[x.entry.slot] ?? 9) - (SLOT_RANK[y.entry.slot] ?? 9));
+    const total = items.reduce((s, it) => s + (it.pts || 0), 0);
+    const rows = items.map((it) => `
+      <div class="flex items-center gap-1.5 px-2 py-1 text-xs ${it.entry.is_sub ? "text-slate-500" : ""}">
+        <span class="w-9 text-[9px] text-slate-500 shrink-0">${esc(it.entry.slot || "")}</span>
+        <span class="flex-1 min-w-0 truncate">${esc(it.entry.player_name)}</span>
+        <span class="font-mono shrink-0 ${it.pts > 0 ? "text-wcgold" : it.pts < 0 ? "text-red-400" : "text-slate-500"}">${it.pts ?? 0}</span>
+      </div>`).join("") || '<div class="px-2 py-2 text-xs text-slate-500">No lineup recorded.</div>';
+    return { m, total, rows };
+  };
+  const A = col(aId), B = col(bId);
+  const head = (c) => `<div class="px-2 py-1.5 border-b border-slate-800 flex items-center justify-between gap-1">
+      <span class="font-semibold text-xs truncate">${esc(teamName(c.m))}</span>
+      <span class="font-mono text-wcgold text-sm shrink-0">${c.total}</span></div>`;
+  $("h2h-sheet-body").innerHTML = `
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="font-semibold text-sm">Round ${round} — head to head</h3>
+      <button id="h2h-sheet-close" class="text-slate-400 px-1">✕</button>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <div class="rounded-lg border border-slate-700">${head(A)}${A.rows}</div>
+      <div class="rounded-lg border border-slate-700">${head(B)}${B.rows}</div>
+    </div>`;
+  $("h2h-sheet").classList.remove("hidden");
+  $("h2h-sheet-close").onclick = () => $("h2h-sheet").classList.add("hidden");
 }
 
 // Standings order (manager ids, best first) — H2H log when enabled, else
@@ -2854,6 +2896,11 @@ function renderBoard() {
   // Fill each manager's history pager (current lineup + past rounds).
   for (const s of scores)
     renderHistInto("hist-lb-" + s.manager.id, s.manager.id, `${teamName(s.manager)}'s lineup`);
+  // Tap a H2H matchup card → side-by-side player-vs-player view.
+  $("board-lb").querySelectorAll("[data-h2h]").forEach((c) => c.onclick = () => {
+    const [r, a, b] = c.dataset.h2h.split("|");
+    openH2HMatchup(+r, a, b);
+  });
   renderRosters("board-rosters");
   renderStatsTab();
   renderFixtures();
