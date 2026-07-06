@@ -135,6 +135,9 @@ alter table leagues add column if not exists keeper_caps jsonb;
 alter table managers add column if not exists keeper_pick_ids jsonb;
 
 alter table managers add column if not exists join_token text;
+-- Franchise/team name, separate from the manager (person) name. Optional;
+-- the app falls back to the manager name for display until one is set.
+alter table managers add column if not exists team_name text;
 alter table managers add column if not exists draft_position int;
 -- Per-manager shortlist of player ids (jsonb array). Synced so it follows
 -- the manager across devices; the app only ever renders your own.

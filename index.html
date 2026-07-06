@@ -217,12 +217,14 @@
       <button id="tab-home" class="board-tab rounded-lg py-2 font-semibold" data-tab="home">Home</button>
       <button id="tab-lb" class="board-tab rounded-lg py-2 font-semibold" data-tab="lb">Table</button>
       <button id="tab-stats" class="board-tab rounded-lg py-2 font-semibold" data-tab="stats">Stats</button>
+      <button id="tab-fixtures" class="board-tab rounded-lg py-2 font-semibold" data-tab="fixtures">Fixtures</button>
       <button id="tab-rosters" class="board-tab rounded-lg py-2 font-semibold" data-tab="rosters">Rosters</button>
       <button id="tab-trades" class="board-tab rounded-lg py-2 font-semibold" data-tab="trades">Trades</button>
       <button id="tab-admin" class="rounded-lg py-2 font-semibold bg-slate-800 border border-slate-700">Admin</button>
     </div>
     <div id="board-home" class="space-y-3"></div>
     <div id="board-lb" class="hidden space-y-2"></div>
+    <div id="board-fixtures" class="hidden space-y-3"></div>
     <div id="board-stats" class="hidden space-y-3">
       <input id="stats-search" placeholder="Search any player or country…"
              class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm">
@@ -731,6 +733,12 @@ function exitLeague() {
 const leaguePhase = () => 1;   // redraft phases removed; always the initial squad
 const activeManagers = () => S.managers.filter((m) => !m.eliminated);
 
+// A manager's franchise/team name for display, falling back to their manager
+// (person) name until they set one. m.name stays the person's name (used for
+// join / reclaim / uniqueness); m.team_name is the fantasy team.
+const teamName = (m) => (m && (m.team_name || "").trim()) || (m && m.name) || "?";
+const teamNameById = (id) => teamName(S.managers.find((m) => m.id === id));
+
 // Fixed squad quotas (one draft, no redrafts).
 const posQuota = () => PHASE1_QUOTA;
 const starterQuota = () => PHASE1_STARTERS;
@@ -821,6 +829,52 @@ function upNextHtml(team, size = "w-4 h-4") {
     { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   return `<span class="inline-flex items-center gap-1 shrink-0" title="${
     f.home === team ? "vs" : "@"} ${esc(opp)} · ${esc(when)}">next:${avatarHtml("team:" + opp, opp, size)}</span>`;
+}
+
+// Full-season fixtures, grouped by date, with the final score once a match
+// has been scored (from the match_stats home/away score).
+function renderFixtures() {
+  const el = $("board-fixtures");
+  if (!el) return;
+  const fx = [...(S.fixtures || [])].sort((a, b) =>
+    String(a.kickoff_utc || a.date).localeCompare(String(b.kickoff_utc || b.date)));
+  if (!fx.length) {
+    el.innerHTML = '<p class="text-sm text-slate-500 px-1">No fixtures loaded yet.</p>';
+    return;
+  }
+  const scoreBy = {};
+  for (const r of S.stats || [])
+    if (r.home_score != null || r.away_score != null)
+      scoreBy[r.match_label] = { h: r.home_score ?? 0, a: r.away_score ?? 0 };
+  const today = new Date().toISOString().slice(0, 10);
+  const byDate = {};
+  for (const f of fx) (byDate[f.date] ||= []).push(f);
+  const fmtDate = (d) => { try {
+    return new Date(d + "T12:00:00Z").toLocaleDateString([],
+      { weekday: "short", day: "numeric", month: "short" });
+  } catch { return d; } };
+  const fmtTime = (iso) => { try {
+    return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } catch { return ""; } };
+  el.innerHTML = Object.keys(byDate).sort().map((d) => {
+    const rows = byDate[d].map((f) => {
+      const sc = scoreBy[`${f.home} vs ${f.away} (${f.date})`];
+      const mid = sc
+        ? `<span class="font-mono text-wcgold text-sm">${sc.h}–${sc.a}</span>`
+        : `<span class="text-[11px] text-slate-500">${esc(fmtTime(f.kickoff_utc))}</span>`;
+      return `<div class="flex items-center gap-2 px-3 py-2">
+        <span class="flex-1 flex items-center justify-end gap-1.5 min-w-0 text-sm text-right">
+          <span class="truncate">${esc(f.home)}</span>${avatarHtml("team:" + f.home, f.home, "w-5 h-5")}</span>
+        <span class="shrink-0 w-14 text-center">${mid}</span>
+        <span class="flex-1 flex items-center gap-1.5 min-w-0 text-sm">
+          ${avatarHtml("team:" + f.away, f.away, "w-5 h-5")}<span class="truncate">${esc(f.away)}</span></span>
+      </div>`;
+    }).join("");
+    const isToday = d === today;
+    return `<div class="rounded-xl border ${isToday ? "border-wcgold/60" : "border-slate-700"} bg-slate-900 divide-y divide-slate-800">
+      <div class="px-3 py-1.5 text-xs uppercase tracking-wide ${isToday ? "text-wcgold" : "text-slate-500"}">${esc(fmtDate(d))}${isToday ? " · today" : ""}</div>
+      ${rows}</div>`;
+  }).join("");
 }
 
 // photos.json (faces/crests) is optional, like fixtures.json — the app
@@ -957,7 +1011,7 @@ function renderDraftOrder() {
     S.draftOrder = [...S.managers]
       .sort((a, b) => (a.draft_position ?? 99) - (b.draft_position ?? 99)).map((m) => m.id);
   }
-  const nameOf = (id) => S.managers.find((m) => m.id === id)?.name || "?";
+  const nameOf = (id) => teamNameById(id);
   $("lobby-order").innerHTML = S.draftOrder.map((id, i) => `
     <li class="flex items-center gap-2 rounded-lg bg-slate-800/60 px-2 py-1.5">
       <span class="text-slate-500 font-mono w-5">${i + 1}.</span>
@@ -1448,9 +1502,10 @@ function renderRosters(containerId) {
   $(containerId).innerHTML = draftOrderManagers().map((m) => `
     <details data-mgr="${m.id}" class="rounded-xl border border-slate-700 bg-slate-900"
              ${open.has(m.id) || (!open.size && m.id === me?.id) ? "open" : ""}>
-      <summary class="px-4 py-3 font-semibold cursor-pointer select-none">${esc(m.name)}${
+      <summary class="px-4 py-3 font-semibold cursor-pointer select-none">${esc(teamName(m))}${
         m.id === me?.id ? ' <span class="text-wcgold text-xs">(you)</span>' : ""
-      }${m.draft_position ? ` <span class="text-xs text-slate-500">· draft pos ${m.draft_position}</span>` : ""}</summary>
+      }${m.team_name ? ` <span class="text-xs font-normal text-slate-500">· ${esc(m.name)}</span>` : ""}${
+        m.draft_position ? ` <span class="text-xs text-slate-500">· draft pos ${m.draft_position}</span>` : ""}</summary>
       ${containerId === "board-rosters" && m.id === me?.id
         ? '<div class="px-4 pb-2"><button id="lineup-open" class="w-full bg-slate-800 border border-wcgold/60 text-wcgold rounded-lg py-2 text-sm font-semibold">Pick my team (starters & subs)</button></div>'
         : ""}
@@ -2014,7 +2069,7 @@ function h2hOpponent(mgrId, round) {
 function h2hHomeHtml(me) {
   if (!(S.league.h2h_enabled && S.h2hFixtures.length)) return "";
   const { scoresByMgr, maxRound } = h2hRoundScores();
-  const nameOf = (id) => S.managers.find((m) => m.id === id)?.name || "?";
+  const nameOf = (id) => teamNameById(id);
   // In a live round: the current round (round_number) with live scores.
   // Between rounds: the next round to play (one past the last scored), blank.
   const inRound = !!S.league.lineups_locked;
@@ -2049,7 +2104,7 @@ function h2hFixturesHtml(round, scoresByMgr, upcoming) {
   const fixtures = S.h2hFixtures.filter((f) => f.round === round);
   if (!round || !fixtures.length) return "";
   const cfg = h2hConfig();
-  const nameOf = (id) => S.managers.find((m) => m.id === id)?.name || "?";
+  const nameOf = (id) => teamNameById(id);
   const cards = fixtures.map((f) => {
     if (!f.away_manager_id)
       return `<div class="rounded-lg bg-slate-800/60 px-3 py-2 text-sm text-slate-400">${esc(nameOf(f.home_manager_id))} — bye</div>`;
@@ -2301,6 +2356,27 @@ function renderHistInto(elId, mgrId, perspectiveLabel) {
     openPlayerDetail(b.dataset.hp, mgrId, perspectiveLabel));
 }
 
+// Edit your team (franchise) name and manager (person) name. Team name is
+// free-form; manager name stays unique so reclaim/login still works.
+async function editNames() {
+  const me = myManager();
+  if (!me) return;
+  const team = prompt("Team name (your franchise):", me.team_name || teamName(me));
+  if (team === null) return;                       // cancelled
+  const person = prompt("Manager name (you):", me.name);
+  if (person === null) return;
+  const newName = (person || "").trim();
+  if (!newName) return toast("Manager name can't be blank.");
+  if (newName.toLowerCase() !== me.name.toLowerCase()
+      && S.managers.some((m) => m.id !== me.id && m.name.toLowerCase() === newName.toLowerCase()))
+    return toast("Another manager already uses that name.");
+  const { error } = await S.sb.from("managers")
+    .update({ team_name: (team || "").trim() || null, name: newName }).eq("id", me.id);
+  if (error) return toast(error.message);
+  toast("Names updated.");
+  scheduleRefetch();
+}
+
 function renderHomeTab() {
   const me = myManager();
   const box = $("board-home");
@@ -2330,12 +2406,13 @@ function renderHomeTab() {
                             : "🔒 Lineups locked — the round is live"}</button>`}
     <div id="hist-home-${me.id}" class="rounded-xl border border-slate-700 bg-slate-900 p-3"></div>`;
   box.innerHTML = `
-    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 flex items-center justify-between">
-      <div>
+    <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 flex items-center justify-between gap-3">
+      <div class="min-w-0">
         <div class="text-xs text-slate-400">Your team</div>
-        <div class="text-xl font-bold">${esc(me.name)}</div>
+        <div class="text-xl font-bold truncate">${esc(teamName(me))}</div>
+        <button id="home-edit-names" class="text-[11px] text-slate-400 hover:text-slate-200">👤 ${esc(me.name)} · ✏️ edit</button>
       </div>
-      <div class="text-right">
+      <div class="text-right shrink-0">
         <div class="text-2xl font-bold text-wcgold">${primary}</div>
         <div class="text-xs text-slate-400">${subline}</div>
       </div>
@@ -2349,6 +2426,8 @@ function renderHomeTab() {
   renderHistInto("hist-home-" + me.id, me.id);   // "your lineup" perspective
   const lb = box.querySelector("#home-lineup");
   if (lb) lb.onclick = openLineup;
+  const en = box.querySelector("#home-edit-names");
+  if (en) en.onclick = () => editNames().catch((e) => toast(e.message));
 }
 
 /* ---------- matchday banner ---------- */
@@ -2534,6 +2613,7 @@ function setBoardTab(tab) {
   $("board-home").classList.toggle("hidden", tab !== "home");
   $("board-lb").classList.toggle("hidden", tab !== "lb");
   $("board-stats").classList.toggle("hidden", tab !== "stats");
+  $("board-fixtures").classList.toggle("hidden", tab !== "fixtures");
   $("board-rosters").classList.toggle("hidden", tab !== "rosters");
   $("board-trades").classList.toggle("hidden", tab !== "trades");
   document.querySelectorAll(".board-tab").forEach((b) => {
@@ -2637,9 +2717,10 @@ function renderBoard() {
       <summary class="px-4 py-3 cursor-pointer select-none flex items-center gap-3">
         <span class="text-slate-500 font-mono w-6">${i + 1}.</span>
         <span class="flex-1 min-w-0">
-          <span class="block font-semibold truncate">${esc(s.manager.name)}${
+          <span class="block font-semibold truncate">${esc(teamName(s.manager))}${
             s.manager.id === me?.id ? ' <span class="text-wcgold text-xs">(you)</span>' : ""}${
             s.eliminated ? ' <span class="text-[10px] text-red-400">eliminated</span>' : ""}</span>
+          ${s.manager.team_name ? `<span class="block text-[10px] text-slate-500 truncate">👤 ${esc(s.manager.name)}</span>` : ""}
           ${subLine}
         </span>
         <span class="font-bold text-wcgold shrink-0">${primary}</span>
@@ -2649,9 +2730,10 @@ function renderBoard() {
   }).join("") || '<p class="text-sm text-slate-500">No managers.</p>';
   // Fill each manager's history pager (current lineup + past rounds).
   for (const s of scores)
-    renderHistInto("hist-lb-" + s.manager.id, s.manager.id, `${s.manager.name}'s lineup`);
+    renderHistInto("hist-lb-" + s.manager.id, s.manager.id, `${teamName(s.manager)}'s lineup`);
   renderRosters("board-rosters");
   renderStatsTab();
+  renderFixtures();
   renderTrades();
 }
 
