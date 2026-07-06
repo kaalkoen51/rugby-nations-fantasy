@@ -361,6 +361,11 @@
           <label class="flex items-center gap-2 text-xs text-slate-300"><input id="adm-fa-defer" type="checkbox"> Free-agent pickups execute at window close (waiver order), not instantly</label>
           <button id="adm-save-limits" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-1.5 text-xs font-semibold">Save window limits</button>
         </div>
+        <div class="border-t border-slate-800 pt-2 space-y-1.5">
+          <div class="text-xs text-slate-400">Waiver order (top = first pick). Resets to reverse-log at each round close; a contested win drops you to the bottom.</div>
+          <ol id="adm-waiver-list" class="text-xs text-slate-300 space-y-0.5"></ol>
+          <button id="adm-waiver-reset" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-1.5 text-xs font-semibold">Reset waiver order now (reverse-log)</button>
+        </div>
       </div>
       <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-2">
         <h3 class="font-semibold text-sm">Head-to-Head log</h3>
@@ -841,70 +846,67 @@ function upNextHtml(team, size = "w-4 h-4") {
 
 // Full-season fixtures, grouped by date, with the final score once a match
 // has been scored (from the match_stats home/away score).
+// The full Head-to-Head schedule: every round's manager-vs-manager pairings,
+// with scores once a round has been played and byes clearly marked. Tap a
+// played matchup for the side-by-side view.
 function renderFixtures() {
   const el = $("board-fixtures");
   if (!el) return;
-  const fx = [...(S.fixtures || [])].sort((a, b) =>
-    String(a.kickoff_utc || a.date).localeCompare(String(b.kickoff_utc || b.date)));
-  if (!fx.length) {
-    el.innerHTML = '<p class="text-sm text-slate-500 px-1">No fixtures loaded yet.</p>';
+  if (!(S.league.h2h_enabled && S.h2hFixtures.length)) {
+    el.innerHTML = '<p class="text-sm text-slate-500 px-1">Head-to-Head isn\'t set up yet — the admin can enable it and generate fixtures (Admin → Head-to-Head).</p>';
     return;
   }
-  const scoreBy = {};
-  for (const r of S.stats || [])
-    if (r.home_score != null || r.away_score != null)
-      scoreBy[r.match_label] = { h: r.home_score ?? 0, a: r.away_score ?? 0 };
-  const today = new Date().toISOString().slice(0, 10);
-  const byDate = {};
-  for (const f of fx) (byDate[f.date] ||= []).push(f);
-  const fmtDate = (d) => { try {
-    return new Date(d + "T12:00:00Z").toLocaleDateString([],
-      { weekday: "short", day: "numeric", month: "short" });
-  } catch { return d; } };
-  const fmtTime = (iso) => { try {
-    return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  } catch { return ""; } };
-  el.innerHTML = Object.keys(byDate).sort().map((d) => {
-    const rows = byDate[d].map((f) => {
-      const sc = scoreBy[`${f.home} vs ${f.away} (${f.date})`];
-      const mid = sc
-        ? `<span class="font-mono text-wcgold text-sm">${sc.h}–${sc.a}</span>`
-        : `<span class="text-[11px] text-slate-500">${esc(fmtTime(f.kickoff_utc))}</span>`;
-      return `<div class="flex items-center gap-2 px-3 py-2">
-        <span class="flex-1 flex items-center justify-end gap-1.5 min-w-0 text-sm text-right">
-          <span class="truncate">${esc(f.home)}</span>${avatarHtml("team:" + f.home, f.home, "w-5 h-5")}</span>
-        <span class="shrink-0 w-14 text-center">${mid}</span>
-        <span class="flex-1 flex items-center gap-1.5 min-w-0 text-sm">
-          ${avatarHtml("team:" + f.away, f.away, "w-5 h-5")}<span class="truncate">${esc(f.away)}</span></span>
-      </div>`;
+  const { scoresByMgr } = h2hRoundScores();
+  const cfg = h2hConfig();
+  const nm = (id) => teamNameById(id);
+  const liveRound = S.league.lineups_locked ? Math.max(1, S.league.round_number || 1) : null;
+  const rounds = [...new Set(S.h2hFixtures.map((f) => f.round))].sort((a, b) => a - b);
+  el.innerHTML = rounds.map((round) => {
+    const cards = S.h2hFixtures.filter((f) => f.round === round).map((f) => {
+      const a = f.home_manager_id, b = f.away_manager_id;
+      if (!a || !b) {                                   // bye — null on either side
+        return `<div class="rounded-lg bg-slate-800/60 px-3 py-2 text-sm text-slate-400 flex items-center justify-between">
+          <span class="truncate">${esc(nm(a || b))}</span><span class="text-xs shrink-0">bye</span></div>`;
+      }
+      const sa = scoresByMgr[a]?.[round - 1], sb = scoresByMgr[b]?.[round - 1];
+      const has = sa !== undefined && sb !== undefined;
+      const res = has ? h2hResult(sa, sb, cfg) : null;
+      const tap = has ? ` data-h2h="${round}|${a}|${b}" role="button"` : "";
+      const side = (id, s, win, right) => `<span class="flex-1 min-w-0 ${win ? "text-wcgold font-semibold" : "text-slate-300"} ${right ? "text-right" : ""}">
+        <span class="truncate">${esc(nm(id))}</span> <span class="font-mono">${has ? s : "–"}</span></span>`;
+      return `<div class="rounded-lg bg-slate-800/60 px-3 py-2 text-sm flex items-center gap-2${has ? " cursor-pointer hover:bg-slate-800" : ""}"${tap}>
+        ${side(a, sa, has && sa > sb, false)}
+        <span class="text-slate-600 text-xs shrink-0">v</span>
+        ${side(b, sb, has && sb > sa, true)}</div>`;
     }).join("");
-    const isToday = d === today;
-    return `<div class="rounded-xl border ${isToday ? "border-wcgold/60" : "border-slate-700"} bg-slate-900 divide-y divide-slate-800">
-      <div class="px-3 py-1.5 text-xs uppercase tracking-wide ${isToday ? "text-wcgold" : "text-slate-500"}">${esc(fmtDate(d))}${isToday ? " · today" : ""}</div>
-      ${rows}</div>`;
+    const isLive = round === liveRound;
+    return `<div class="rounded-xl border ${isLive ? "border-wcgold/60" : "border-slate-700"} bg-slate-900 p-2 space-y-1.5">
+      <div class="px-1 text-xs uppercase tracking-wide ${isLive ? "text-wcgold" : "text-slate-500"}">Round ${round}${isLive ? " · live" : ""}</div>
+      ${cards}</div>`;
   }).join("");
+  el.querySelectorAll("[data-h2h]").forEach((c) => c.onclick = () => {
+    const [r, a, b] = c.dataset.h2h.split("|");
+    openH2HMatchup(+r, a, b);
+  });
 }
 
 /* ---------- dream / nightmare XV (best & worst possible per round) ---------- */
 
-// Map each scored match to a round, using the global snapshot lock times
-// (each Start-round snapshots at one instant). Matches before any lock -> 0.
+// Map each scored match to a round number. Round boundaries are the distinct
+// snapshot lock times, in order (round 1, 2, …) — works even for snapshots
+// created before round-tagging. With no snapshots at all, everything played
+// falls into round 1 so the XV still shows.
 function matchRoundMap() {
-  const locks = [];
-  const seen = new Set();
-  for (const s of (S.snapshots || [])) {
-    if (!s.round_number || seen.has(s.round_number)) continue;
-    seen.add(s.round_number);
-    locks.push({ round: s.round_number, t: Date.parse(s.effective_from) });
-  }
-  locks.sort((a, b) => a.t - b.t);
+  const times = [...new Set((S.snapshots || [])
+    .map((s) => Date.parse(s.effective_from)).filter((t) => Number.isFinite(t)))]
+    .sort((a, b) => a - b);
   const map = {};
   for (const l of [...new Set((S.stats || []).map((r) => r.match_label))]) {
     if (!labelDate(l)) continue;
     const mt = matchTimeFor(l);
     let r = 0;
-    for (const lk of locks) { if (lk.t <= mt) r = lk.round; else break; }
-    map[l] = r;
+    for (const t of times) { if (t <= mt) r++; else break; }
+    map[l] = Math.max(1, r);
   }
   return map;
 }
@@ -2234,8 +2236,9 @@ function h2hFixturesHtml(round, scoresByMgr, upcoming) {
   const cfg = h2hConfig();
   const nameOf = (id) => teamNameById(id);
   const cards = fixtures.map((f) => {
-    if (!f.away_manager_id)
-      return `<div class="rounded-lg bg-slate-800/60 px-3 py-2 text-sm text-slate-400">${esc(nameOf(f.home_manager_id))} — bye</div>`;
+    if (!f.home_manager_id || !f.away_manager_id)   // bye — null on either side
+      return `<div class="rounded-lg bg-slate-800/60 px-3 py-2 text-sm text-slate-400 flex items-center justify-between">
+        <span class="truncate">${esc(nameOf(f.home_manager_id || f.away_manager_id))}</span><span class="text-xs shrink-0">bye this round</span></div>`;
     const sa = scoresByMgr[f.home_manager_id]?.[round - 1] ?? 0;
     const sb = scoresByMgr[f.away_manager_id]?.[round - 1] ?? 0;
     const res = h2hResult(sa, sb, cfg);
@@ -4670,6 +4673,9 @@ function renderAdmin() {
   $("adm-lineup-status").className =
     "text-sm font-semibold " + (locked ? "text-wcgold" : "text-slate-400");
   $("adm-lineup-toggle").textContent = locked ? `Close Round ${rn}` : `Start Round ${nextRound}`;
+  $("adm-waiver-list").innerHTML = waiverDisplayOrder()
+    .map((m, i) => `<li>${i + 1}. ${esc(teamName(m))}</li>`).join("")
+    || '<li class="text-slate-500">No managers.</li>';
   if (document.activeElement?.id !== "adm-max-trades")
     $("adm-max-trades").value = S.league.max_trades_per_window || "";
   if (document.activeElement?.id !== "adm-max-fa")
@@ -4737,8 +4743,26 @@ async function toggleLineupLock() {
 // bottom within the window (see processFaClaims), persisting until next close.
 async function resetWaiverOrder() {
   const worstFirst = standingsOrder().slice().reverse();
-  await Promise.all(worstFirst.map((id, i) =>
+  const res = await Promise.all(worstFirst.map((id, i) =>
     S.sb.from("managers").update({ waiver_order: i }).eq("id", id)));
+  const err = res.find((r) => r.error)?.error;
+  if (err) { toast("Waiver reset failed: " + err.message); return; }
+  for (const m of S.managers) {           // optimistic, so the list updates now
+    const i = worstFirst.indexOf(m.id);
+    if (i >= 0) m.waiver_order = i;
+  }
+}
+
+// The order free-agent claims would be processed in (top = first pick): stored
+// waiver_order first, then anyone unseeded from reverse standings — mirrors
+// processFaClaims so the admin sees exactly what will happen.
+function waiverDisplayOrder() {
+  const order = {};
+  for (const m of S.managers) if (m.waiver_order != null) order[m.id] = m.waiver_order;
+  let next = Object.values(order).reduce((a, v) => Math.max(a, v), -1) + 1;
+  for (const id of standingsOrder().slice().reverse())
+    if (order[id] === undefined) order[id] = next++;
+  return activeManagers().slice().sort((a, b) => (order[a.id] ?? 999) - (order[b.id] ?? 999));
 }
 
 // Process queued free-agent claims at window close. Returns the number
@@ -4896,6 +4920,9 @@ function wire() {
   $("adm-drafted").onchange = admRenderPlayerSearch;
   $("adm-trading-toggle").onclick = () => toggleTrading().catch((e) => toast(e.message));
   $("adm-lineup-toggle").onclick = () => toggleLineupLock().catch((e) => toast(e.message));
+  $("adm-waiver-reset").onclick = () => resetWaiverOrder()
+    .then(() => { toast("Waiver order reset (reverse-log)."); scheduleRefetch(); })
+    .catch((e) => toast(e.message));
   $("adm-save-limits").onclick = () => saveWindowLimits().catch((e) => toast(e.message));
   $("adm-save-h2h").onclick = () => saveH2HSettings().catch((e) => toast(e.message));
   $("adm-gen-h2h").onclick = () => generateH2HSchedule().catch((e) => toast(e.message));
