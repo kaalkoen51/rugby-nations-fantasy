@@ -327,12 +327,12 @@
         <div id="adm-existing" class="px-4 pb-4 space-y-3 text-sm"></div>
       </details>
       <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 space-y-2">
-        <h3 class="font-semibold text-sm">Lineup lock (per round)</h3>
-        <p class="text-xs text-slate-500">Managers can set their lineup any time it's <b>unlocked</b>.
-          <b>Lock</b> it at kickoff — that snapshots everyone's lineup, and the round is scored
-          against that snapshot. <b>Unlock</b> when the round ends to reopen lineups for the next
-          round (they carry over). Earlier rounds keep their locked lineup, so later changes never
-          rewrite past scores.</p>
+        <h3 class="font-semibold text-sm">Round control</h3>
+        <p class="text-xs text-slate-500"><b>Start round</b> at kickoff: it locks + snapshots every
+          lineup and scoring goes live for that round. <b>Close round</b> at the end: scores are
+          finalised, lineups reopen for the next round (drafted teams carry over), the waiver order
+          resets to reverse-log order, and the real-life matchday badges clear. Earlier rounds keep
+          their snapshot, so later changes never rewrite past scores.</p>
         <div class="flex items-center justify-between gap-3">
           <span id="adm-lineup-status" class="text-sm font-semibold"></span>
           <button id="adm-lineup-toggle" class="rounded-lg px-4 py-2 text-sm font-semibold bg-wcred hover:bg-wcred-hov"></button>
@@ -2015,20 +2015,24 @@ function h2hHomeHtml(me) {
   if (!(S.league.h2h_enabled && S.h2hFixtures.length)) return "";
   const { scoresByMgr, maxRound } = h2hRoundScores();
   const nameOf = (id) => S.managers.find((m) => m.id === id)?.name || "?";
-  const cur = Math.max(1, maxRound);        // latest round with any scores (or 1)
+  // In a live round: the current round (round_number) with live scores.
+  // Between rounds: the next round to play (one past the last scored), blank.
+  const inRound = !!S.league.lineups_locked;
+  const cur = inRound ? Math.max(1, S.league.round_number || 1) : maxRound + 1;
   const cfg = h2hConfig();
   const rows = [];
   const oppCur = h2hOpponent(me.id, cur);
+  const tag = inRound ? "live" : "not started";
   if (oppCur === null) {
     rows.push(`<div class="text-sm">Round ${cur}: <b>bye</b> this round.</div>`);
   } else if (oppCur !== undefined) {
     const a = scoresByMgr[me.id]?.[cur - 1] ?? 0, b = scoresByMgr[oppCur]?.[cur - 1] ?? 0;
     const res = h2hResult(a, b, cfg);
-    const lead = a > b ? "you lead" : b > a ? "behind" : "level";
+    const lead = !inRound ? tag : a > b ? "you lead" : b > a ? "behind" : "level";
     rows.push(`<div class="flex items-center justify-between text-sm">
       <span>Round ${cur} — you <b class="font-mono">${a}</b> v <b class="font-mono">${b}</b> ${esc(nameOf(oppCur))}</span>
-      <span class="text-xs ${a > b ? "text-wcgold" : a < b ? "text-red-400" : "text-slate-400"}">${lead}${
-        res.bonusA ? ` · +${res.bonusA}bp` : ""}</span></div>`);
+      <span class="text-xs ${inRound && a > b ? "text-wcgold" : inRound && a < b ? "text-red-400" : "text-slate-400"}">${lead}${
+        inRound && res.bonusA ? ` · +${res.bonusA}bp` : ""}</span></div>`);
   }
   const oppNext = h2hOpponent(me.id, cur + 1);
   if (oppNext === null) rows.push(`<div class="text-xs text-slate-400">Next (Round ${cur + 1}): bye.</div>`);
@@ -2041,7 +2045,7 @@ function h2hHomeHtml(me) {
 
 // This-round matchup cards with live scores (the current round = the latest
 // with any played match). Leader bolded; result/bonus shown once decided.
-function h2hFixturesHtml(round, scoresByMgr) {
+function h2hFixturesHtml(round, scoresByMgr, upcoming) {
   const fixtures = S.h2hFixtures.filter((f) => f.round === round);
   if (!round || !fixtures.length) return "";
   const cfg = h2hConfig();
@@ -2052,15 +2056,17 @@ function h2hFixturesHtml(round, scoresByMgr) {
     const sa = scoresByMgr[f.home_manager_id]?.[round - 1] ?? 0;
     const sb = scoresByMgr[f.away_manager_id]?.[round - 1] ?? 0;
     const res = h2hResult(sa, sb, cfg);
-    const side = (id, s, pts, lead) => `<span class="flex-1 min-w-0 ${lead ? "text-wcgold font-semibold" : "text-slate-300"} ${id === f.away_manager_id ? "text-right" : ""}">
-      <span class="truncate">${esc(nameOf(id))}</span> <span class="font-mono">${s}</span>${pts ? `<span class="text-[10px] text-slate-500"> +${pts}</span>` : ""}</span>`;
+    // Before the round starts, show a plain fixture (no live leader / bonus pts).
+    const lead = (id) => !upcoming && ((id === f.home_manager_id && sa > sb) || (id === f.away_manager_id && sb > sa));
+    const side = (id, s, pts) => `<span class="flex-1 min-w-0 ${lead(id) ? "text-wcgold font-semibold" : "text-slate-300"} ${id === f.away_manager_id ? "text-right" : ""}">
+      <span class="truncate">${esc(nameOf(id))}</span> <span class="font-mono">${s}</span>${!upcoming && pts ? `<span class="text-[10px] text-slate-500"> +${pts}</span>` : ""}</span>`;
     return `<div class="rounded-lg bg-slate-800/60 px-3 py-2 text-sm flex items-center gap-2">
-      ${side(f.home_manager_id, sa, res.ptsA + res.bonusA, sa > sb)}
+      ${side(f.home_manager_id, sa, res.ptsA + res.bonusA)}
       <span class="text-slate-600 text-xs shrink-0">v</span>
-      ${side(f.away_manager_id, sb, res.ptsB + res.bonusB, sb > sa)}</div>`;
+      ${side(f.away_manager_id, sb, res.ptsB + res.bonusB)}</div>`;
   }).join("");
   return `<div class="rounded-xl border border-slate-700 bg-slate-900 p-3 mb-3 space-y-1.5">
-    <div class="text-xs uppercase tracking-wide text-slate-500">Round ${round} — head to head (live)</div>
+    <div class="text-xs uppercase tracking-wide text-slate-500">Round ${round} — head to head (${upcoming ? "upcoming" : "live"})</div>
     ${cards}
     <p class="text-[10px] text-slate-500 pt-1">Round-robin fixtures — everyone plays everyone. Your
       score each round is your lineup's fantasy points. Win ${cfg.win} / draw ${cfg.draw} / loss ${cfg.loss}
@@ -2602,7 +2608,10 @@ function renderBoard() {
       round: f.round, home: f.home_manager_id, away: f.away_manager_id }));
     for (const r of h2hTable(mgrs.map((m) => m.id), scoresByMgr, fixtures, h2hConfig()))
       h2hByMgr[r.mgrId] = r;
-    fixturesBlock = h2hFixturesHtml(maxRound, scoresByMgr);
+    // Show the live round when one's running, else the upcoming (not-started) round.
+    const showRound = S.league.lineups_locked
+      ? Math.max(1, S.league.round_number || 1) : maxRound + 1;
+    fixturesBlock = h2hFixturesHtml(showRound, scoresByMgr, !S.league.lineups_locked);
     scores.sort((a, b) => {
       const ra = h2hByMgr[a.manager.id], rb = h2hByMgr[b.manager.id];
       return (rb?.logPts || 0) - (ra?.logPts || 0)
@@ -3004,10 +3013,11 @@ function renderStatsTab() {
 
 // Record every manager's current 14 picks. Scoring replays history against
 // these, so changes after a lock never rewrite already-played rounds.
-async function snapshotRosters() {
+async function snapshotRosters(roundNumber) {
   const rows = activeManagers().map((m) => ({
     league_id: S.league.id,
     manager_id: m.id,
+    round_number: roundNumber ?? (S.league.round_number || 0),
     roster: managerPicks(m.id).map((pk) => ({
       player_id: pk.player_id, player_name: pk.player_name,
       position: pk.position, team: pk.team, is_sub: pk.is_sub, slot: pk.slot,
@@ -4344,10 +4354,13 @@ function renderAdmin() {
     "text-sm font-semibold " + (open ? "text-wcgold" : "text-slate-400");
   $("adm-trading-toggle").textContent = open ? "Close trading" : "Open trading";
   const locked = !!S.league.lineups_locked;
-  $("adm-lineup-status").textContent = locked ? "Lineups LOCKED (round live)" : "Lineups unlocked (editable)";
+  const rn = S.league.round_number || 0;
+  const nextRound = (h2hRoundScores().maxRound || 0) + 1;   // one past the last scored
+  $("adm-lineup-status").textContent = locked
+    ? `Round ${rn} LIVE — lineups locked, scoring` : `Between rounds — next is Round ${nextRound}`;
   $("adm-lineup-status").className =
     "text-sm font-semibold " + (locked ? "text-wcgold" : "text-slate-400");
-  $("adm-lineup-toggle").textContent = locked ? "Unlock (end round)" : "Lock (start round)";
+  $("adm-lineup-toggle").textContent = locked ? `Close Round ${rn}` : `Start Round ${nextRound}`;
   if (document.activeElement?.id !== "adm-max-trades")
     $("adm-max-trades").value = S.league.max_trades_per_window || "";
   if (document.activeElement?.id !== "adm-max-fa")
@@ -4383,17 +4396,50 @@ async function toggleTrading() {
   scheduleRefetch();
 }
 
-// Lock lineups for a round (snapshotting everyone's current lineup, which
-// scoring replays against), or unlock to reopen editing for the next round.
+// Start a round (lock lineups + snapshot, tagged with the new round number)
+// or close it (reopen editing, reset the waiver order to reverse-log, and
+// clear the announced real-life matchday lineups so the badges reset).
 async function toggleLineupLock() {
-  const next = !S.league.lineups_locked;
-  const { error } = await S.sb.from("leagues").update({ lineups_locked: next }).eq("id", S.league.id);
-  if (error) return toast(error.message);
-  S.league.lineups_locked = next;              // optimistic
-  if (next) await snapshotRosters();           // lock = snapshot the round's lineups
-  toast(next ? "Lineups locked — this round scores against the current lineups."
-             : "Lineups unlocked — managers can edit for the next round.");
+  const starting = !S.league.lineups_locked;
+  if (starting) {
+    // Number the new round as one past the rounds already scored, so it stays
+    // aligned with the (snapshot-derived) round subtotals even if a previous
+    // lock ended up with no matches.
+    const round = (h2hRoundScores().maxRound || 0) + 1;
+    const { error } = await S.sb.from("leagues")
+      .update({ lineups_locked: true, round_number: round }).eq("id", S.league.id);
+    if (error) return toast(error.message);
+    S.league.lineups_locked = true; S.league.round_number = round;   // optimistic
+    await snapshotRosters(round);
+    toast(`Round ${round} started — lineups locked and scoring live.`);
+  } else {
+    const { error } = await S.sb.from("leagues")
+      .update({ lineups_locked: false }).eq("id", S.league.id);
+    if (error) return toast(error.message);
+    S.league.lineups_locked = false;
+    await resetWaiverOrder();          // reverse-log order for the new window
+    await clearRealLifeLineups();      // reset the "starting in real life" badges
+    toast(`Round ${S.league.round_number} closed — scores finalised, lineups reopen for the next round.`);
+  }
   scheduleRefetch();
+}
+
+// Waiver order = reverse standings (worst-placed first = highest priority).
+// Reset at each round close; contested claims then bump the winner to the
+// bottom within the window (see processFaClaims), persisting until next close.
+async function resetWaiverOrder() {
+  const worstFirst = standingsOrder().slice().reverse();
+  await Promise.all(worstFirst.map((id, i) =>
+    S.sb.from("managers").update({ waiver_order: i }).eq("id", id)));
+}
+
+// Wipe the announced matchday lineups (global) so the Starting/Bench/Not-in-
+// squad badges reset for the next round; they repopulate on the next sheet
+// pull once the new round's lineups are published.
+async function clearRealLifeLineups() {
+  const { error } = await S.sb.from("match_lineups").delete().not("player_id", "is", null);
+  if (error && !/does not exist|schema cache/i.test(error.message))
+    toast("Couldn't clear lineups: " + error.message);
 }
 
 // Process queued free-agent claims at window close. Returns the number

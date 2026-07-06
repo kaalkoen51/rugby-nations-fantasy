@@ -83,6 +83,12 @@ alter table leagues add column if not exists trading_open boolean not null defau
 -- the round) and unlocks when the round ends. Scoring replays each round
 -- against the snapshot taken at its lock, so later edits never rewrite it.
 alter table leagues add column if not exists lineups_locked boolean not null default false;
+-- Explicit round counter, incremented each time a round is started (lineups
+-- locked). Snapshots are tagged with it so scoring groups by round exactly
+-- (rather than by snapshot order), and the H2H view knows the current /
+-- upcoming round.
+alter table leagues add column if not exists round_number int not null default 0;
+alter table lineup_snapshots add column if not exists round_number int;
 alter table leagues add column if not exists admin_token text;
 alter table leagues add column if not exists num_managers int default 8;
 alter table leagues add column if not exists pick_duration_seconds int default 60;
