@@ -275,10 +275,12 @@ window, so you can finalise lineups after trades/waivers have executed.
 - **Round control** — **Start Round N** at kickoff snapshots every manager's
   lineup, freezes editing, and scoring goes live for the round. **Close Round
   N** finalises scores, reopens editing for the next round (drafted teams
-  carry over), resets the **waiver order** to reverse-log order, and clears
-  the announced real-life matchday badges. Earlier rounds keep their snapshot.
-  Independent of the trading window. The H2H box shows the live round while a
-  round is open, and the next round's fixture (blank) between rounds.
+  carry over), and resets the **waiver order** to reverse-log order. Earlier
+  rounds keep their snapshot. Independent of the trading window. The H2H box
+  shows the live round while a round is open, and the next round's fixture
+  (blank) between rounds. Real-life matchday badges show only a player's
+  upcoming/live game (so they reset after a round), while every round's
+  announced lineups are kept for the exact Nightmare XV.
 - **Trading window** — open between rounds for trades/free-agent claims;
   closing it processes any queued waiver claims. Separate from the lineup lock.
 

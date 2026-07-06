@@ -334,9 +334,9 @@
         <h3 class="font-semibold text-sm">Round control</h3>
         <p class="text-xs text-slate-500"><b>Start round</b> at kickoff: it locks + snapshots every
           lineup and scoring goes live for that round. <b>Close round</b> at the end: scores are
-          finalised, lineups reopen for the next round (drafted teams carry over), the waiver order
-          resets to reverse-log order, and the real-life matchday badges clear. Earlier rounds keep
-          their snapshot, so later changes never rewrite past scores.</p>
+          finalised, lineups reopen for the next round (drafted teams carry over), and the waiver
+          order resets to reverse-log order. Earlier rounds keep their snapshot, so later changes
+          never rewrite past scores.</p>
         <div class="flex items-center justify-between gap-3">
           <span id="adm-lineup-status" class="text-sm font-semibold"></span>
           <button id="adm-lineup-toggle" class="rounded-lg px-4 py-2 text-sm font-semibold bg-wcred hover:bg-wcred-hov"></button>
@@ -3073,9 +3073,15 @@ const ownerOf = (pid) => {
 // player (by match_date), so a badge can show a player's current matchday
 // role — Starting XV / Bench / Not in squad.
 function buildLineupIndex() {
+  // Badge only the player's upcoming/live match, so badges reset once a round's
+  // games are done — while every round's rows stay in the table for the exact
+  // Nightmare XV. Past match rows are kept, just not badged.
+  const cutoff = Date.now() - 3 * 3600 * 1000;   // keep in-progress games visible
   const by = {};
   for (const r of (S.lineups || [])) {
     if (!r.player_id) continue;
+    const mt = matchTimeFor(r.match_label);
+    if (mt && mt < cutoff) continue;
     const key = r.match_date || r.updated_at || "";
     const cur = by[r.player_id];
     if (!cur || (cur._key || "") <= key) by[r.player_id] = { ...r, _key: key };
@@ -4721,7 +4727,6 @@ async function toggleLineupLock() {
     if (error) return toast(error.message);
     S.league.lineups_locked = false;
     await resetWaiverOrder();          // reverse-log order for the new window
-    await clearRealLifeLineups();      // reset the "starting in real life" badges
     toast(`Round ${S.league.round_number} closed — scores finalised, lineups reopen for the next round.`);
   }
   scheduleRefetch();
@@ -4734,15 +4739,6 @@ async function resetWaiverOrder() {
   const worstFirst = standingsOrder().slice().reverse();
   await Promise.all(worstFirst.map((id, i) =>
     S.sb.from("managers").update({ waiver_order: i }).eq("id", id)));
-}
-
-// Wipe the announced matchday lineups (global) so the Starting/Bench/Not-in-
-// squad badges reset for the next round; they repopulate on the next sheet
-// pull once the new round's lineups are published.
-async function clearRealLifeLineups() {
-  const { error } = await S.sb.from("match_lineups").delete().not("player_id", "is", null);
-  if (error && !/does not exist|schema cache/i.test(error.message))
-    toast("Couldn't clear lineups: " + error.message);
 }
 
 // Process queued free-agent claims at window close. Returns the number
