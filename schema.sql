@@ -138,6 +138,9 @@ alter table managers add column if not exists join_token text;
 -- Franchise/team name, separate from the manager (person) name. Optional;
 -- the app falls back to the manager name for display until one is set.
 alter table managers add column if not exists team_name text;
+-- Optional team logo, stored inline as a small downscaled data URL (the app
+-- crops/compresses to ~96px before saving, so it stays a few KB).
+alter table managers add column if not exists team_logo text;
 alter table managers add column if not exists draft_position int;
 -- Per-manager shortlist of player ids (jsonb array). Synced so it follows
 -- the manager across devices; the app only ever renders your own.

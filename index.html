@@ -2520,6 +2520,47 @@ function renderHistInto(elId, mgrId, perspectiveLabel) {
     openPlayerDetail(b.dataset.hp, mgrId, perspectiveLabel));
 }
 
+// A manager's team logo (small inline data URL) or a rugby-ball placeholder.
+function teamLogoHtml(m, size = "w-8 h-8") {
+  if (m && m.team_logo)
+    return `<img src="${m.team_logo}" class="${size} rounded-lg object-cover shrink-0" alt="">`;
+  return `<span class="${size} rounded-lg bg-slate-800 shrink-0 inline-flex items-center justify-center text-slate-500 text-sm">🏉</span>`;
+}
+
+// Downscale/crop an uploaded image to a ~96px square JPEG data URL so the logo
+// stays a few KB (stored inline in managers.team_logo).
+function fileToLogo(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const size = 96, c = document.createElement("canvas");
+      c.width = c.height = size;
+      const ctx = c.getContext("2d");
+      const scale = Math.max(size / img.width, size / img.height);
+      const w = img.width * scale, h = img.height * scale;
+      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL("image/jpeg", 0.82));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Could not read that image.")); };
+    img.src = url;
+  });
+}
+
+async function uploadLogo(file) {
+  const me = myManager();
+  if (!me || !file) return;
+  if (!/^image\//.test(file.type)) return toast("Pick an image file.");
+  if (file.size > 8e6) return toast("Image too large (8MB max).");
+  const data = await fileToLogo(file);
+  const { error } = await S.sb.from("managers").update({ team_logo: data }).eq("id", me.id);
+  if (error) return toast(/column|schema cache/i.test(error.message)
+    ? "Run schema.sql to add the logo column." : error.message);
+  toast("Team logo updated.");
+  scheduleRefetch();
+}
+
 // Edit your team (franchise) name and manager (person) name. Team name is
 // free-form; manager name stays unique so reclaim/login still works.
 async function editNames() {
@@ -2571,10 +2612,16 @@ function renderHomeTab() {
     <div id="hist-home-${me.id}" class="rounded-xl border border-slate-700 bg-slate-900 p-3"></div>`;
   box.innerHTML = `
     <div class="rounded-xl border border-slate-700 bg-slate-900 p-4 flex items-center justify-between gap-3">
-      <div class="min-w-0">
-        <div class="text-xs text-slate-400">Your team</div>
-        <div class="text-xl font-bold truncate">${esc(teamName(me))}</div>
-        <button id="home-edit-names" class="text-[11px] text-slate-400 hover:text-slate-200">👤 ${esc(me.name)} · ✏️ edit</button>
+      <div class="flex items-center gap-3 min-w-0">
+        <label class="cursor-pointer shrink-0 relative" title="Upload team logo">
+          ${teamLogoHtml(me, "w-11 h-11")}
+          <input id="home-logo-input" type="file" accept="image/*" class="hidden">
+        </label>
+        <div class="min-w-0">
+          <div class="text-xs text-slate-400">Your team</div>
+          <div class="text-xl font-bold truncate">${esc(teamName(me))}</div>
+          <button id="home-edit-names" class="text-[11px] text-slate-400 hover:text-slate-200">👤 ${esc(me.name)} · ✏️ edit</button>
+        </div>
       </div>
       <div class="text-right shrink-0">
         <div class="text-2xl font-bold text-wcgold">${primary}</div>
@@ -2592,6 +2639,8 @@ function renderHomeTab() {
   if (lb) lb.onclick = openLineup;
   const en = box.querySelector("#home-edit-names");
   if (en) en.onclick = () => editNames().catch((e) => toast(e.message));
+  const li = box.querySelector("#home-logo-input");
+  if (li) li.onchange = () => uploadLogo(li.files[0]).catch((e) => toast(e.message));
 }
 
 /* ---------- matchday banner ---------- */
@@ -2881,6 +2930,7 @@ function renderBoard() {
              ${open.has(s.manager.id) ? "open" : ""}>
       <summary class="px-4 py-3 cursor-pointer select-none flex items-center gap-3">
         <span class="text-slate-500 font-mono w-6">${i + 1}.</span>
+        ${teamLogoHtml(s.manager, "w-7 h-7")}
         <span class="flex-1 min-w-0">
           <span class="block font-semibold truncate">${esc(teamName(s.manager))}${
             s.manager.id === me?.id ? ' <span class="text-wcgold text-xs">(you)</span>' : ""}${
