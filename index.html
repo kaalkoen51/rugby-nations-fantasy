@@ -218,6 +218,7 @@
       <button id="tab-lb" class="board-tab rounded-lg py-2 font-semibold" data-tab="lb">Table</button>
       <button id="tab-stats" class="board-tab rounded-lg py-2 font-semibold" data-tab="stats">Stats</button>
       <button id="tab-fixtures" class="board-tab rounded-lg py-2 font-semibold" data-tab="fixtures">Fixtures</button>
+      <button id="tab-ideal" class="board-tab rounded-lg py-2 font-semibold" data-tab="ideal">Ideal XV</button>
       <button id="tab-rosters" class="board-tab rounded-lg py-2 font-semibold" data-tab="rosters">Rosters</button>
       <button id="tab-trades" class="board-tab rounded-lg py-2 font-semibold" data-tab="trades">Trades</button>
       <button id="tab-admin" class="rounded-lg py-2 font-semibold bg-slate-800 border border-slate-700">Admin</button>
@@ -225,6 +226,7 @@
     <div id="board-home" class="space-y-3"></div>
     <div id="board-lb" class="hidden space-y-2"></div>
     <div id="board-fixtures" class="hidden space-y-3"></div>
+    <div id="board-ideal" class="hidden space-y-3"></div>
     <div id="board-stats" class="hidden space-y-3">
       <input id="stats-search" placeholder="Search any player or country…"
              class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm">
@@ -875,6 +877,126 @@ function renderFixtures() {
       <div class="px-3 py-1.5 text-xs uppercase tracking-wide ${isToday ? "text-wcgold" : "text-slate-500"}">${esc(fmtDate(d))}${isToday ? " · today" : ""}</div>
       ${rows}</div>`;
   }).join("");
+}
+
+/* ---------- dream / nightmare XV (best & worst possible per round) ---------- */
+
+// Map each scored match to a round, using the global snapshot lock times
+// (each Start-round snapshots at one instant). Matches before any lock -> 0.
+function matchRoundMap() {
+  const locks = [];
+  const seen = new Set();
+  for (const s of (S.snapshots || [])) {
+    if (!s.round_number || seen.has(s.round_number)) continue;
+    seen.add(s.round_number);
+    locks.push({ round: s.round_number, t: Date.parse(s.effective_from) });
+  }
+  locks.sort((a, b) => a.t - b.t);
+  const map = {};
+  for (const l of [...new Set((S.stats || []).map((r) => r.match_label))]) {
+    if (!labelDate(l)) continue;
+    const mt = matchTimeFor(l);
+    let r = 0;
+    for (const lk of locks) { if (lk.t <= mt) r = lk.round; else break; }
+    map[l] = r;
+  }
+  return map;
+}
+
+// Per-player points + minutes for one round (played rows only).
+function playerRoundStats(round, roundMap) {
+  const out = {};
+  for (const r of S.stats || []) {
+    if (roundMap[r.match_label] !== round || !r.appeared) continue;
+    const pos = S.playerById[r.player_id]?.position;
+    if (!pos) continue;
+    const o = out[r.player_id] || (out[r.player_id] = { pts: 0, minutes: 0, pos });
+    o.pts += calcPlayerPoints(r, pos);
+    o.minutes += (+r.minutes || 0);
+  }
+  return out;
+}
+
+// Players who started in real life this round: from the announced lineups when
+// we have them, else a minutes>=40 proxy.
+function startersInRound(round, roundMap) {
+  const labels = new Set(Object.keys(roundMap).filter((l) => roundMap[l] === round));
+  const set = new Set();
+  let real = false;
+  for (const r of S.lineups || [])
+    if (labels.has(r.match_label) && r.status === "start") { set.add(r.player_id); real = true; }
+  if (real) return { set, real };
+  for (const r of S.stats || [])
+    if (labels.has(r.match_label) && r.appeared && (+r.minutes || 0) >= 40) set.add(r.player_id);
+  return { set, real };
+}
+
+// Best (or worst) valid starting XV from a pool of round stats.
+function buildXV(roundStats, worst, pool) {
+  const byPos = {};
+  for (const pid in roundStats) {
+    if (pool && !pool.has(pid)) continue;
+    (byPos[roundStats[pid].pos] ||= []).push({ pid, ...roundStats[pid] });
+  }
+  const xv = [];
+  for (const pos of GROUPS) {
+    const need = PHASE1_STARTERS[pos] || 0;
+    if (!need) continue;
+    const sorted = (byPos[pos] || []).sort((a, b) => worst ? a.pts - b.pts : b.pts - a.pts);
+    for (let i = 0; i < need; i++) xv.push({ pos, ...(sorted[i] || {}) });
+  }
+  return xv;
+}
+
+function renderIdealXV() {
+  const el = $("board-ideal");
+  if (!el) return;
+  const roundMap = matchRoundMap();
+  const rounds = [...new Set(Object.values(roundMap))].filter((r) => r >= 1).sort((a, b) => a - b);
+  if (!rounds.length) {
+    el.innerHTML = '<p class="text-sm text-slate-500 px-1">No scored rounds yet — the dream &amp; nightmare teams appear once a round has been played.</p>';
+    return;
+  }
+  let round = S.idealRound;
+  if (!rounds.includes(round)) round = rounds[rounds.length - 1];
+  S.idealRound = round;
+  const stats = playerRoundStats(round, roundMap);
+  const dream = buildXV(stats, false, null);
+  const { set: starters, real } = startersInRound(round, roundMap);
+  const nightmare = buildXV(stats, true, starters);
+  const chips = rounds.map((r) =>
+    `<button data-iround="${r}" class="rounded-full px-3 py-1 border ${
+      r === round ? "border-wcgold text-wcgold" : "border-slate-700 text-slate-400"}">R${r}</button>`).join("");
+  const sum = (xv) => xv.reduce((s, p) => s + (p.pts || 0), 0);
+  const xvHtml = (xv, worst) => xv.map((p) => {
+    const pl = p.pid ? S.playerById[p.pid] : null;
+    return `<div class="flex items-center gap-2 px-3 py-1.5 text-sm">
+      <span class="text-[10px] w-8 text-slate-500">${p.pos}</span>
+      ${pl ? avatarHtml("team:" + pl.team, pl.team, "w-4 h-4") : ""}
+      <span class="flex-1 min-w-0 truncate">${pl ? esc(pl.name) : "—"}${
+        pl ? ` <span class="text-[10px] text-slate-500">${esc(pl.team)}</span>` : ""}</span>
+      <span class="font-mono ${worst ? "text-red-400" : "text-wcgold"} shrink-0">${p.pts ?? "—"}</span>
+    </div>`;
+  }).join("");
+  el.innerHTML = `
+    <div class="flex items-center gap-1.5 flex-wrap text-xs">${chips}</div>
+    <div class="rounded-xl border border-wcgold/50 bg-slate-900 divide-y divide-slate-800">
+      <div class="px-3 py-2 flex items-center justify-between">
+        <span class="font-semibold text-wcgold">🌟 Dream XV — Round ${round}</span>
+        <span class="font-mono text-wcgold">${sum(dream)}</span></div>
+      ${xvHtml(dream, false)}
+      <p class="px-3 py-1.5 text-[10px] text-slate-500">Best-scoring valid XV from every player who featured this round.</p>
+    </div>
+    <div class="rounded-xl border border-red-500/40 bg-slate-900 divide-y divide-slate-800">
+      <div class="px-3 py-2 flex items-center justify-between">
+        <span class="font-semibold text-red-400">💀 Nightmare XV — Round ${round}</span>
+        <span class="font-mono text-red-400">${sum(nightmare)}</span></div>
+      ${xvHtml(nightmare, true)}
+      <p class="px-3 py-1.5 text-[10px] text-slate-500">Worst-scoring valid XV among players who ${
+        real ? "started in real life" : "played 40+ min (starter proxy — pull the round's lineups for exact)"} this round.</p>
+    </div>`;
+  el.querySelectorAll("[data-iround]").forEach((b) =>
+    b.onclick = () => { S.idealRound = +b.dataset.iround; renderIdealXV(); });
 }
 
 // photos.json (faces/crests) is optional, like fixtures.json — the app
@@ -2614,6 +2736,7 @@ function setBoardTab(tab) {
   $("board-lb").classList.toggle("hidden", tab !== "lb");
   $("board-stats").classList.toggle("hidden", tab !== "stats");
   $("board-fixtures").classList.toggle("hidden", tab !== "fixtures");
+  $("board-ideal").classList.toggle("hidden", tab !== "ideal");
   $("board-rosters").classList.toggle("hidden", tab !== "rosters");
   $("board-trades").classList.toggle("hidden", tab !== "trades");
   document.querySelectorAll(".board-tab").forEach((b) => {
@@ -2734,6 +2857,7 @@ function renderBoard() {
   renderRosters("board-rosters");
   renderStatsTab();
   renderFixtures();
+  renderIdealXV();
   renderTrades();
 }
 
