@@ -234,6 +234,16 @@
         <div id="stats-chips" class="flex gap-1.5 flex-wrap text-xs"></div>
         <select id="stats-sort" class="ml-auto rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-xs"></select>
       </div>
+      <div class="flex items-center gap-2 text-xs">
+        <label class="text-slate-500">Round</label>
+        <select id="stats-round" class="rounded-lg bg-slate-900 border border-slate-700 px-2 py-1"></select>
+        <label class="text-slate-500 ml-1">Show</label>
+        <select id="stats-metric" class="rounded-lg bg-slate-900 border border-slate-700 px-2 py-1">
+          <option value="total">Total</option>
+          <option value="per80">Per 80 min</option>
+          <option value="form">Form (last 3 rds)</option>
+        </select>
+      </div>
       <ol id="stats-list" class="rounded-xl border border-slate-700 bg-slate-900 px-4 divide-y divide-slate-800"></ol>
     </div>
     <div id="board-rosters" class="hidden space-y-2"></div>
@@ -2966,6 +2976,8 @@ function renderBoard() {
 S.statsPos = "ALL";
 S.statsSearch = "";
 S.statsSort = "points";
+S.statsRound = "all";     // "all" or a round number (per-round stat search)
+S.statsMetric = "total";  // total | per80 | form
 S.histIdxByMgr = {};   // manager id -> history pager index (0 = current)
 S.showShortlist = false;   // Trades tab: shortlist collapsed until opened
 S.slPos = "ALL";           // shortlist position filter
@@ -3154,6 +3166,40 @@ function playerStatTotal(pid, key) {
   return n;
 }
 
+/* ---------- stats-tab scope helpers (per-round, per-80, form) ---------- */
+
+// A player's stat rows within the selected round (or all rounds).
+function statRowsScoped(pid, roundMap) {
+  const rows = statRowsFor(pid);
+  if (!S.statsRound || S.statsRound === "all") return rows;
+  const rnd = +S.statsRound;
+  return rows.filter((r) => roundMap[r.match_label] === rnd);
+}
+function playerMinutesScoped(pid, roundMap) {
+  return statRowsScoped(pid, roundMap)
+    .reduce((s, r) => s + (r.appeared ? (+r.minutes || 0) : 0), 0);
+}
+function statTotalScoped(pid, key, roundMap) {
+  return statRowsScoped(pid, roundMap)
+    .reduce((s, r) => s + (r.appeared ? (r[key] || 0) : 0), 0);
+}
+function pointsScoped(pid, position, roundMap) {
+  return statRowsScoped(pid, roundMap)
+    .reduce((s, r) => s + calcPlayerPoints(r, position), 0);
+}
+// Recent form: points per round over the player's last `n` rounds, newest last.
+function playerForm(pid, position, roundMap, n = 3) {
+  const byRound = {};
+  for (const r of statRowsFor(pid)) {
+    const rnd = roundMap[r.match_label];
+    if (!rnd) continue;
+    byRound[rnd] = (byRound[rnd] || 0) + calcPlayerPoints(r, position);
+  }
+  const recent = Object.keys(byRound).map(Number).sort((a, b) => a - b).slice(-n);
+  return { total: recent.reduce((s, rr) => s + byRound[rr], 0),
+           seq: recent.map((rr) => byRound[rr]) };
+}
+
 // Match-by-match log: every game the player's team has played that we have
 // data for — minutes/DNP, stat line, points, and lineup status. With
 // managerId the status is relative to that manager (Starter/Sub/not in
@@ -3269,10 +3315,28 @@ function renderStatsTab() {
   $("stats-sort").innerHTML = STAT_SORTS.map(([k, lbl]) =>
     `<option value="${k}" ${S.statsSort === k ? "selected" : ""}>${lbl}</option>`).join("");
 
+  const roundMap = matchRoundMap();
+  const rounds = [...new Set(Object.values(roundMap))].filter((r) => r >= 1).sort((a, b) => a - b);
+  if (!rounds.includes(+S.statsRound)) S.statsRound = "all";
+  $("stats-round").innerHTML = `<option value="all">All rounds</option>` +
+    rounds.map((r) => `<option value="${r}" ${+S.statsRound === r ? "selected" : ""}>Round ${r}</option>`).join("");
+  $("stats-metric").value = S.statsMetric || "total";
+  const metric = S.statsMetric || "total";
   const sortKey = S.statsSort || "points";
   const byPoints = sortKey === "points";
-  const valOf = (p) => byPoints ? playerPoints(p.player_id, p.position)
-    : playerStatTotal(p.player_id, sortKey);
+  // Form ignores the round filter (it's inherently the last few rounds).
+  $("stats-round").disabled = metric === "form";
+
+  const baseVal = (p) => byPoints ? pointsScoped(p.player_id, p.position, roundMap)
+    : statTotalScoped(p.player_id, sortKey, roundMap);
+  const valOf = (p) => {
+    if (metric === "form") return playerForm(p.player_id, p.position, roundMap).total;
+    if (metric === "per80") {
+      const mins = playerMinutesScoped(p.player_id, roundMap);
+      return mins ? Math.round(baseVal(p) / mins * 800) / 10 : 0;
+    }
+    return baseVal(p);
+  };
 
   const q = S.statsSearch.trim().toLowerCase();
   let pool;
@@ -3280,22 +3344,32 @@ function renderStatsTab() {
     pool = S.players.filter((p) =>
       p.name.toLowerCase().includes(q) || p.team.toLowerCase().includes(q));
   } else {
-    // default view: everyone who has a stats row, ranked
-    const ids = new Set((S.stats || []).map((r) => r.player_id));
-    pool = [...ids].map((id) => S.playerById[id]).filter(Boolean);
+    // default view: everyone with a stats row in scope (all rounds, or the
+    // selected round), ranked.
+    const rows = (S.stats || []).filter((r) =>
+      metric === "form" || S.statsRound === "all" || roundMap[r.match_label] === +S.statsRound);
+    pool = [...new Set(rows.map((r) => r.player_id))].map((id) => S.playerById[id]).filter(Boolean);
   }
   if (S.statsPos !== "ALL") pool = pool.filter((p) => p.position === S.statsPos);
   let ranked = pool.map((p) => ({
-    p, pts: playerPoints(p.player_id, p.position), val: valOf(p),
+    p, pts: pointsScoped(p.player_id, p.position, roundMap), val: valOf(p),
+    mins: playerMinutesScoped(p.player_id, roundMap),
+    form: metric === "form" ? playerForm(p.player_id, p.position, roundMap) : null,
   }));
   // For a category leaderboard, only list players who have some of it.
-  if (!byPoints && !q) ranked = ranked.filter((x) => x.val > 0);
+  if (!byPoints && metric !== "form" && !q) ranked = ranked.filter((x) => x.val > 0);
   ranked = ranked
     .sort((a, b) => b.val - a.val || b.pts - a.pts || a.p.name.localeCompare(b.p.name))
     .slice(0, 30);
 
-  $("stats-list").innerHTML = ranked.map(({ p, pts, val }, i) => {
+  const unit = metric === "per80" ? '<span class="block text-[9px] text-slate-500">/80</span>' : "";
+  $("stats-list").innerHTML = ranked.map(({ p, pts, val, mins, form }, i) => {
     const owner = ownerOf(p.player_id);
+    const sub = metric === "form"
+      ? (form.seq.length ? `<span class="block text-[10px] text-slate-500 font-mono">${form.seq.join(" · ")}</span>` : "")
+      : metric === "per80"
+        ? `<span class="block text-[10px] text-slate-500">${mins}m · ${pts}p</span>`
+        : (byPoints ? "" : `<span class="block text-[10px] text-slate-500">${pts}p</span>`);
     return `<li class="flex items-center gap-1">
       ${starHtml(p.player_id)}
       <button data-sp="${esc(p.player_id)}" class="flex-1 min-w-0 flex items-center gap-2 py-2 text-left">
@@ -3307,9 +3381,9 @@ function renderStatsTab() {
           <span class="block truncate text-[10px] text-slate-500">${esc(p.team)}</span>
         </span>
         <span class="pos-${p.position} rounded px-1.5 py-0.5 text-[10px] font-semibold shrink-0">${p.position}</span>
-        <span class="shrink-0 w-10 text-right">
-          <span class="block font-mono font-bold ${val > 0 ? "text-wcgold" : "text-slate-500"}">${val}</span>
-          ${byPoints ? "" : `<span class="block text-[10px] text-slate-500">${pts}p</span>`}
+        <span class="shrink-0 w-12 text-right">
+          <span class="block font-mono font-bold ${val > 0 ? "text-wcgold" : "text-slate-500"}">${val}</span>${unit}
+          ${sub}
         </span>
       </button></li>`;
   }).join("") || `<li class="py-4 text-sm text-slate-500">${
@@ -4890,6 +4964,8 @@ function wire() {
   $("pool-team").onchange = () => renderPool();
   $("stats-search").oninput = (e) => { S.statsSearch = e.target.value; renderStatsTab(); };
   $("stats-sort").onchange = (e) => { S.statsSort = e.target.value; renderStatsTab(); };
+  $("stats-round").onchange = (e) => { S.statsRound = e.target.value === "all" ? "all" : +e.target.value; renderStatsTab(); };
+  $("stats-metric").onchange = (e) => { S.statsMetric = e.target.value; renderStatsTab(); };
   $("player-sheet").onclick = (e) => {
     if (e.target.id === "player-sheet") $("player-sheet").classList.add("hidden");
   };
