@@ -566,8 +566,12 @@ const DEFAULT_CONFIG = {
   url: "https://qwgadcviksybfliosfet.supabase.co",
   key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3Z2FkY3Zpa3N5YmZsaW9zZmV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MzIyNTQsImV4cCI6MjA5ODQwODI1NH0.TQ0ThU2GmoggIBiApD3Rn4SAnZX7sYzhF3W6wEjdDhA",
 };
-const getConfig  = () => JSON.parse(localStorage.getItem("wcf_config") || "null")
-  || (DEFAULT_CONFIG.url ? DEFAULT_CONFIG : null);
+// Baked-in code creds ALWAYS win. localStorage is scoped per ORIGIN, and every
+// kaalkoen51.github.io Pages app shares it — so a stale/foreign wcf_config left
+// by another app must never point this one at the wrong Supabase project. The
+// saved config is only a fallback for a build that ships without baked creds.
+const getConfig  = () => (DEFAULT_CONFIG.url ? DEFAULT_CONFIG : null)
+  || JSON.parse(localStorage.getItem("wcf_config") || "null");
 const setConfig  = (c) => localStorage.setItem("wcf_config", JSON.stringify(c));
 const getSession = () => JSON.parse(localStorage.getItem("wcf_session") || "null");
 const setSession = (s) => s ? localStorage.setItem("wcf_session", JSON.stringify(s))
@@ -5039,7 +5043,16 @@ async function init() {
   setInterval(renderBanner, 60e3);
   const cfg = getConfig();
   if (!cfg) { showView("config"); return; }
-  S.sb = window.supabase.createClient(cfg.url, cfg.key);
+  // Anon-key only (nobody logs in), so don't persist an auth token into the
+  // shared per-origin localStorage where other Pages apps' tokens could clash.
+  // A unique storageKey keeps this client's storage namespaced regardless.
+  S.sb = window.supabase.createClient(cfg.url, cfg.key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      storageKey: "rnf-auth-" + cfg.url,
+    },
+  });
   renderHome();
   const sess = getSession();
   if (sess?.leagueId) {
