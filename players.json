@@ -3854,5 +3854,37 @@
     "role": "OB",
     "team": "Japan",
     "team_code": "JPN"
+  },
+  {
+    "player_id": "nzl_36",
+    "name": "Jamie Hannah",
+    "position": "LK",
+    "role": "LK",
+    "team": "New Zealand",
+    "team_code": "NZL"
+  },
+  {
+    "player_id": "rsa_57",
+    "name": "Elrigh Louw",
+    "position": "LF",
+    "role": "LF",
+    "team": "South Africa",
+    "team_code": "RSA"
+  },
+  {
+    "player_id": "jpn_37",
+    "name": "Taira Main",
+    "position": "OB",
+    "role": "OB",
+    "team": "Japan",
+    "team_code": "JPN"
+  },
+  {
+    "player_id": "ire_38",
+    "name": "Bryn Ward",
+    "position": "LF",
+    "role": "LF",
+    "team": "Ireland",
+    "team_code": "IRE"
   }
 ]

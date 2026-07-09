@@ -117,6 +117,13 @@ NA_OVERRIDE = {
 }
 NAME_TO_CODE = {name: code for name, code, _pool in TEAMS}
 
+# Source-sheet typos / alternate spellings folded onto the canonical name, so a
+# mis-spelled duplicate row maps to the existing player (keeping its id)
+# instead of minting a new one.
+NAME_ALIAS = {
+    "Sojiro Otuska": "Sojiro Otsuka",   # transposed 'ts' -> 'us'
+}
+
 
 def parse_mht(path: Path):
     """Pull (name, team, position) rows from a Google Sheets .mht export
@@ -169,6 +176,7 @@ def build_from_mht(path: Path) -> list:
     players, problems, used, seen = [], [], set(), set()
     kept = added = dupes = 0
     for name, team, pos in parse_mht(path):
+        name = NAME_ALIAS.get(name, name)
         role = POS_TO_ROLE.get(pos) or NA_OVERRIDE.get(name)
         code = NAME_TO_CODE.get(team)
         if not code:
