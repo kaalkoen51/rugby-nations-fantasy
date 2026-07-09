@@ -241,7 +241,7 @@
         <select id="stats-metric" class="rounded-lg bg-slate-900 border border-slate-700 px-2 py-1">
           <option value="total">Total</option>
           <option value="per80">Per 80 min</option>
-          <option value="form">Form (last 3 rds)</option>
+          <option value="form">Form (pts/game)</option>
         </select>
       </div>
       <ol id="stats-list" class="rounded-xl border border-slate-700 bg-slate-900 px-4 divide-y divide-slate-800"></ol>
@@ -3134,11 +3134,11 @@ function lineupBadge(pid) {
   return "";
 }
 
+// The lineup (Starting/Bench/Out) badge now rides left of the flag avatar
+// (see avatarHtml); this is just the knocked-out marker after the name.
 function availBadges(pid) {
-  let out = lineupBadge(pid);
   const team = S.playerById?.[pid]?.team;
-  if (team && isEliminated(team)) out += `<span title="team knocked out">🚫</span>`;
-  return out;
+  return (team && isEliminated(team)) ? `<span title="team knocked out">🚫</span>` : "";
 }
 
 // Plain-text variant for <option> labels in the trade builder.
@@ -3159,14 +3159,20 @@ const TEAM_FLAG = {
   "France": "fr", "Italy": "it", "New Zealand": "nz", "South Africa": "za",
   "Australia": "au", "Argentina": "ar", "Japan": "jp", "Fiji": "fj",
 };
+// No player photos, so the icon is the player's national flag (same for TEAM
+// picks). The matchday Starting/Bench/Out badge sits to its LEFT so it's
+// always visible, even when a long name would otherwise push it off-screen.
 function avatarHtml(playerId, team, size = "w-7 h-7") {
-  const isTeam = String(playerId).startsWith("team:");
-  if (!isTeam) return `<span class="${size} rounded-full bg-slate-800 shrink-0"></span>`;
   const code = TEAM_FLAG[team];
-  if (!code) return `<span class="${size} rounded-full bg-slate-800 shrink-0"></span>`;
-  return `<span class="${size} rounded-full bg-slate-800 overflow-hidden shrink-0 inline-flex items-center justify-center">
-    <img src="https://flagcdn.com/w40/${code}.png" loading="lazy" onerror="this.remove()"
-         class="w-full h-full object-cover" alt=""></span>`;
+  const flag = code
+    ? `<span class="${size} rounded-full bg-slate-800 overflow-hidden shrink-0 inline-flex items-center justify-center">
+        <img src="https://flagcdn.com/w40/${code}.png" loading="lazy" onerror="this.remove()"
+             class="w-full h-full object-cover" alt=""></span>`
+    : `<span class="${size} rounded-full bg-slate-800 shrink-0"></span>`;
+  const badge = lineupBadge(playerId);
+  return badge
+    ? `<span class="inline-flex items-center gap-1 shrink-0">${badge}${flag}</span>`
+    : flag;
 }
 
 // Per-category season total for a player, for ranking on the Stats tab.
@@ -3200,17 +3206,20 @@ function pointsScoped(pid, position, roundMap) {
   return statRowsScoped(pid, roundMap)
     .reduce((s, r) => s + calcPlayerPoints(r, position), 0);
 }
-// Recent form: points per round over the player's last `n` rounds, newest last.
+// Recent form: points-per-game over the player's last `n` games they
+// featured in (newest last in `seq`).
 function playerForm(pid, position, roundMap, n = 3) {
-  const byRound = {};
-  for (const r of statRowsFor(pid)) {
-    const rnd = roundMap[r.match_label];
-    if (!rnd) continue;
-    byRound[rnd] = (byRound[rnd] || 0) + calcPlayerPoints(r, position);
-  }
-  const recent = Object.keys(byRound).map(Number).sort((a, b) => a - b).slice(-n);
-  return { total: recent.reduce((s, rr) => s + byRound[rr], 0),
-           seq: recent.map((rr) => byRound[rr]) };
+  const games = statRowsFor(pid)
+    .filter((r) => r.appeared && labelDate(r.match_label))
+    .map((r) => ({ pts: calcPlayerPoints(r, position), d: labelDate(r.match_label) }))
+    .sort((a, b) => String(b.d).localeCompare(String(a.d)))
+    .slice(0, n);
+  const total = games.reduce((s, g) => s + g.pts, 0);
+  return {
+    ppg: games.length ? Math.round(total / games.length * 10) / 10 : 0,
+    seq: games.slice().reverse().map((g) => g.pts),
+    games: games.length,
+  };
 }
 
 // Match-by-match log: every game the player's team has played that we have
@@ -3343,7 +3352,7 @@ function renderStatsTab() {
   const baseVal = (p) => byPoints ? pointsScoped(p.player_id, p.position, roundMap)
     : statTotalScoped(p.player_id, sortKey, roundMap);
   const valOf = (p) => {
-    if (metric === "form") return playerForm(p.player_id, p.position, roundMap).total;
+    if (metric === "form") return playerForm(p.player_id, p.position, roundMap).ppg;
     if (metric === "per80") {
       const mins = playerMinutesScoped(p.player_id, roundMap);
       return mins ? Math.round(baseVal(p) / mins * 800) / 10 : 0;
@@ -3375,7 +3384,8 @@ function renderStatsTab() {
     .sort((a, b) => b.val - a.val || b.pts - a.pts || a.p.name.localeCompare(b.p.name))
     .slice(0, 30);
 
-  const unit = metric === "per80" ? '<span class="block text-[9px] text-slate-500">/80</span>' : "";
+  const unit = metric === "per80" ? '<span class="block text-[9px] text-slate-500">/80</span>'
+    : metric === "form" ? '<span class="block text-[9px] text-slate-500">/game</span>' : "";
   $("stats-list").innerHTML = ranked.map(({ p, pts, val, mins, form }, i) => {
     const owner = ownerOf(p.player_id);
     const sub = metric === "form"
