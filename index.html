@@ -902,22 +902,29 @@ function renderFixtures() {
 
 /* ---------- dream / nightmare XV (best & worst possible per round) ---------- */
 
-// Map each scored match to a round number. Round boundaries are the distinct
-// snapshot lock times, in order (round 1, 2, …) — works even for snapshots
-// created before round-tagging. With no snapshots at all, everything played
-// falls into round 1 so the XV still shows.
+// Map each scored match to a round number. Lock times partition matches into
+// periods; only periods that actually contain matches are numbered (densely,
+// 1, 2, …), so empty snapshots — the draft baseline, test locks, re-snapshots
+// — never inflate the round number. One round of play => Round 1.
 function matchRoundMap() {
   const times = [...new Set((S.snapshots || [])
     .map((s) => Date.parse(s.effective_from)).filter((t) => Number.isFinite(t)))]
     .sort((a, b) => a - b);
-  const map = {};
-  for (const l of [...new Set((S.stats || []).map((r) => r.match_label))]) {
-    if (!labelDate(l)) continue;
+  const labels = [...new Set((S.stats || []).map((r) => r.match_label))]
+    .filter((l) => labelDate(l));
+  const rawPeriod = {};
+  for (const l of labels) {
     const mt = matchTimeFor(l);
-    let r = 0;
-    for (const t of times) { if (t <= mt) r++; else break; }
-    map[l] = Math.max(1, r);
+    let p = 0;
+    for (const t of times) { if (t <= mt) p++; else break; }
+    rawPeriod[l] = p;                       // 0 = before any lock
   }
+  // Dense-number only the periods that hold matches.
+  const denseOf = {};
+  [...new Set(Object.values(rawPeriod))].sort((a, b) => a - b)
+    .forEach((p, i) => denseOf[p] = i + 1);
+  const map = {};
+  for (const l of labels) map[l] = denseOf[rawPeriod[l]];
   return map;
 }
 
