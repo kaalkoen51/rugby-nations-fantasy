@@ -944,11 +944,12 @@ function matchRoundMap() {
   return map;
 }
 
-// Per-player points + minutes for one round (played rows only).
-function playerRoundStats(round, roundMap) {
+// Per-player points + minutes for a scope: a round number, or "season" (all).
+function xvStats(scope, roundMap) {
   const out = {};
   for (const r of S.stats || []) {
-    if (roundMap[r.match_label] !== round || !r.appeared) continue;
+    if (!r.appeared) continue;
+    if (scope !== "season" && roundMap[r.match_label] !== scope) continue;
     const pos = S.playerById[r.player_id]?.position;
     if (!pos) continue;
     const o = out[r.player_id] || (out[r.player_id] = { pts: 0, minutes: 0, pos });
@@ -958,10 +959,11 @@ function playerRoundStats(round, roundMap) {
   return out;
 }
 
-// Players who started in real life this round: from the announced lineups when
-// we have them, else a minutes>=40 proxy.
-function startersInRound(round, roundMap) {
-  const labels = new Set(Object.keys(roundMap).filter((l) => roundMap[l] === round));
+// Players who started in real life within the scope: from the announced
+// lineups when we have them, else a minutes>=40 proxy.
+function startersInScope(scope, roundMap) {
+  const labels = new Set(Object.keys(roundMap)
+    .filter((l) => scope === "season" || roundMap[l] === scope));
   const set = new Set();
   let real = false;
   for (const r of S.lineups || [])
@@ -970,6 +972,55 @@ function startersInRound(round, roundMap) {
   for (const r of S.stats || [])
     if (labels.has(r.match_label) && r.appeared && (+r.minutes || 0) >= 40) set.add(r.player_id);
   return { set, real };
+}
+
+// player_id -> the manager who rostered them, in a given round (from that
+// round's snapshot rosters) or currently (the season view).
+function ownersInRound(round) {
+  const map = {};
+  for (const m of S.managers) {
+    const rd = (managerHistory(m.id).rounds || []).find((r) => r.n === round);
+    if (!rd) continue;
+    for (const it of rd.items) if (it.entry.player_id) map[it.entry.player_id] = m;
+  }
+  return map;
+}
+function ownersCurrent() {
+  const map = {};
+  for (const pk of S.picks || []) {
+    const m = S.managers.find((x) => x.id === pk.manager_id);
+    if (m) map[pk.player_id] = m;
+  }
+  return map;
+}
+
+const lastName = (n) => String(n || "").trim().split(/\s+/).slice(-1)[0] || n;
+
+// Rugby XV laid out by line — backs at the top, pack anchoring the bottom.
+const PITCH_LINES = [
+  ["OB", "OB", "OB"], ["CE", "CE"], ["SH", "FH"],
+  ["LF", "LF", "LF"], ["LK", "LK"], ["PR", "HK", "PR"],
+];
+
+function pitchHtml(xv, worst, owners) {
+  const byPos = {};
+  for (const p of xv) (byPos[p.pos] ||= []).push(p);
+  const token = (pos) => {
+    const p = (byPos[pos] || []).shift() || { pos, pid: null };
+    const pl = p.pid ? S.playerById[p.pid] : null;
+    const owner = pl && owners ? owners[p.pid] : null;
+    return `<div class="flex flex-col items-center w-[4.2rem] text-center">
+      <div class="relative">
+        ${pl ? flagHtml(pl.team, "w-8 h-8") : '<span class="w-8 h-8 rounded-full bg-black/30 inline-block"></span>'}
+        ${owner ? `<span class="absolute -bottom-1 -right-1 rounded ring-2 ring-black/40" title="Owned by ${esc(teamName(owner))}">${teamLogoHtml(owner, "w-4 h-4")}</span>` : ""}
+      </div>
+      <span class="text-[8px] text-slate-900 font-semibold leading-tight truncate w-full mt-1 px-0.5 rounded bg-white/75" title="${pl ? esc(pl.name) : ""}">${pl ? esc(lastName(pl.name)) : "—"}</span>
+      <span class="text-[10px] font-mono font-bold ${worst ? "text-red-200" : "text-wcgold"}">${p.pts ?? "—"}</span>
+    </div>`;
+  };
+  return `<div class="p-3 space-y-2.5" style="background:repeating-linear-gradient(0deg,#0f4d17 0 30px,#11571c 30px 60px)">
+    ${PITCH_LINES.map((line) => `<div class="flex justify-center gap-2">${line.map(token).join("")}</div>`).join("")}
+  </div>`;
 }
 
 // Best (or worst) valid starting XV from a pool of round stats.
@@ -998,46 +1049,41 @@ function renderIdealXV() {
     el.innerHTML = '<p class="text-sm text-slate-500 px-1">No scored rounds yet — the dream &amp; nightmare teams appear once a round has been played.</p>';
     return;
   }
-  let round = S.idealRound;
-  if (!rounds.includes(round)) round = rounds[rounds.length - 1];
-  S.idealRound = round;
-  const stats = playerRoundStats(round, roundMap);
+  const scopes = [...rounds, "season"];
+  let scope = S.idealRound;
+  if (!scopes.includes(scope)) scope = rounds[rounds.length - 1];
+  S.idealRound = scope;
+  const isSeason = scope === "season";
+  const label = isSeason ? "Season total" : "Round " + scope;
+
+  const stats = xvStats(scope, roundMap);
   const dream = buildXV(stats, false, null);
-  const { set: starters, real } = startersInRound(round, roundMap);
+  const { set: starters, real } = startersInScope(scope, roundMap);
   const nightmare = buildXV(stats, true, starters);
-  const chips = rounds.map((r) =>
-    `<button data-iround="${r}" class="rounded-full px-3 py-1 border ${
-      r === round ? "border-wcgold text-wcgold" : "border-slate-700 text-slate-400"}">R${r}</button>`).join("");
+  const owners = isSeason ? ownersCurrent() : ownersInRound(scope);
+
+  const chip = (val, txt) => `<button data-iscope="${val}" class="rounded-full px-3 py-1 border ${
+    scope === val ? "border-wcgold text-wcgold" : "border-slate-700 text-slate-400"}">${txt}</button>`;
+  const chips = rounds.map((r) => chip(r, "R" + r)).join("") + chip("season", "Season");
   const sum = (xv) => xv.reduce((s, p) => s + (p.pts || 0), 0);
-  const xvHtml = (xv, worst) => xv.map((p) => {
-    const pl = p.pid ? S.playerById[p.pid] : null;
-    return `<div class="flex items-center gap-2 px-3 py-1.5 text-sm">
-      <span class="text-[10px] w-8 text-slate-500">${p.pos}</span>
-      ${pl ? avatarHtml("team:" + pl.team, pl.team, "w-4 h-4") : ""}
-      <span class="flex-1 min-w-0 truncate">${pl ? esc(pl.name) : "—"}${
-        pl ? ` <span class="text-[10px] text-slate-500">${esc(pl.team)}</span>` : ""}</span>
-      <span class="font-mono ${worst ? "text-red-400" : "text-wcgold"} shrink-0">${p.pts ?? "—"}</span>
+
+  const card = (title, colour, xv, worst, note) => `
+    <div class="rounded-xl border ${colour} bg-slate-900 overflow-hidden">
+      <div class="px-3 py-2 flex items-center justify-between">
+        <span class="font-semibold">${title} <span class="text-slate-400 font-normal text-xs">— ${label}</span></span>
+        <span class="font-mono ${worst ? "text-red-400" : "text-wcgold"}">${sum(xv)}</span></div>
+      ${pitchHtml(xv, worst, owners)}
+      <p class="px-3 py-1.5 text-[10px] text-slate-500">${note}</p>
     </div>`;
-  }).join("");
+
   el.innerHTML = `
     <div class="flex items-center gap-1.5 flex-wrap text-xs">${chips}</div>
-    <div class="rounded-xl border border-wcgold/50 bg-slate-900 divide-y divide-slate-800">
-      <div class="px-3 py-2 flex items-center justify-between">
-        <span class="font-semibold text-wcgold">🌟 Dream XV — Round ${round}</span>
-        <span class="font-mono text-wcgold">${sum(dream)}</span></div>
-      ${xvHtml(dream, false)}
-      <p class="px-3 py-1.5 text-[10px] text-slate-500">Best-scoring valid XV from every player who featured this round.</p>
-    </div>
-    <div class="rounded-xl border border-red-500/40 bg-slate-900 divide-y divide-slate-800">
-      <div class="px-3 py-2 flex items-center justify-between">
-        <span class="font-semibold text-red-400">💀 Nightmare XV — Round ${round}</span>
-        <span class="font-mono text-red-400">${sum(nightmare)}</span></div>
-      ${xvHtml(nightmare, true)}
-      <p class="px-3 py-1.5 text-[10px] text-slate-500">Worst-scoring valid XV among players who ${
-        real ? "started in real life" : "played 40+ min (starter proxy — pull the round's lineups for exact)"} this round.</p>
-    </div>`;
-  el.querySelectorAll("[data-iround]").forEach((b) =>
-    b.onclick = () => { S.idealRound = +b.dataset.iround; renderIdealXV(); });
+    ${card('<span class="text-wcgold">🌟 Dream XV</span>', "border-wcgold/50", dream, false,
+      `Best-scoring valid XV from every player who featured ${isSeason ? "this season" : "this round"}. Corner badge = who owned them.`)}
+    ${card('<span class="text-red-400">💀 Nightmare XV</span>', "border-red-500/40", nightmare, true,
+      `Worst-scoring valid XV among players who ${real ? "started in real life" : "played 40+ min (starter proxy)"} ${isSeason ? "this season" : "this round"}.`)}`;
+  el.querySelectorAll("[data-iscope]").forEach((b) =>
+    b.onclick = () => { S.idealRound = b.dataset.iscope === "season" ? "season" : +b.dataset.iscope; renderIdealXV(); });
 }
 
 // photos.json (faces/crests) is optional, like fixtures.json — the app
@@ -3208,16 +3254,20 @@ const TEAM_FLAG = {
   "France": "fr", "Italy": "it", "New Zealand": "nz", "South Africa": "za",
   "Australia": "au", "Argentina": "ar", "Japan": "jp", "Fiji": "fj",
 };
-// No player photos, so the icon is the player's national flag (same for TEAM
-// picks). The matchday Starting/Bench/Out badge sits to its LEFT so it's
-// always visible, even when a long name would otherwise push it off-screen.
-function avatarHtml(playerId, team, size = "w-7 h-7") {
+// National-flag disc (no player photos). Used as the player icon everywhere.
+function flagHtml(team, size = "w-7 h-7") {
   const code = TEAM_FLAG[team];
-  const flag = code
+  return code
     ? `<span class="${size} rounded-full bg-slate-800 overflow-hidden shrink-0 inline-flex items-center justify-center">
         <img src="https://flagcdn.com/w40/${code}.png" loading="lazy" onerror="this.remove()"
              class="w-full h-full object-cover" alt=""></span>`
     : `<span class="${size} rounded-full bg-slate-800 shrink-0"></span>`;
+}
+
+// Player icon: the national flag with the matchday Starting/Bench/Out badge to
+// its LEFT so it stays visible even when a long name would push it off-screen.
+function avatarHtml(playerId, team, size = "w-7 h-7") {
+  const flag = flagHtml(team, size);
   const badge = lineupBadge(playerId);
   return badge
     ? `<span class="inline-flex items-center gap-1 shrink-0">${badge}${flag}</span>`
