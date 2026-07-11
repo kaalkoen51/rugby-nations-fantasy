@@ -418,8 +418,20 @@
   <div class="absolute bottom-0 inset-x-0 max-h-[75vh] bg-slate-900 border-t border-slate-700 rounded-t-2xl p-4 flex flex-col">
     <div id="swap-title" class="font-semibold mb-2"></div>
     <div class="flex gap-2 mb-2">
-      <input id="swap-search" placeholder="Search free agents…" class="flex-1 min-w-0 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
+      <input id="swap-search" placeholder="Search players…" class="flex-1 min-w-0 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
       <select id="swap-team" class="w-32 shrink-0 rounded-lg bg-slate-800 border border-slate-700 px-2 py-2 text-sm"></select>
+    </div>
+    <div class="flex gap-2 mb-2 text-xs">
+      <select id="swap-sort" class="flex-1 rounded-lg bg-slate-800 border border-slate-700 px-2 py-1.5">
+        <option value="total">Sort: Total pts</option>
+        <option value="avg">Sort: Avg / game</option>
+        <option value="form">Sort: Form (last 3)</option>
+      </select>
+      <select id="swap-own" class="flex-1 rounded-lg bg-slate-800 border border-slate-700 px-2 py-1.5">
+        <option value="all">Free + owned</option>
+        <option value="free">Free agents only</option>
+        <option value="owned">Owned only</option>
+      </select>
     </div>
     <ul id="swap-list" class="overflow-y-auto divide-y divide-slate-800 flex-1 min-h-0"></ul>
     <button id="swap-close" class="mt-3 w-full bg-slate-800 border border-slate-700 rounded-lg py-2 text-sm font-semibold">Cancel</button>
@@ -3646,6 +3658,8 @@ function openSwap(pick) {
       S.teams.map((t) => `<option>${esc(t)}</option>`).join("");
   }
   $("swap-team").value = "";
+  $("swap-sort").value = S.swapSort || "total";
+  $("swap-own").value = S.swapOwn || "all";
   renderSwapList();
   $("swap-sheet").classList.remove("hidden");
 }
@@ -3672,15 +3686,31 @@ function renderSwapList() {
   const match = (name, team) => (!teamF || team === teamF)
     && (!q || name.toLowerCase().includes(q) || team.toLowerCase().includes(q));
 
-  const free = availableForGroup(group)
-    .filter((e) => match(e.name, e.team) && !isEliminated(e.team)).slice(0, 60);
+  // Sort metric: total points, average per game, or recent form (pts/game).
+  const sortKey = S.swapSort || "total";
+  const roundMap = matchRoundMap();
+  const gamesPlayed = (pid) => statRowsFor(pid).filter((r) => r.appeared).length;
+  const sortVal = (pid, pos, team) => {
+    if (sortKey === "form") return playerForm(pid, pos, roundMap).ppg;
+    const total = entryPoints(pid, pos, team);
+    if (sortKey === "avg") { const g = gamesPlayed(pid); return g ? Math.round(total / g * 10) / 10 : 0; }
+    return total;
+  };
+  const valLabel = sortKey === "avg" ? "avg" : sortKey === "form" ? "form" : "pts";
+  const own = S.swapOwn || "all";
+
+  const free = (own === "owned" ? [] : availableForGroup(group)
+    .filter((e) => match(e.name, e.team) && !isEliminated(e.team))
+    .map((e) => ({ ...e, _v: sortVal(e.player_id, e.position, e.team) }))
+    .sort((a, b) => b._v - a._v).slice(0, 60));
   // Same-position players already on other rosters: tapping one jumps
   // straight into a trade proposal with their owner.
-  const owned = S.picks
+  const owned = (own === "free" ? [] : S.picks
     .filter((pk) => pk.position === group && pk.slot !== "TEAM"
       && pk.manager_id !== me?.id && match(pk.player_name, pk.team))
-    .map((pk) => ({ pk, owner: S.managers.find((m) => m.id === pk.manager_id) }))
-    .slice(0, 40);
+    .map((pk) => ({ pk, owner: S.managers.find((m) => m.id === pk.manager_id),
+                    _v: sortVal(pk.player_id, pk.position, pk.team) }))
+    .sort((a, b) => b._v - a._v).slice(0, 40));
 
   const freeRows = free.map((e) => `
     <li class="flex items-center py-2 gap-2">
@@ -3689,18 +3719,18 @@ function renderSwapList() {
         <div class="truncate font-medium">${esc(e.name)} ${availBadges(e.player_id)}</div>
         <div class="text-xs text-slate-400">${teamFixLine(e.team)}</div>
       </div>
-      <span class="shrink-0 text-xs font-mono text-slate-400">${entryPoints(e.player_id, e.position, e.team)} pts</span>
+      <span class="shrink-0 text-xs font-mono text-slate-400">${e._v} ${valLabel}</span>
       <button data-swapin="${esc(e.player_id)}" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-3 py-1.5 text-sm font-semibold">Swap in</button>
-    </li>`).join("") || '<li class="py-4 text-sm text-slate-500">No free agents match.</li>';
-  const ownedRows = owned.map(({ pk, owner }) => `
+    </li>`).join("") || (own === "owned" ? "" : '<li class="py-4 text-sm text-slate-500">No free agents match.</li>');
+  const ownedRows = owned.map(({ pk, owner, _v }) => `
     <li class="flex items-center py-2 gap-2">
       ${avatarHtml(pk.player_id, pk.team)}
       <div class="min-w-0 flex-1">
         <div class="truncate font-medium">${esc(pk.player_name)} ${availBadges(pk.player_id)}
-          <span class="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] font-semibold text-wcgold">👤 ${esc(owner?.name ?? "?")}</span></div>
+          <span class="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] font-semibold text-wcgold">👤 ${esc(teamName(owner))}</span></div>
         <div class="text-xs text-slate-400">${teamFixLine(pk.team)}</div>
       </div>
-      <span class="shrink-0 text-xs font-mono text-slate-400">${entryPoints(pk.player_id, pk.position, pk.team)} pts</span>
+      <span class="shrink-0 text-xs font-mono text-slate-400">${_v} ${valLabel}</span>
       <button data-tradefor="${pk.id}" class="shrink-0 bg-slate-800 border border-wcgold/60 text-wcgold rounded-lg px-3 py-1.5 text-sm font-semibold">Trade</button>
     </li>`).join("");
   $("swap-list").innerHTML = freeRows + (ownedRows
@@ -5135,6 +5165,8 @@ function wire() {
   $("preshortlist-search").oninput = (e) => { S.preSlSearch = e.target.value; renderPreShortlist(); };
   $("swap-search").oninput = renderSwapList;
   $("swap-team").onchange = renderSwapList;
+  $("swap-sort").onchange = () => { S.swapSort = $("swap-sort").value; renderSwapList(); };
+  $("swap-own").onchange = () => { S.swapOwn = $("swap-own").value; renderSwapList(); };
   $("lineup-cancel").onclick = () => $("lineup-sheet").classList.add("hidden");
   $("lineup-save").onclick = () => saveLineup().catch((e) => toast(e.message));
   ["adm-home", "adm-away", "adm-date", "adm-label"].forEach((id) =>
