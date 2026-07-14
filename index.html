@@ -3858,8 +3858,10 @@ function openBuilder(targetId = "", parentId = null, pairs = null) {
 function builderHtml(me) {
   const b = S.builder;
   const others = activeManagers().filter((m) => m.id !== me.id);
-  const myPicks = S.picks.filter((p) => p.manager_id === me.id && p.slot !== "TEAM");
-  const targetPicks = S.picks.filter((p) => p.manager_id === b.target && p.slot !== "TEAM");
+  const bySlot = (a, c) =>
+    (SLOT_RANK[a.slot] ?? 9) - (SLOT_RANK[c.slot] ?? 9) || a.pick_number - c.pick_number;
+  const myPicks = S.picks.filter((p) => p.manager_id === me.id && p.slot !== "TEAM").sort(bySlot);
+  const targetPicks = S.picks.filter((p) => p.manager_id === b.target && p.slot !== "TEAM").sort(bySlot);
   const optLabel = (p) =>
     `${p.slot} · ${p.player_name} (${p.team}, ${entryPoints(p.player_id, p.position, p.team)} pts)${availText(p.player_id)}`;
   const targetSelect = `<label class="block text-xs text-slate-400">Trade with
