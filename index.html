@@ -4950,7 +4950,7 @@ async function pullFromSheet() {
     }
     if (lineupsUrl) {
       log("Fetching Lineups…");
-      const rows = [], skipped = [], byMatch = {};
+      const rows = [], skipped = [], seen = new Set();
       for (const rec of await fetchCsv(lineupsUrl)) {
         const pid = (rec.player_id || "").trim();
         const rawStatus = (rec.status || "").trim();
@@ -4961,11 +4961,16 @@ async function pullFromSheet() {
         if (!S.playerById[pid]) { skipped.push(`${pid}: not in player pool`); continue; }
         if (!status) { skipped.push(`${pid}: unrecognised status "${rawStatus}"`); continue; }
         if (!label) { skipped.push(`${pid}: missing date/home_team/away_team`); continue; }
+        const dupKey = label + "|" + pid;
+        if (seen.has(dupKey)) {
+          skipped.push(`${pid}: duplicate row for this match (${label})`);
+          continue;
+        }
+        seen.add(dupKey);
         rows.push({
           match_label: label, match_date: (rec.date || "").trim() || null,
           player_id: pid, status, jersey: sheetInt(rec.jersey) || null,
         });
-        byMatch[label] = (byMatch[label] || 0) + 1;
       }
       if (rows.length) {
         try {
@@ -4979,7 +4984,7 @@ async function pullFromSheet() {
       } else {
         notes.push(`0 lineup row(s)` + (skipped.length ? `, ${skipped.length} skipped` : ""));
       }
-      lineupDetail = lineupPullDetail(byMatch, skipped);
+      lineupDetail = lineupPullDetail(rows, skipped);
     }
     log("Done — " + (notes.join("; ") || "nothing to write") + "."
       + (lineupDetail ? "\n\n" + lineupDetail : ""));
@@ -4992,21 +4997,29 @@ async function pullFromSheet() {
   }
 }
 
-// Per-match breakdown of a lineups pull + skipped rows with reasons. Flags any
-// match that already kicked off, since its badges are intentionally hidden
-// (buildLineupIndex only badges a team's upcoming/live match) — so "wrote the
-// rows but no badge" is explained rather than looking broken.
-function lineupPullDetail(byMatch, skipped) {
+// Per-match breakdown of a lineups pull. For each match it lists, per team,
+// the pool players that got NO status row — the precise answer to "why does
+// this player have no badge". Also flags matches already kicked off (badges
+// hidden by design) and lists skipped rows with reasons.
+function lineupPullDetail(rows, skipped) {
   const cutoff = Date.now() - 3 * 3600 * 1000;
+  const byMatch = {};
+  for (const r of rows) (byMatch[r.match_label] ||= new Set()).add(r.player_id);
   const lines = [];
   const labels = Object.keys(byMatch).sort();
-  if (labels.length) {
-    lines.push("Lineups by match:");
-    for (const l of labels) {
-      const mt = matchTimeFor(l);
-      const past = mt && mt < cutoff;
-      lines.push(`  • ${l}: ${byMatch[l]} row(s)`
-        + (past ? " — ⚠ already kicked off, badges hidden (by design)" : ""));
+  if (labels.length) lines.push("Lineups by match (players with a status):");
+  for (const l of labels) {
+    const pids = byMatch[l];
+    const mt = matchTimeFor(l);
+    const past = mt && mt < cutoff;
+    lines.push(`  • ${l}: ${pids.size} player(s)`
+      + (past ? " — ⚠ already kicked off, badges hidden (by design)" : ""));
+    for (const team of labelTeams(l)) {
+      const missing = S.players.filter((p) => p.team === team && !pids.has(p.player_id));
+      if (missing.length)
+        lines.push(`      ${team} — no status for ${missing.length}: `
+          + missing.slice(0, 12).map((p) => p.name).join(", ")
+          + (missing.length > 12 ? `, +${missing.length - 12} more` : ""));
     }
   }
   if (skipped.length) {
