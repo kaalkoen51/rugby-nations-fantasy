@@ -664,16 +664,26 @@ async function resilientWrite(table, rows, opts = {}) {
 // eight scoring/roster codes the app keys off. Generous so the sheet can say
 // "Prop"/"PR", "Loose Forward"/"Flanker"/"No 8", "Outside Back"/"Wing", etc.
 const POS_CODE = {
-  pr: "PR", prop: "PR", "loosehead prop": "PR", "tighthead prop": "PR",
-  hk: "HK", hooker: "HK",
-  lk: "LK", lock: "LK", "second row": "LK",
-  lf: "LF", "loose forward": "LF", flanker: "LF", "back row": "LF",
-  "number 8": "LF", "no 8": "LF", "no. 8": "LF", "8": "LF",
-  sh: "SH", scrumhalf: "SH", "scrum-half": "SH", "scrum half": "SH",
-  fh: "FH", flyhalf: "FH", "fly-half": "FH", "fly half": "FH", "10": "FH",
-  ce: "CE", centre: "CE", center: "CE", "inside centre": "CE", "outside centre": "CE",
-  ob: "OB", "outside back": "OB", wing: "OB", winger: "OB",
-  fullback: "OB", "full back": "OB", "full-back": "OB",
+  pr: "PR", prop: "PR", props: "PR", "loosehead prop": "PR", "tighthead prop": "PR",
+  loosehead: "PR", tighthead: "PR", "loose head": "PR", "tight head": "PR",
+  "loose-head prop": "PR", "tight-head prop": "PR",
+  hk: "HK", hooker: "HK", hookers: "HK",
+  lk: "LK", lock: "LK", locks: "LK", "second row": "LK", "second-row": "LK", "2nd row": "LK",
+  lf: "LF", "loose forward": "LF", "loose forwards": "LF", flanker: "LF", flankers: "LF",
+  flank: "LF", "back row": "LF", "back-row": "LF", "backrow": "LF", "back rower": "LF",
+  blindside: "LF", openside: "LF", "blindside flanker": "LF", "openside flanker": "LF",
+  "number 8": "LF", "number eight": "LF", "no 8": "LF", "no. 8": "LF", "no.8": "LF",
+  "n8": "LF", "8": "LF", "6": "LF", "7": "LF",
+  sh: "SH", scrumhalf: "SH", "scrum-half": "SH", "scrum half": "SH", "half back": "SH", "9": "SH",
+  fh: "FH", flyhalf: "FH", "fly-half": "FH", "fly half": "FH", "out-half": "FH",
+  "out half": "FH", "stand off": "FH", "stand-off": "FH", "10": "FH",
+  ce: "CE", centre: "CE", centres: "CE", center: "CE", centers: "CE",
+  "inside centre": "CE", "outside centre": "CE", "inside center": "CE", "outside center": "CE",
+  "12": "CE", "13": "CE", midfield: "CE",
+  ob: "OB", "outside back": "OB", "outside backs": "OB", wing: "OB", wings: "OB",
+  winger: "OB", wingers: "OB", "left wing": "OB", "right wing": "OB",
+  fullback: "OB", fullbacks: "OB", "full back": "OB", "full-back": "OB", fb: "OB",
+  "11": "OB", "14": "OB", "15": "OB",
 };
 const posCode = (v) => {
   const k = String(v || "").trim().toLowerCase();
@@ -689,21 +699,29 @@ const canonTeam = (v) => {
 };
 
 // Parse a "Players" tab (already keyed by player_id) into the players.json
-// shape. Rows missing player_id / name / a recognisable position are dropped.
+// shape. Returns { pool, drops } — drops explains every row that didn't make
+// it (missing id/name, unknown position, duplicate id) so the admin can see
+// exactly why a team looks short.
 function playersFromCsv(records) {
-  const out = [];
+  const pool = [], drops = [], seen = new Set();
   for (const rec of records) {
-    const pid = (rec.player_id || "").trim();
+    const pid = (rec.player_id || rec.id || rec.playerid || "").trim();
     const name = (rec.name || rec.player || rec.player_name || "").trim();
-    const pos = posCode(rec.position || rec.pos || rec.role);
-    if (!pid || !name || !pos) continue;
+    const rawPos = String(rec.position || rec.pos || rec.role || "").trim();
     const team = canonTeam(rec.team || rec.country || rec.nation);
-    out.push({
+    const who = name || pid || "(blank row)";
+    if (!pid) { drops.push(`${who} [${team || "?"}]: no player_id`); continue; }
+    if (!name) { drops.push(`${pid} [${team || "?"}]: no name`); continue; }
+    const pos = posCode(rawPos);
+    if (!pos) { drops.push(`${name} [${team || "?"}]: unrecognised position "${rawPos}"`); continue; }
+    if (seen.has(pid)) { drops.push(`${name} [${team || "?"}]: duplicate player_id ${pid}`); continue; }
+    seen.add(pid);
+    pool.push({
       player_id: pid, name, position: pos, role: pos, team,
       team_code: (rec.team_code || "").trim() || undefined,
     });
   }
-  return out;
+  return { pool, drops };
 }
 
 // The league can point the pool at a live "Players" tab (Admin). Read that
@@ -727,7 +745,7 @@ async function loadPlayers() {
   try {
     const url = await leaguePlayersCsvUrl();
     if (url) {
-      pool = playersFromCsv(await fetchCsv(url));
+      pool = playersFromCsv(await fetchCsv(url)).pool;
       if (!pool.length) pool = null;
     }
   } catch { pool = null; }
@@ -4958,19 +4976,48 @@ async function pullFromSheet() {
 // Save the league's Players-tab CSV url (shared config) and reload the pool.
 // Validates by fetching + parsing before writing, so a bad link can't wipe the
 // pool. Blank clears it (back to players.json).
+// A readable breakdown of a parsed Players tab: total, per-team counts, any
+// expected union with zero players, unrecognised team names, and the dropped
+// rows with reasons. This is what turns "it says it pulled everything" into
+// "France: 0 — 15 rows dropped: unrecognised position …".
+function poolReport(total, pool, drops) {
+  const byTeam = {};
+  for (const p of pool) byTeam[p.team] = (byTeam[p.team] || 0) + 1;
+  const expected = Object.keys(TEAM_FLAG);
+  const teamLine = expected.filter((t) => byTeam[t])
+    .map((t) => `${t} ${byTeam[t]}`).join(", ");
+  const missing = expected.filter((t) => !byTeam[t]);
+  const unknownTeams = Object.keys(byTeam).filter((t) => !TEAM_FLAG[t])
+    .map((t) => `"${t}" (${byTeam[t]})`);
+  const lines = [`Fetched ${total} row(s) → ${pool.length} players.`];
+  if (teamLine) lines.push("By team: " + teamLine + ".");
+  if (missing.length) lines.push("⚠ No players for: " + missing.join(", ") + ".");
+  if (unknownTeams.length)
+    lines.push("⚠ Team name not recognised (no flag): " + unknownTeams.join(", ") + ".");
+  if (drops.length) {
+    lines.push(`Dropped ${drops.length} row(s):`);
+    lines.push(...drops.slice(0, 20).map((d) => "  • " + d));
+    if (drops.length > 20) lines.push(`  …and ${drops.length - 20} more.`);
+  } else {
+    lines.push("No rows dropped.");
+  }
+  return lines.join("\n");
+}
+
 async function savePlayersUrl() {
   const url = $("adm-players-url").value.trim();
   const log = (t) => $("adm-players-log").textContent = t;
   const btn = $("adm-players-save");
   btn.disabled = true;
   try {
-    let n = 0;
+    let report = "";
     if (url) {
       log("Fetching Players tab…");
-      const pool = playersFromCsv(await fetchCsv(url));
+      const records = await fetchCsv(url);
+      const { pool, drops } = playersFromCsv(records);
+      report = poolReport(records.length, pool, drops);
       if (!pool.length)
-        throw new Error("no valid rows — need columns player_id, name, team, position");
-      n = pool.length;
+        throw new Error("no valid rows — need columns player_id, name, team, position\n\n" + report);
     }
     log("Saving…");
     const { error } = await S.sb.from("leagues")
@@ -4980,9 +5027,7 @@ async function savePlayersUrl() {
     // Reload the pool now so the admin sees it immediately.
     S.players = []; S.playerById = {}; S.teams = [];
     await loadPlayers();
-    log(url ? `Saved — pool now loads ${S.players.length} players from the Players tab`
-             + (n !== S.players.length ? ` (${n} valid rows parsed)` : "") + "."
-           : "Cleared — pool uses the built-in players.json.");
+    log(url ? "Saved. " + report : "Cleared — pool uses the built-in players.json.");
     scheduleRefetch();
   } catch (e) {
     log("Failed: " + e.message
