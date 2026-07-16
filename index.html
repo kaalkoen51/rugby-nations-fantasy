@@ -273,6 +273,10 @@
           <input id="adm-lineups-url" placeholder="Lineups CSV URL (optional)" class="flex-1 min-w-0 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
           <button id="adm-pull-now" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-4 py-2 text-sm font-semibold">Pull now</button>
         </div>
+        <p class="text-xs text-slate-500">The pull only adds/updates rows — it never deletes, so removing a
+          player from the sheet won't clear their badge. Use this to wipe the current round's real matchday
+          lineups (completed rounds are kept), then re-pull the corrected sheet.</p>
+        <button id="adm-lineups-clear" class="w-full bg-slate-800 border border-slate-600 rounded-lg py-2 text-xs font-semibold">Clear upcoming matchday lineups</button>
         <pre id="adm-pull-log" class="text-xs text-slate-400 whitespace-pre-wrap"></pre>
       </div>
       <div class="rounded-xl border border-wcgold/60 bg-slate-900 p-4 space-y-3">
@@ -4863,7 +4867,12 @@ function parseCsv(text) {
 }
 
 async function fetchCsv(url) {
-  const resp = await fetch(url, { cache: "no-store" });
+  // Append a unique param so Google's published-CSV edge cache can't serve a
+  // stale snapshot — without it a pull can keep reading old rows for minutes
+  // after the sheet was edited. (Publish-to-web still lags a little on Google's
+  // side; give it a moment after editing.)
+  const bust = url + (url.includes("?") ? "&" : "?") + "_cb=" + Date.now();
+  const resp = await fetch(bust, { cache: "no-store" });
   if (!resp.ok) throw new Error(`fetch failed (${resp.status})`);
   return parseCsv(await resp.text());
 }
@@ -4910,6 +4919,7 @@ async function pullFromSheet() {
   const btn = $("adm-pull-now");
   btn.disabled = true;
   const notes = [];
+  let lineupDetail = "";
   try {
     if (statsUrl) {
       log("Fetching PlayerStats…");
@@ -4940,17 +4950,22 @@ async function pullFromSheet() {
     }
     if (lineupsUrl) {
       log("Fetching Lineups…");
-      const rows = [], skipped = [];
+      const rows = [], skipped = [], byMatch = {};
       for (const rec of await fetchCsv(lineupsUrl)) {
         const pid = (rec.player_id || "").trim();
-        const status = LINEUP_STATUS[(rec.status || "").trim().toLowerCase()];
-        if (!pid && !(rec.status || "").trim()) continue;    // blank line
+        const rawStatus = (rec.status || "").trim();
+        const status = LINEUP_STATUS[rawStatus.toLowerCase()];
+        if (!pid && !rawStatus) continue;                    // blank line
         const label = sheetMatchLabel(rec);
-        if (!pid || !status || !label || !S.playerById[pid]) { skipped.push(pid || "?"); continue; }
+        if (!pid) { skipped.push("(no player_id)"); continue; }
+        if (!S.playerById[pid]) { skipped.push(`${pid}: not in player pool`); continue; }
+        if (!status) { skipped.push(`${pid}: unrecognised status "${rawStatus}"`); continue; }
+        if (!label) { skipped.push(`${pid}: missing date/home_team/away_team`); continue; }
         rows.push({
           match_label: label, match_date: (rec.date || "").trim() || null,
           player_id: pid, status, jersey: sheetInt(rec.jersey) || null,
         });
+        byMatch[label] = (byMatch[label] || 0) + 1;
       }
       if (rows.length) {
         try {
@@ -4961,9 +4976,13 @@ async function pullFromSheet() {
         } catch (e) {
           notes.push(`lineups failed (${e.message} — run schema.sql?)`);
         }
+      } else {
+        notes.push(`0 lineup row(s)` + (skipped.length ? `, ${skipped.length} skipped` : ""));
       }
+      lineupDetail = lineupPullDetail(byMatch, skipped);
     }
-    log("Done — " + (notes.join("; ") || "nothing to write") + ".");
+    log("Done — " + (notes.join("; ") || "nothing to write") + "."
+      + (lineupDetail ? "\n\n" + lineupDetail : ""));
     scheduleRefetch();
   } catch (e) {
     log("Pull failed: " + e.message
@@ -4971,6 +4990,49 @@ async function pullFromSheet() {
   } finally {
     btn.disabled = false;
   }
+}
+
+// Per-match breakdown of a lineups pull + skipped rows with reasons. Flags any
+// match that already kicked off, since its badges are intentionally hidden
+// (buildLineupIndex only badges a team's upcoming/live match) — so "wrote the
+// rows but no badge" is explained rather than looking broken.
+function lineupPullDetail(byMatch, skipped) {
+  const cutoff = Date.now() - 3 * 3600 * 1000;
+  const lines = [];
+  const labels = Object.keys(byMatch).sort();
+  if (labels.length) {
+    lines.push("Lineups by match:");
+    for (const l of labels) {
+      const mt = matchTimeFor(l);
+      const past = mt && mt < cutoff;
+      lines.push(`  • ${l}: ${byMatch[l]} row(s)`
+        + (past ? " — ⚠ already kicked off, badges hidden (by design)" : ""));
+    }
+  }
+  if (skipped.length) {
+    lines.push(`Skipped ${skipped.length} row(s):`);
+    lines.push(...skipped.slice(0, 15).map((s) => "  • " + s));
+    if (skipped.length > 15) lines.push(`  …and ${skipped.length - 15} more.`);
+  }
+  return lines.join("\n");
+}
+
+// The lineups pull only ever upserts, so a row removed from the sheet lingers
+// in match_lineups (and keeps badging). This deletes the real matchday-lineup
+// rows for UPCOMING matches only — completed rounds are kept because their
+// starters feed the Ideal/Nightmare XV (startersInScope). Re-pull after.
+async function clearUpcomingLineups() {
+  const cutoff = Date.now() - 3 * 3600 * 1000;
+  const labels = [...new Set((S.lineups || [])
+    .map((r) => r.match_label)
+    .filter((l) => { const t = matchTimeFor(l); return !t || t >= cutoff; }))];
+  if (!labels.length) return toast("No upcoming-match lineups to clear.");
+  if (!confirm(`Clear the real matchday lineups for ${labels.length} upcoming match(es)?\n\n`
+    + labels.join("\n") + `\n\nCompleted rounds are kept. Re-pull the sheet afterwards.`)) return;
+  const { error } = await S.sb.from("match_lineups").delete().in("match_label", labels);
+  if (error) return toast("Clear failed: " + error.message);
+  toast(`Cleared lineups for ${labels.length} match(es).`);
+  scheduleRefetch();
 }
 
 // Save the league's Players-tab CSV url (shared config) and reload the pool.
@@ -5327,6 +5389,7 @@ function wire() {
   $("adm-save-h2h").onclick = () => saveH2HSettings().catch((e) => toast(e.message));
   $("adm-gen-h2h").onclick = () => generateH2HSchedule().catch((e) => toast(e.message));
   $("adm-pull-now").onclick = () => pullFromSheet().catch((e) => toast(e.message));
+  $("adm-lineups-clear").onclick = () => clearUpcomingLineups().catch((e) => toast(e.message));
   $("adm-players-save").onclick = () => savePlayersUrl().catch((e) => toast(e.message));
   $("adm-snapshot").onclick = () => {
     if (confirm("Snapshot every manager's current lineup as the locked state from today?"))
