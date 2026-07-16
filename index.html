@@ -787,6 +787,22 @@ async function refetchAll() {
     }
     return { data: all, error: null };
   };
+  // match_lineups is global and grows with every round, so it too outgrows the
+  // 1000-row request cap — page it (ordered by its composite PK for stable
+  // paging) so no player's matchday status silently drops.
+  const fetchAllLineups = async () => {
+    const PAGE = 1000;
+    let from = 0, all = [];
+    for (;;) {
+      const { data, error } = await S.sb.from("match_lineups").select("*")
+        .order("match_label").order("player_id").range(from, from + PAGE - 1);
+      if (error) return { data: all, error };
+      all = all.concat(data || []);
+      if (!data || data.length < PAGE) break;
+      from += PAGE;
+    }
+    return { data: all, error: null };
+  };
   const [l, m, p, st, tg, tr, sn, tx, fc, hf, ml] = await Promise.all([
     S.sb.from("leagues").select("*").eq("id", id).maybeSingle(),
     S.sb.from("managers").select("*").eq("league_id", id).order("created_at"),
@@ -802,8 +818,8 @@ async function refetchAll() {
     S.sb.from("fa_claims").select("*").eq("league_id", id)
       .order("created_at"),
     S.sb.from("h2h_fixtures").select("*").eq("league_id", id).order("round"),
-    // Matchday lineups are global (not per league) — fetch the lot.
-    S.sb.from("match_lineups").select("*"),
+    // Matchday lineups are global (not per league) — fetch the lot (paged).
+    fetchAllLineups(),
   ]);
   const err = l.error || m.error || p.error || st.error || tg.error || tr.error;
   if (err) { toast("Load failed: " + err.message); return; }
