@@ -275,6 +275,19 @@
         </div>
         <pre id="adm-pull-log" class="text-xs text-slate-400 whitespace-pre-wrap"></pre>
       </div>
+      <div class="rounded-xl border border-wcgold/60 bg-slate-900 p-4 space-y-3">
+        <h3 class="font-semibold text-sm">Player pool source</h3>
+        <p class="text-xs text-slate-500">Optional. Point the draft pool at your <b>Players</b> tab
+          (<b>Publish&nbsp;to&nbsp;web → CSV</b>) with columns
+          <code>player_id, name, team, position</code>. Saved for the whole league — every manager
+          loads the pool from here on refresh, so adding a player in the sheet just needs a refresh.
+          Leave blank to use the built-in <code>players.json</code>.</p>
+        <div class="flex gap-2">
+          <input id="adm-players-url" placeholder="Players tab — published CSV URL" class="flex-1 min-w-0 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm">
+          <button id="adm-players-save" class="shrink-0 bg-wcred hover:bg-wcred-hov rounded-lg px-4 py-2 text-sm font-semibold">Save &amp; reload</button>
+        </div>
+        <pre id="adm-players-log" class="text-xs text-slate-400 whitespace-pre-wrap"></pre>
+      </div>
       <h2 class="text-xl font-semibold">Manual stats entry</h2>
       <p class="text-xs text-slate-500">Fallback alongside the automated daily pull. Rows upsert on
         (player, match), so re-saving edits in place. Use the same match label format as the
@@ -647,17 +660,89 @@ async function resilientWrite(table, rows, opts = {}) {
 
 /* ---------- data loading & realtime ---------- */
 
+// Position text (long name or short code) from a "Players" tab -> one of the
+// eight scoring/roster codes the app keys off. Generous so the sheet can say
+// "Prop"/"PR", "Loose Forward"/"Flanker"/"No 8", "Outside Back"/"Wing", etc.
+const POS_CODE = {
+  pr: "PR", prop: "PR", "loosehead prop": "PR", "tighthead prop": "PR",
+  hk: "HK", hooker: "HK",
+  lk: "LK", lock: "LK", "second row": "LK",
+  lf: "LF", "loose forward": "LF", flanker: "LF", "back row": "LF",
+  "number 8": "LF", "no 8": "LF", "no. 8": "LF", "8": "LF",
+  sh: "SH", scrumhalf: "SH", "scrum-half": "SH", "scrum half": "SH",
+  fh: "FH", flyhalf: "FH", "fly-half": "FH", "fly half": "FH", "10": "FH",
+  ce: "CE", centre: "CE", center: "CE", "inside centre": "CE", "outside centre": "CE",
+  ob: "OB", "outside back": "OB", wing: "OB", winger: "OB",
+  fullback: "OB", "full back": "OB", "full-back": "OB",
+};
+const posCode = (v) => {
+  const k = String(v || "").trim().toLowerCase();
+  return POS_CODE[k] || (GROUPS.includes(k.toUpperCase()) ? k.toUpperCase() : null);
+};
+// Team name -> the squad-list name the flags/fixtures key off (reuses the
+// fixtures fix map, then matches TEAM_FLAG case-insensitively).
+const canonTeam = (v) => {
+  const t = String(v || "").trim();
+  if (TEAM_NAME_FIX[t]) return TEAM_NAME_FIX[t];
+  const hit = Object.keys(TEAM_FLAG).find((k) => k.toLowerCase() === t.toLowerCase());
+  return hit || t;
+};
+
+// Parse a "Players" tab (already keyed by player_id) into the players.json
+// shape. Rows missing player_id / name / a recognisable position are dropped.
+function playersFromCsv(records) {
+  const out = [];
+  for (const rec of records) {
+    const pid = (rec.player_id || "").trim();
+    const name = (rec.name || rec.player || rec.player_name || "").trim();
+    const pos = posCode(rec.position || rec.pos || rec.role);
+    if (!pid || !name || !pos) continue;
+    const team = canonTeam(rec.team || rec.country || rec.nation);
+    out.push({
+      player_id: pid, name, position: pos, role: pos, team,
+      team_code: (rec.team_code || "").trim() || undefined,
+    });
+  }
+  return out;
+}
+
+// The league can point the pool at a live "Players" tab (Admin). Read that
+// url from the shared league row so every manager loads the same pool. Absent
+// column / no session -> "" (falls back to players.json).
+async function leaguePlayersCsvUrl() {
+  const id = getSession()?.leagueId;
+  if (!id) return "";
+  try {
+    const { data } = await S.sb.from("leagues")
+      .select("players_csv_url").eq("id", id).maybeSingle();
+    return (data?.players_csv_url || "").trim();
+  } catch { return ""; }
+}
+
 async function loadPlayers() {
   if (S.players.length) return;
+  // Prefer the league's live Players tab when configured; otherwise (or on any
+  // fetch/parse error) fall back to the committed players.json.
+  let pool = null;
   try {
-    const resp = await fetch("players.json");
-    S.players = await resp.json();
-    S.teams = [...new Set(S.players.map((p) => p.team))].sort();
-    S.playerById = Object.fromEntries(S.players.map((p) => [p.player_id, p]));
-  } catch (e) {
-    toast("Could not load players.json — serve this file over HTTP (e.g. GitHub Pages or `python -m http.server`).");
-    throw e;
+    const url = await leaguePlayersCsvUrl();
+    if (url) {
+      pool = playersFromCsv(await fetchCsv(url));
+      if (!pool.length) pool = null;
+    }
+  } catch { pool = null; }
+  if (!pool) {
+    try {
+      const resp = await fetch("players.json");
+      pool = await resp.json();
+    } catch (e) {
+      toast("Could not load players.json — serve this file over HTTP (e.g. GitHub Pages or `python -m http.server`).");
+      throw e;
+    }
   }
+  S.players = pool;
+  S.teams = [...new Set(pool.map((p) => p.team))].sort();
+  S.playerById = Object.fromEntries(pool.map((p) => [p.player_id, p]));
 }
 
 async function refetchAll() {
@@ -4870,6 +4955,43 @@ async function pullFromSheet() {
   }
 }
 
+// Save the league's Players-tab CSV url (shared config) and reload the pool.
+// Validates by fetching + parsing before writing, so a bad link can't wipe the
+// pool. Blank clears it (back to players.json).
+async function savePlayersUrl() {
+  const url = $("adm-players-url").value.trim();
+  const log = (t) => $("adm-players-log").textContent = t;
+  const btn = $("adm-players-save");
+  btn.disabled = true;
+  try {
+    let n = 0;
+    if (url) {
+      log("Fetching Players tab…");
+      const pool = playersFromCsv(await fetchCsv(url));
+      if (!pool.length)
+        throw new Error("no valid rows — need columns player_id, name, team, position");
+      n = pool.length;
+    }
+    log("Saving…");
+    const { error } = await S.sb.from("leagues")
+      .update({ players_csv_url: url || null }).eq("id", S.league.id);
+    if (error) throw new Error(error.message + " — run schema.sql?");
+    if (S.league) S.league.players_csv_url = url || null;
+    // Reload the pool now so the admin sees it immediately.
+    S.players = []; S.playerById = {}; S.teams = [];
+    await loadPlayers();
+    log(url ? `Saved — pool now loads ${S.players.length} players from the Players tab`
+             + (n !== S.players.length ? ` (${n} valid rows parsed)` : "") + "."
+           : "Cleared — pool uses the built-in players.json.");
+    scheduleRefetch();
+  } catch (e) {
+    log("Failed: " + e.message
+      + "\n(If this is a CORS/network error, check the link is a Publish-to-web CSV.)");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 /* ---------- admin: trading window, waivers & H2H ---------- */
 
 function renderAdmin() {
@@ -4888,6 +5010,9 @@ function renderAdmin() {
     $("adm-stats-url").value = localStorage.getItem("wcf_stats_url") || "";
   if (!$("adm-lineups-url").value)
     $("adm-lineups-url").value = localStorage.getItem("wcf_lineups_url") || "";
+  // Players-pool url is shared league config (not per-device localStorage).
+  if (!$("adm-players-url").value)
+    $("adm-players-url").value = S.league.players_csv_url || "";
   const open = !!S.league.trading_open;
   $("adm-trading-status").textContent = open ? "Trading is OPEN" : "Trading is closed";
   $("adm-trading-status").className =
@@ -5157,6 +5282,7 @@ function wire() {
   $("adm-save-h2h").onclick = () => saveH2HSettings().catch((e) => toast(e.message));
   $("adm-gen-h2h").onclick = () => generateH2HSchedule().catch((e) => toast(e.message));
   $("adm-pull-now").onclick = () => pullFromSheet().catch((e) => toast(e.message));
+  $("adm-players-save").onclick = () => savePlayersUrl().catch((e) => toast(e.message));
   $("adm-snapshot").onclick = () => {
     if (confirm("Snapshot every manager's current lineup as the locked state from today?"))
       snapshotRosters().then(() => { toast("Lineups locked."); scheduleRefetch(); })

@@ -308,6 +308,12 @@ alter table leagues add column if not exists max_fa_per_window int;
 -- Free agents execute at window close (waiver order) by default in rugby.
 alter table leagues add column if not exists fa_defer_to_close boolean not null default true;
 
+-- Optional: point the draft pool at a live "Players" tab (Publish to web ->
+-- CSV) instead of the committed players.json. League-wide so every manager's
+-- browser loads the same pool from it on refresh. Columns: player_id, name,
+-- team, position. Null/blank -> fall back to players.json. Set in Admin.
+alter table leagues add column if not exists players_csv_url text;
+
 -- Head-to-Head log table config (set before the draft). H2H is the default
 -- standings for rugby: the table ranks by H2H log points, not cumulative
 -- total. h2h_score_bonus = an attacking bonus point for scoring at/above this
