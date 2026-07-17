@@ -449,6 +449,10 @@
         <option value="free">Free agents only</option>
         <option value="owned">Owned only</option>
       </select>
+      <select id="swap-avail" class="flex-1 rounded-lg bg-slate-800 border border-slate-700 px-2 py-1.5">
+        <option value="all">Any availability</option>
+        <option value="matchday">In next matchday</option>
+      </select>
     </div>
     <ul id="swap-list" class="overflow-y-auto divide-y divide-slate-800 flex-1 min-h-0"></ul>
     <button id="swap-close" class="mt-3 w-full bg-slate-800 border border-slate-700 rounded-lg py-2 text-sm font-semibold">Cancel</button>
@@ -3783,6 +3787,7 @@ function openSwap(pick) {
   $("swap-team").value = "";
   $("swap-sort").value = S.swapSort || "total";
   $("swap-own").value = S.swapOwn || "all";
+  $("swap-avail").value = S.swapAvail || "all";
   renderSwapList();
   $("swap-sheet").classList.remove("hidden");
 }
@@ -3821,16 +3826,24 @@ function renderSwapList() {
   };
   const valLabel = sortKey === "avg" ? "avg" : sortKey === "form" ? "form" : "pts";
   const own = S.swapOwn || "all";
+  // Matchday filter: only players named in the next round's real XV or bench
+  // (a start/bench lineup badge). "out" or no badge is excluded.
+  const avail = S.swapAvail || "all";
+  const availOk = (pid) => {
+    if (avail !== "matchday") return true;
+    const st = S.lineupByPlayer?.[pid]?.status;
+    return st === "start" || st === "bench";
+  };
 
   const free = (own === "owned" ? [] : availableForGroup(group)
-    .filter((e) => match(e.name, e.team) && !isEliminated(e.team))
+    .filter((e) => match(e.name, e.team) && !isEliminated(e.team) && availOk(e.player_id))
     .map((e) => ({ ...e, _v: sortVal(e.player_id, e.position, e.team) }))
     .sort((a, b) => b._v - a._v).slice(0, 60));
   // Same-position players already on other rosters: tapping one jumps
   // straight into a trade proposal with their owner.
   const owned = (own === "free" ? [] : S.picks
     .filter((pk) => pk.position === group && pk.slot !== "TEAM"
-      && pk.manager_id !== me?.id && match(pk.player_name, pk.team))
+      && pk.manager_id !== me?.id && match(pk.player_name, pk.team) && availOk(pk.player_id))
     .map((pk) => ({ pk, owner: S.managers.find((m) => m.id === pk.manager_id),
                     _v: sortVal(pk.player_id, pk.position, pk.team) }))
     .sort((a, b) => b._v - a._v).slice(0, 40));
@@ -5432,6 +5445,7 @@ function wire() {
   $("swap-team").onchange = renderSwapList;
   $("swap-sort").onchange = () => { S.swapSort = $("swap-sort").value; renderSwapList(); };
   $("swap-own").onchange = () => { S.swapOwn = $("swap-own").value; renderSwapList(); };
+  $("swap-avail").onchange = () => { S.swapAvail = $("swap-avail").value; renderSwapList(); };
   $("lineup-cancel").onclick = () => $("lineup-sheet").classList.add("hidden");
   $("lineup-save").onclick = () => saveLineup().catch((e) => toast(e.message));
   ["adm-home", "adm-away", "adm-date", "adm-label"].forEach((id) =>
