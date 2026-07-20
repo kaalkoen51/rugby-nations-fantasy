@@ -151,6 +151,28 @@ check("bye manager has fewer played games", [byId("c").P, byId("a").P], [1, 2]);
 check("bye is counted and scoreless", [byId("c").byes, byId("b").byes], [1, 1]);
 check("bye awards no log points", byId("c").logPts, byId("c").W * H.win);
 
+// Tiebreak: equal log points -> head-to-head result between the tied pair.
+// a & b both finish on 8 log points; a beat b when they met (R1) -> a ranks
+// above b even though b has the higher points-for.
+const tieFx = [
+  { round: 1, home: "a", away: "b" },
+  { round: 2, home: "a", away: "c" }, { round: 2, home: "b", away: "d" },
+  { round: 3, home: "a", away: "d" }, { round: 3, home: "b", away: "c" },
+];
+const tieTbl = h2hTable(["a", "b", "c", "d"],
+  { a: [300, 200, 200], b: [200, 300, 300], c: [0, 200, 200], d: [0, 200, 200] },
+  tieFx, H);
+check("tied log points: head-to-head winner ranks first",
+  [tieTbl[0].mgrId, tieTbl[1].mgrId], ["a", "b"]);
+check("tied pair really are level on log points", tieTbl[0].logPts, tieTbl[1].logPts);
+
+// Tiebreak fallback: equal log points but the pair never met -> points-for.
+const pfFx = [{ round: 1, home: "a", away: "c" }, { round: 1, home: "b", away: "d" }];
+const pfTbl = h2hTable(["a", "b", "c", "d"],
+  { a: [300], b: [250], c: [100], d: [100] }, pfFx, H);
+check("tied log points, never met: higher points-for ranks first",
+  [pfTbl[0].mgrId, pfTbl[1].mgrId], ["a", "b"]);
+
 /* ---------- free-agent waivers (ordered preference lists) ---------- */
 // claim(id, mgr, in, pick, out, rank, t): trade OUT `out` (held by `pick`) for
 // free-agent `in`, ranked `rank` in the manager's preference list.
@@ -191,6 +213,18 @@ const lim = resolveFaClaims([
 ], { m1: 0 }, [], 2, { pk1: "o1", pk2: "o2", pk3: "o3" });
 check("trade limit: only first two execute", lim.awards.map((a) => a.id), ["c1", "c2"]);
 check("trade limit: rest fail", lim.failed, ["c3"]);
+
+// Once a manager hits their cap, their remaining claims are IGNORED — they must
+// not count as a competing claim on a player. m1 (cap 1) takes p1, so its p2
+// claim is ignored; m2 then wins p2 uncontested and keeps its waiver priority.
+const capd = resolveFaClaims([
+  claim("c1", "m1", "p1", "pk1", "o1", 0, "t1"),
+  claim("c2", "m1", "p2", "pk2", "o2", 1, "t2"),
+  claim("c3", "m2", "p2", "pk3", "o3", 0, "t3"),
+], { m1: 0, m2: 1 }, [], 1, { pk1: "o1", pk2: "o2", pk3: "o3" });
+check("capped: only in-cap claims execute", capd.awards.map((a) => a.id).sort(), ["c1", "c3"]);
+check("capped: over-cap claim fails", capd.failed, ["c2"]);
+check("capped: ignored claim doesn't contest (winner keeps priority)", capd.order.m2, 1);
 
 check("already-rostered player fails",
   resolveFaClaims([claim("c1", "m1", "p1", "pk1", "o1", 0, "t1")], { m1: 0 }, ["p1"], Infinity, { pk1: "o1" }).failed, ["c1"]);

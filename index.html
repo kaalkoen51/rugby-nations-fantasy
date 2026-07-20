@@ -2377,8 +2377,29 @@ function h2hTable(mgrIds, scoresByMgr, fixtures, cfg) {
     ta.bonus += res.bonusA; tb.bonus += res.bonusB;
     ta.logPts += res.ptsA + res.bonusA; tb.logPts += res.ptsB + res.bonusB;
   }
-  return Object.values(t).sort((x, y) =>
-    y.logPts - x.logPts || (y.PF - y.PA) - (x.PF - x.PA) || y.PF - x.PF);
+  // Head-to-head between two managers: sum each side's points across the rounds
+  // they actually faced each other. >0 = x ahead on their meetings, <0 = y
+  // ahead, 0 = they never met or their meetings were level (a draw).
+  const h2hBetween = (x, y) => {
+    let px = 0, py = 0, met = false;
+    for (const fx of fixtures) {
+      const { round, home: a, away: b } = fx;
+      if (!a || !b) continue;
+      if (!((a === x && b === y) || (a === y && b === x))) continue;
+      const sx = scoresByMgr[x]?.[round - 1], sy = scoresByMgr[y]?.[round - 1];
+      if (sx === undefined || sy === undefined) continue;
+      px += sx; py += sy; met = true;
+    }
+    return met ? px - py : 0;
+  };
+  // Order: log points, then the head-to-head result between the tied pair (if
+  // they've played and it wasn't a draw), then points for.
+  return Object.values(t).sort((x, y) => {
+    if (y.logPts !== x.logPts) return y.logPts - x.logPts;
+    const h2h = h2hBetween(x.mgrId, y.mgrId);
+    if (h2h) return -h2h;                       // x won their meeting(s) -> x first
+    return y.PF - x.PF;
+  });
 }
 
 // Per-manager round scores (each round's player-point subtotal) + the max
@@ -2594,10 +2615,24 @@ function resolveFaClaims(claims, waiverOrder, taken, tradeLimit, pickHolds) {
   const awards = [], failed = [];
   const active = () => Object.keys(byMgr).filter((m) => !done[m]);
 
+  // A manager who has hit their successful-claim cap is finished for the window:
+  // every remaining (unreached) claim of theirs is IGNORED — it fails, and it is
+  // removed from `wanters` so it can no longer make a player "contested" for a
+  // later manager (an ignored claim must not affect waiver ordering).
+  const capOut = (m) => {
+    done[m] = true;
+    for (let i = ptr[m] ?? 0; i < byMgr[m].length; i++) {
+      const c = byMgr[m][i];
+      wanters[c.in_player_id]?.delete(m);
+      failed.push(c.id);
+    }
+    ptr[m] = byMgr[m].length;
+  };
+
   while (active().length) {
     const m = active().sort((a, b) => prio(a) - prio(b) || String(a).localeCompare(String(b)))[0];
     ptr[m] ??= 0; count[m] ??= 0;
-    if (count[m] >= tradeLimit) { done[m] = true; continue; }
+    if (count[m] >= tradeLimit) { capOut(m); continue; }
     let executed = null;
     while (ptr[m] < byMgr[m].length) {
       const c = byMgr[m][ptr[m]]; ptr[m]++;
@@ -2610,7 +2645,7 @@ function resolveFaClaims(claims, waiverOrder, taken, tradeLimit, pickHolds) {
     }
     if (!executed) { done[m] = true; continue; }
     if (contested(executed.in_player_id)) { maxOrder += 1; order[m] = maxOrder; }  // knocked down -> yield
-    if (count[m] >= tradeLimit) done[m] = true;
+    if (count[m] >= tradeLimit) capOut(m);
   }
   for (const m in byMgr)                                       // anything unreached fails
     for (let i = ptr[m] ?? 0; i < byMgr[m].length; i++) failed.push(byMgr[m][i].id);
